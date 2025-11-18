@@ -94,7 +94,7 @@
   </v-snackbar>
 </template>
 <script setup>
-  import { fireuser } from '@/plugins/firebase.client';
+  // import { fireuser } from '@/plugins/firebase.client'; // TODO: Move to Cloudflare Workers
   import { computed, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useUserStore } from '@/stores/user';

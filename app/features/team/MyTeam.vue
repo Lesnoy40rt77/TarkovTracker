@@ -55,7 +55,7 @@
 <script setup>
   import { ref, computed, watch, nextTick } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import { fireuser, auth, functions, httpsCallable } from '@/plugins/firebase.client';
+  // import { fireuser, auth, functions, httpsCallable } from '@/plugins/firebase.client'; // TODO: Move to Cloudflare Workers
   import { useLiveData } from '@/composables/livedata';
   import { useUserStore } from '@/stores/user';
   import { useTarkovStore } from '@/stores/tarkov';

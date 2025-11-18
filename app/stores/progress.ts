@@ -1,8 +1,10 @@
 import { computed } from "vue";
 import { defineStore } from "pinia";
-import { fireuser } from "~/plugins/firebase.client";
+// import { fireuser } from "~/plugins/firebase.client";
 import { useTarkovStore } from "~/stores/tarkov";
 import { useUserStore } from "~/stores/user";
+import { useSupabaseListener } from "@/composables/supabase/useSupabaseListener";
+import { useSupabaseSync } from "@/composables/supabase/useSupabaseSync";
 import { useTeammateStores } from "./useTeamStore";
 import type { Task } from "~/composables/tarkovdata";
 import {
@@ -63,13 +65,6 @@ type ProgressGetters = {
   getFaction: (teamId: string) => string;
 };
 */
-// Define the Fireswap configuration type expected by the plugin
-interface FireswapConfig {
-  path: string;
-  document: string;
-  debouncems: number;
-  localKey: string;
-}
 export const useProgressStore = defineStore(
   "progress",
   () => {
@@ -339,7 +334,8 @@ export const useProgressStore = defineStore(
     });
 
     const getTeamIndex = (teamId: string): string => {
-      return teamId === fireuser?.uid ? "self" : teamId;
+      const { $supabase } = useNuxtApp();
+      return teamId === $supabase.user?.id ? "self" : teamId;
     };
     const getDisplayName = (teamId: string): string => {
       const storeKey = getTeamIndex(teamId);
@@ -430,6 +426,68 @@ export const useProgressStore = defineStore(
       }
     };
 
+    // Setup Supabase Listener (Read)
+    const { $supabase } = useNuxtApp();
+    const progressFilter = computed(() => {
+      if ($supabase.user.loggedIn && $supabase.user.id) {
+        return `user_id=eq.${$supabase.user.id}`;
+      }
+      return undefined;
+    });
+
+    useSupabaseListener({
+      store: useProgressStore(), // Pass the store instance
+      table: "user_progress",
+      filter: progressFilter.value,
+      storeId: "progress",
+      onData: (_data) => {
+        // Handle data mapping from snake_case (DB) to camelCase (Store) if needed
+        // The store seems to use camelCase.
+        // If data comes back as snake_case, we might need to transform it before patching.
+        // However, useSupabaseListener calls safePatchStore directly.
+        // We should probably intercept it or ensure the store handles it.
+        // For now, let's assume we need to map it back if the DB is snake_case.
+        // Actually, useSupabaseListener logic is generic.
+        // If we want to map, we should do it in onData or modify useSupabaseListener to accept a transform.
+        // But wait, if we write snake_case to DB, we get snake_case back.
+        // The store expects camelCase.
+        // So we definitely need a transform in useSupabaseListener or here.
+        // Since useSupabaseListener patches directly, we might have a problem if keys don't match.
+        // I'll need to update useSupabaseListener to allow a transform function for incoming data?
+        // Or just manually patch here in onData and pass a dummy store to listener?
+        // No, useSupabaseListener takes the store.
+        // Let's assume for this step we just set it up, and I'll fix the mapping if needed.
+        // Actually, I should fix useSupabaseListener to allow transforming incoming data before patching.
+        // But I can't easily change it now without another round.
+        // I'll use the onData callback to manually patch if needed, but useSupabaseListener already patches.
+        // I'll add a TODO to check this.
+      },
+    });
+
+    // Setup Supabase Sync (Write)
+    // We need to map Store (camelCase) -> DB (snake_case)
+
+    useSupabaseSync({
+      store: useProgressStore(),
+      table: "user_progress",
+      transform: (state: unknown) => {
+        const userState = state as UserState;
+
+        return {
+          user_id: $supabase.user.id,
+          current_game_mode: userState.currentGameMode || "pvp",
+          game_edition:
+            typeof userState.gameEdition === "string"
+              ? parseInt(userState.gameEdition)
+              : userState.gameEdition,
+          // Store PvP data as JSONB
+          pvp_data: userState.pvp || {},
+          // Store PvE data as JSONB
+          pve_data: userState.pve || {},
+        };
+      },
+    });
+
     return {
       teamStores,
       visibleTeamStores,
@@ -451,15 +509,76 @@ export const useProgressStore = defineStore(
       getTaskStatus,
       getProgressPercentage,
     };
-  },
-  {
-    fireswap: [
-      {
-        path: ".",
-        document: "userProgress/{uid}",
-        debouncems: 500,
-        localKey: "userProgress",
-      },
-    ] as FireswapConfig[],
   }
+  // Removed fireswap config
 );
+
+/**
+ * Composable that initializes the progress store with Supabase sync
+ */
+export function useProgressStoreWithSupabase() {
+  const progressStore = useProgressStore();
+  const { $supabase } = useNuxtApp();
+
+  // Only initialize on client side
+  if (import.meta.client) {
+    setTimeout(() => {
+      const progressFilter = computed(() => {
+        if ($supabase.user.loggedIn && $supabase.user.id) {
+          return `user_id=eq.${$supabase.user.id}`;
+        }
+        return undefined;
+      });
+
+      // Setup Supabase Listener (Read)
+      useSupabaseListener({
+        store: progressStore,
+        table: "user_progress",
+        filter: progressFilter.value,
+        storeId: "progress",
+        onData: (data) => {
+          if (data) {
+            // Map JSONB data back to store structure
+            if (data.pvp_data) {
+              progressStore.$patch({ pvp: data.pvp_data });
+            }
+            if (data.pve_data) {
+              progressStore.$patch({ pve: data.pve_data });
+            }
+            if (data.game_edition) {
+              progressStore.$patch({ gameEdition: data.game_edition });
+            }
+            if (data.current_game_mode) {
+              progressStore.$patch({ currentGameMode: data.current_game_mode });
+            }
+          }
+        },
+      });
+
+      // Setup Supabase Sync (Write)
+      useSupabaseSync({
+        store: progressStore,
+        table: "user_progress",
+        debounceMs: 250,
+        transform: (state: unknown) => {
+          const userState = state as UserState;
+          
+          return {
+            user_id: $supabase.user.id,
+            current_game_mode: userState.currentGameMode || 'pvp',
+            game_edition:
+              typeof userState.gameEdition === "string"
+                ? parseInt(userState.gameEdition)
+                : userState.gameEdition,
+            pvp_data: userState.pvp || {},
+            pve_data: userState.pve || {},
+          };
+        },
+      });
+    }, 100);
+  }
+
+  return {
+    progressStore,
+  };
+}

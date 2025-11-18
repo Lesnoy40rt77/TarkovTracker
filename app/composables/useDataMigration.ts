@@ -1,25 +1,27 @@
-import { ref, computed } from 'vue';
-import { fireuser } from '@/plugins/firebase.client';
-import { markDataMigrated } from '@/plugins/store-initializer';
-import DataMigrationService, { type ProgressData } from '@/utils/DataMigrationService';
-import { useTarkovStore } from '@/stores/tarkov';
-import type { StoreWithFireswapExt } from '@/plugins/pinia-firestore';
+import { ref, computed } from "vue";
+// import { fireuser } from "@/plugins/firebase.client"; // TODO: Move to Cloudflare Workers
+import { markDataMigrated } from "@/plugins/store-initializer";
+import DataMigrationService, {
+  type ProgressData,
+} from "@/utils/DataMigrationService";
+// import { useTarkovStore } from "@/stores/tarkov";
+// import type { StoreWithFireswapExt } from "@/plugins/pinia-firestore";
 
 export type ImportedData = ProgressData;
 
 export function useDataMigration() {
   // API migration state
-  const apiToken = ref('');
-  const apiEndpoint = ref('https://tarkovtracker.io/api/v2/progress');
-  const apiError = ref('');
-  const apiEndpointError = ref('');
+  const apiToken = ref("");
+  const apiEndpoint = ref("https://tarkovtracker.io/api/v2/progress");
+  const apiError = ref("");
+  const apiEndpointError = ref("");
   const fetchingApi = ref(false);
   const apiFetchSuccess = ref(false);
   const showToken = ref(false);
 
   // Import state
   const importing = ref(false);
-  const importError = ref('');
+  const importError = ref("");
   const importSuccess = ref(false);
   const confirmDialog = ref(false);
   const importedData = ref<ProgressData | null>(null);
@@ -28,17 +30,21 @@ export function useDataMigration() {
   const showObjectivesDetails = ref(false);
   const showFailedTaskDetails = ref(false);
 
-  const tarkovStore = useTarkovStore() as StoreWithFireswapExt<ReturnType<typeof useTarkovStore>>;
+  // const tarkovStore = useTarkovStore(); // Removed - no longer needed
 
   // Computed properties for data counts
   const countCompletedTasks = computed(() => {
     if (!importedData.value?.taskCompletions) return 0;
-    return Object.values(importedData.value.taskCompletions).filter((t) => t.complete).length;
+    return Object.values(importedData.value.taskCompletions).filter(
+      (t) => t.complete
+    ).length;
   });
 
   const countFailedTasks = computed(() => {
     if (!importedData.value?.taskCompletions) return 0;
-    return Object.values(importedData.value.taskCompletions).filter((t) => t.failed).length;
+    return Object.values(importedData.value.taskCompletions).filter(
+      (t) => t.failed
+    ).length;
   });
 
   const countTaskObjectives = computed(() => {
@@ -48,7 +54,9 @@ export function useDataMigration() {
 
   const countHideoutModules = computed(() => {
     if (!importedData.value?.hideoutModules) return 0;
-    return Object.values(importedData.value.hideoutModules).filter((m) => m.complete).length;
+    return Object.values(importedData.value.hideoutModules).filter(
+      (m) => m.complete
+    ).length;
   });
 
   const countHideoutParts = computed(() => {
@@ -66,13 +74,13 @@ export function useDataMigration() {
   // API functions
   const fetchWithApiToken = async () => {
     fetchingApi.value = true;
-    apiError.value = '';
+    apiError.value = "";
     apiFetchSuccess.value = false;
-    apiEndpointError.value = '';
+    apiEndpointError.value = "";
 
     try {
       if (!apiToken.value || apiToken.value.length < 10) {
-        apiError.value = 'Please enter a valid API token';
+        apiError.value = "Please enter a valid API token";
         return;
       }
 
@@ -80,18 +88,23 @@ export function useDataMigration() {
       try {
         new URL(endpoint);
       } catch {
-        apiEndpointError.value = 'Please enter a valid URL (must start with https://)';
+        apiEndpointError.value =
+          "Please enter a valid URL (must start with https://)";
         return;
       }
 
-      if (!endpoint.endsWith('/api/v2/progress')) {
-        apiEndpointError.value = 'Endpoint must end with /api/v2/progress';
+      if (!endpoint.endsWith("/api/v2/progress")) {
+        apiEndpointError.value = "Endpoint must end with /api/v2/progress";
         return;
       }
 
-      const data = await DataMigrationService.fetchDataWithApiToken(apiToken.value, endpoint);
+      const data = await DataMigrationService.fetchDataWithApiToken(
+        apiToken.value,
+        endpoint
+      );
       if (!data) {
-        apiError.value = 'Failed to fetch data. Please check your token, endpoint, and try again.';
+        apiError.value =
+          "Failed to fetch data. Please check your token, endpoint, and try again.";
         return;
       }
 
@@ -99,9 +112,11 @@ export function useDataMigration() {
       apiFetchSuccess.value = true;
       confirmDialog.value = true;
     } catch (error: unknown) {
-      console.error('Error fetching data with API token:', error);
+      console.error("Error fetching data with API token:", error);
       const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error occurred during fetch.';
+        error instanceof Error
+          ? error.message
+          : "Unknown error occurred during fetch.";
       apiError.value = `Error: ${errorMessage}`;
     } finally {
       fetchingApi.value = false;
@@ -110,32 +125,36 @@ export function useDataMigration() {
 
   const confirmImport = async () => {
     importing.value = true;
-    importError.value = '';
+    importError.value = "";
 
     try {
+      const { $supabase } = useNuxtApp();
+      if (!$supabase.user.id) {
+        importError.value = "User not logged in";
+        return;
+      }
+
       const result = await DataMigrationService.importDataToUser(
-        fireuser.uid!,
+        $supabase.user.id,
         importedData.value!,
-        'pvp' // Force PvP mode only
+        "pvp" // Force PvP mode only
       );
       if (result) {
         importSuccess.value = true;
         markDataMigrated();
 
-        if (tarkovStore && typeof tarkovStore.firebindAll === 'function') {
-          tarkovStore.firebindAll();
-        } else {
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
-        }
+        // Trigger a page reload to reinitialize stores
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
-        importError.value = 'Failed to import data. Please try again.';
+        importError.value = "Failed to import data. Please try again.";
       }
     } catch (error: unknown) {
-      console.error('Error during import:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      importError.value = 'Error during import: ' + errorMessage;
+      console.error("Error during import:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      importError.value = "Error during import: " + errorMessage;
     } finally {
       importing.value = false;
       confirmDialog.value = false;

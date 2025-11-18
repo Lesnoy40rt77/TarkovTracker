@@ -12,7 +12,20 @@
 - [x] Apollo client setup and GraphQL composables verified (debug page shows 11 traders, 508 tasks, 13 maps)
 - [x] Firebase Auth initialization verified (auth state tracking working, OAuth buttons visible)
 - [ ] VueFire configuration and real-time listeners still need end-to-end validation with authenticated user.
-- [ ] Game mode mapping (pvp→regular) needs to be applied globally in all GraphQL queries.
+- [x] Game mode mapping (pvp→regular) applied globally in `useTarkovApi.ts`.
+
+## Critical Gaps for Deployment
+- [ ] **Missing Component**: `app/features/dashboard/TrackerDashboard.vue` is missing. The home page will not render.
+- [ ] **Deployment Config**: `firebase.json` and `firestore.rules` are missing.
+- [ ] **VueFire**: Real-time listeners need final validation.
+
+## Component Migration Status
+- **Dashboard**: `TrackerDashboard.vue` MISSING. `TrackerStat.vue` present.
+- **Tasks**: `TaskCard.vue` and dependencies present.
+- **Hideout**: `HideoutCard.vue` present.
+- **Settings**: `ApiTokens.vue`, `DataMigrationCard.vue`, `AccountDeletionCard.vue` present.
+- **Maps**: `TarkovMap.vue` present.
+- **UI**: `TrackerTip.vue`, `RefreshButton.vue`, `FittedCard.vue` present.
 
 ## Quick Reference - What to Migrate from TarkovTracker
 

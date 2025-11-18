@@ -59,9 +59,9 @@ export function useTarkovApi() {
         errorPolicy: "all",
       });
     onLanguageResult((result) => {
-      availableLanguages.value =
-        result.data?.__type?.enumValues.map((enumValue: { name: string }) => enumValue.name) ??
-        ["en"];
+      availableLanguages.value = result.data?.__type?.enumValues.map(
+        (enumValue: { name: string }) => enumValue.name
+      ) ?? ["en"];
     });
     onLanguageError((error) => {
       console.error("Language query failed:", error);
@@ -83,12 +83,21 @@ export function useTarkovDataQuery(
 ) {
   // Get language code from the API composable to ensure consistency
   const { languageCode: apiLanguageCode } = useTarkovApi();
+
+  // Map internal game modes to API game modes
+  // Internal: "pvp" | "pve"
+  // API: "regular" | "pve"
+  const apiGameMode = computed(() => {
+    const mode = gameMode.value;
+    return mode === "pvp" ? "regular" : mode;
+  });
+
   const { result, error, loading, refetch } = useQuery<
     TarkovDataQueryResult,
     { lang: string; gameMode: string }
   >(
     tarkovDataQuery,
-    () => ({ lang: apiLanguageCode.value, gameMode: gameMode.value }),
+    () => ({ lang: apiLanguageCode.value, gameMode: apiGameMode.value }),
     {
       fetchPolicy: "cache-first",
       notifyOnNetworkStatusChange: true,
@@ -99,7 +108,7 @@ export function useTarkovDataQuery(
   );
   // Watch for language and gameMode changes and refetch
   watch(
-    [apiLanguageCode, gameMode],
+    [apiLanguageCode, apiGameMode],
     ([newLang, newGameMode], [oldLang, oldGameMode]) => {
       if (
         (oldLang !== newLang || oldGameMode !== newGameMode) &&
@@ -126,12 +135,19 @@ export function useTarkovHideoutQuery(
 ) {
   // Get language code from the API composable to ensure consistency
   const { languageCode: apiLanguageCode } = useTarkovApi();
+
+  // Map internal game modes to API game modes
+  const apiGameMode = computed(() => {
+    const mode = gameMode.value;
+    return mode === "pvp" ? "regular" : mode;
+  });
+
   const { result, error, loading, refetch } = useQuery<
     TarkovHideoutQueryResult,
     { lang: string; gameMode: string }
   >(
     tarkovHideoutQuery,
-    () => ({ lang: apiLanguageCode.value, gameMode: gameMode.value }),
+    () => ({ lang: apiLanguageCode.value, gameMode: apiGameMode.value }),
     {
       fetchPolicy: "cache-and-network",
       notifyOnNetworkStatusChange: true,
@@ -142,7 +158,7 @@ export function useTarkovHideoutQuery(
   );
   // Watch for language and gameMode changes and refetch
   watch(
-    [apiLanguageCode, gameMode],
+    [apiLanguageCode, apiGameMode],
     ([newLang, newGameMode], [oldLang, oldGameMode]) => {
       if (
         (oldLang !== newLang || oldGameMode !== newGameMode) &&

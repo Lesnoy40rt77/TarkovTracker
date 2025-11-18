@@ -12,6 +12,9 @@ export default defineNuxtConfig({
   ssr: false,
   srcDir: "app",
   devtools: { enabled: false },
+  nitro: {
+    preset: "cloudflare-pages",
+  },
 
   app: {
     baseURL: "/",

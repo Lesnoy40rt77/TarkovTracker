@@ -1,6 +1,6 @@
 <template>
   <v-list nav bg-color="transparent" class="mx-auto">
-    <template v-if="fireuser.loggedIn">
+    <template v-if="isLoggedIn">
       <v-list-group value="user-account-menu">
         <template #activator="{ props: activatorProps }">
           <template v-if="isCollapsed">
@@ -40,7 +40,6 @@
   </v-list>
 </template>
 <script setup>
-import { fireuser, auth, signOut } from "@/plugins/firebase.client";
 import { defineAsyncComponent, computed } from "vue";
 import { useUserStore } from "@/stores/user";
 
@@ -50,23 +49,29 @@ defineProps({
     required: true,
   },
 });
+
+const { $supabase } = useNuxtApp();
 const userStore = useUserStore();
 const DrawerItem = defineAsyncComponent(
   () => import("@/features/drawer/DrawerItem.vue")
 );
 
+const isLoggedIn = computed(() => $supabase.user?.loggedIn ?? false);
+
 const avatarSrc = computed(() => {
-  return userStore.getStreamerMode || !fireuser.photoURL
+  return userStore.getStreamerMode || !$supabase.user.photoURL
     ? "/img/default-avatar.svg"
-    : fireuser.photoURL;
+    : $supabase.user.photoURL;
 });
 
 const userDisplayName = computed(() => {
-  return userStore.getStreamerMode ? "User" : fireuser.displayName;
+  return userStore.getStreamerMode
+    ? "User"
+    : $supabase.user.displayName || "User";
 });
 
 function logout() {
-  signOut(auth);
+  $supabase.signOut();
 }
 </script>
 <style lang="scss" scoped>

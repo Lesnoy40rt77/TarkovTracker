@@ -1,9 +1,9 @@
-import { fireuser } from '@/plugins/firebase.client';
-import { defineStore, type StoreDefinition } from 'pinia';
-import { watch } from 'vue';
-import { pinia as pluginPinia } from '@/plugins/pinia.client';
-import { useNuxtApp } from '#imports';
-import type { StoreWithFireswapExt } from '@/plugins/pinia-firestore';
+// import { fireuser } from "@/plugins/firebase.client";
+import { defineStore, type StoreDefinition } from "pinia";
+import { watch } from "vue";
+import { pinia as pluginPinia } from "@/plugins/pinia.client";
+import { useNuxtApp } from "#imports";
+// import type { StoreWithFireswapExt } from "@/plugins/pinia-firestore";
 // Define the state structure
 interface UserState {
   allTipsHidden: boolean;
@@ -117,11 +117,15 @@ type UserActions = {
   setNeededItemsStyle(style: string): void;
   setHideoutPrimaryView(view: string): void;
 };
-// Define the store type including the fireswap property
-// Changed interface to type alias to resolve no-empty-object-type error
-type UserStoreDefinition = StoreDefinition<'swapUser', UserState, UserGetters, UserActions>;
+// Define the store type
+type UserStoreDefinition = StoreDefinition<
+  "swapUser",
+  UserState,
+  UserGetters,
+  UserActions
+>;
 
-export const useUserStore: UserStoreDefinition = defineStore('swapUser', {
+export const useUserStore: UserStoreDefinition = defineStore("swapUser", {
   state: (): UserState => {
     const state = JSON.parse(JSON.stringify(defaultState));
     // Always reset saving state on store creation
@@ -130,7 +134,8 @@ export const useUserStore: UserStoreDefinition = defineStore('swapUser', {
   },
   getters: {
     showTip: (state) => {
-      return (tipKey: string): boolean => !state.allTipsHidden && !state.hideTips?.[tipKey];
+      return (tipKey: string): boolean =>
+        !state.allTipsHidden && !state.hideTips?.[tipKey];
     },
     hiddenTipCount: (state) => {
       // Ensure hideTips exists before getting keys
@@ -163,22 +168,22 @@ export const useUserStore: UserStoreDefinition = defineStore('swapUser', {
     },
     // Add default values for views using nullish coalescing
     getTaskPrimaryView: (state) => {
-      return state.taskPrimaryView ?? 'all';
+      return state.taskPrimaryView ?? "all";
     },
     getTaskMapView: (state) => {
-      return state.taskMapView ?? 'all';
+      return state.taskMapView ?? "all";
     },
     getTaskTraderView: (state) => {
-      return state.taskTraderView ?? 'all';
+      return state.taskTraderView ?? "all";
     },
     getTaskSecondaryView: (state) => {
-      return state.taskSecondaryView ?? 'available';
+      return state.taskSecondaryView ?? "available";
     },
     getTaskUserView: (state) => {
-      return state.taskUserView ?? 'all';
+      return state.taskUserView ?? "all";
     },
     getNeededTypeView: (state) => {
-      return state.neededTypeView ?? 'all';
+      return state.neededTypeView ?? "all";
     },
     itemsNeededHideNonFIR: (state) => {
       return state.itemsHideNonFIR ?? false;
@@ -190,10 +195,10 @@ export const useUserStore: UserStoreDefinition = defineStore('swapUser', {
       return state.hideNonKappaTasks ?? false;
     },
     getNeededItemsStyle: (state) => {
-      return state.neededitemsStyle ?? 'mediumCard';
+      return state.neededitemsStyle ?? "mediumCard";
     },
     getHideoutPrimaryView: (state) => {
-      return state.hideoutPrimaryView ?? 'available';
+      return state.hideoutPrimaryView ?? "available";
     },
   },
   actions: {
@@ -280,47 +285,41 @@ export const useUserStore: UserStoreDefinition = defineStore('swapUser', {
       this.hideoutPrimaryView = view;
     },
   },
-  fireswap: [
-    {
-      path: '.',
-      document: 'user/{uid}',
-      debouncems: 10,
-      localKey: 'user',
-    },
-  ],
 }) as UserStoreDefinition;
-// Watch for fireuser state changing and bind/unbind
-watch(
-  () => fireuser.loggedIn,
-  (newValue: boolean) => {
+
+// Watch for Supabase user state changing
+if (import.meta.client) {
+  setTimeout(() => {
     try {
-      // Ensure pinia instance is available and correctly typed
-      const resolvedPinia = pluginPinia ?? useNuxtApp().$pinia;
-      if (!resolvedPinia) return;
-      const userStore = useUserStore(resolvedPinia);
-      const extendedStore = userStore as StoreWithFireswapExt<typeof userStore>;
-      // Check if firebindAll/fireunbindAll exist before calling
-      const canBind = typeof extendedStore.firebindAll === 'function';
-      const canUnbind = typeof extendedStore.fireunbindAll === 'function';
-      if (newValue) {
-        if (canBind) {
-          extendedStore.firebindAll!();
-        }
-      } else {
-        if (canUnbind) {
-          extendedStore.fireunbindAll!();
-        }
-      }
-    } catch (_error) {
-      // Handle cases where pinia or userStore might not be ready
-      console.error('Error in userStore watch for fireuser.loggedIn:', _error);
+      const { $supabase } = useNuxtApp();
+
+      watch(
+        () => $supabase.user.loggedIn,
+        (_newValue: boolean) => {
+          // User store data now managed through Supabase listeners
+          // No need for fireswap binding/unbinding
+          try {
+            const resolvedPinia = pluginPinia ?? useNuxtApp().$pinia;
+            if (!resolvedPinia) return;
+            const _userStore = useUserStore(resolvedPinia);
+            // TODO: Implement Supabase sync for user preferences
+          } catch (_error) {
+            console.error(
+              "Error in userStore watch for user.loggedIn:",
+              _error
+            );
+          }
+        },
+        { immediate: true }
+      );
+    } catch (error) {
+      console.error("Error setting up user store watchers:", error);
     }
-  },
-  { immediate: true }
-);
+  }, 0);
+}
 // Helper to persist state without 'saving'
 function persistUserState(state: UserState) {
   const persistedState = { ...state };
   delete persistedState.saving;
-  localStorage.setItem('user', JSON.stringify(persistedState));
+  localStorage.setItem("user", JSON.stringify(persistedState));
 }

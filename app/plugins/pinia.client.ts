@@ -1,11 +1,12 @@
 /* eslint-disable import/no-mutable-exports */
-import { PiniaFireswap } from "./pinia-firestore";
+// import { PiniaFireswap } from "./pinia-firestore";
 import type { Pinia } from "pinia";
 
 export let pinia: Pinia | undefined;
 
-export function installPiniaPlugins(target: Pinia): void {
-  target.use(PiniaFireswap);
+export function installPiniaPlugins(_target: Pinia): void {
+  // Pinia plugins can be added here
+  // target.use(SomePlugin);
 }
 
 export default defineNuxtPlugin((nuxtApp) => {

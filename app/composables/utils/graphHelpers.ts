@@ -1,9 +1,13 @@
-import Graph from 'graphology';
+import Graph from "graphology";
 
 /**
  * Recursively gets all predecessors (ancestors) of a node in the graph
  */
-export function getPredecessors(graph: Graph, nodeId: string, visited: string[] = []): string[] {
+export function getPredecessors(
+  graph: Graph,
+  nodeId: string,
+  visited: string[] = []
+): string[] {
   let predecessors: string[] = [];
 
   try {
@@ -19,7 +23,9 @@ export function getPredecessors(graph: Graph, nodeId: string, visited: string[] 
       if (visited.includes(predecessor)) {
         continue;
       }
-      predecessors = predecessors.concat(getPredecessors(graph, predecessor, [...visited]));
+      predecessors = predecessors.concat(
+        getPredecessors(graph, predecessor, [...visited])
+      );
     }
   }
 
@@ -29,7 +35,11 @@ export function getPredecessors(graph: Graph, nodeId: string, visited: string[] 
 /**
  * Recursively gets all successors (descendants) of a node in the graph
  */
-export function getSuccessors(graph: Graph, nodeId: string, visited: string[] = []): string[] {
+export function getSuccessors(
+  graph: Graph,
+  nodeId: string,
+  visited: string[] = []
+): string[] {
   let successors: string[] = [];
 
   try {
@@ -45,7 +55,9 @@ export function getSuccessors(graph: Graph, nodeId: string, visited: string[] = 
       if (visited.includes(successor)) {
         continue;
       }
-      successors = successors.concat(getSuccessors(graph, successor, [...visited]));
+      successors = successors.concat(
+        getSuccessors(graph, successor, [...visited])
+      );
     }
   }
 
@@ -90,7 +102,11 @@ export function safeAddNode(graph: Graph, nodeId: string): void {
 /**
  * Safely adds an edge to the graph if both nodes exist
  */
-export function safeAddEdge(graph: Graph, sourceId: string, targetId: string): void {
+export function safeAddEdge(
+  graph: Graph,
+  sourceId: string,
+  targetId: string
+): void {
   try {
     if (graph.hasNode(sourceId) && graph.hasNode(targetId)) {
       graph.mergeEdge(sourceId, targetId);
@@ -130,7 +146,7 @@ export function getAllNodes(graph: Graph): string[] {
   try {
     return graph.nodes();
   } catch (error) {
-    console.error('Error getting all nodes:', error);
+    console.error("Error getting all nodes:", error);
     return [];
   }
 }
@@ -142,6 +158,6 @@ export function clearGraph(graph: Graph): void {
   try {
     graph.clear();
   } catch (error) {
-    console.error('Error clearing graph:', error);
+    console.error("Error clearing graph:", error);
   }
 }

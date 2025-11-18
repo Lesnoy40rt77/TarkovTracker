@@ -1,5 +1,5 @@
-import type { Store } from 'pinia';
-import type { DocumentData } from 'firebase/firestore';
+import type { Store } from "pinia";
+// Removed Firebase import
 
 /**
  * Clears store properties that are not present in the new state
@@ -7,12 +7,12 @@ import type { DocumentData } from 'firebase/firestore';
  */
 export function clearStaleState(
   store: Store,
-  newState?: DocumentData | Record<string, unknown>
+  newState?: Record<string, unknown>
 ): void {
   try {
     const currentState = store.$state;
     const missingProperties = Object.keys(currentState).filter((key) => {
-      if (typeof newState === 'undefined') return true;
+      if (typeof newState === "undefined") return true;
       try {
         return !Object.prototype.hasOwnProperty.call(newState, key);
       } catch (error) {
@@ -31,24 +31,27 @@ export function clearStaleState(
       store.$patch(missingPropertiesObject);
     }
   } catch (error) {
-    console.error('Error clearing stale state:', error);
+    console.error("Error clearing stale state:", error);
   }
 }
 
 /**
  * Safely patches a store with new data
  */
-export function safePatchStore(store: Store, data: DocumentData | Record<string, unknown>): void {
+export function safePatchStore(
+  store: Store,
+  data: Record<string, unknown>
+): void {
   try {
-    if (data && typeof data === 'object') {
+    if (data && typeof data === "object") {
       store.$patch(data);
     } else {
       if (import.meta.env.DEV) {
-        console.warn('Invalid data provided to safePatchStore:', data);
+        console.warn("Invalid data provided to safePatchStore:", data);
       }
     }
   } catch (error) {
-    console.error('Error patching store:', error);
+    console.error("Error patching store:", error);
   }
 }
 
@@ -59,7 +62,7 @@ export function resetStore(store: Store): void {
   try {
     clearStaleState(store, {});
   } catch (error) {
-    console.error('Error resetting store:', error);
+    console.error("Error resetting store:", error);
   }
 }
 
@@ -97,7 +100,7 @@ export function safeJsonCopy<T>(obj: T): T {
   try {
     return JSON.parse(JSON.stringify(obj));
   } catch (error) {
-    console.error('Error creating JSON copy:', error);
+    console.error("Error creating JSON copy:", error);
     return obj;
   }
 }
@@ -105,19 +108,25 @@ export function safeJsonCopy<T>(obj: T): T {
 /**
  * Checks if a value is a non-empty object
  */
-export function isValidObject(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+export function isValidObject(
+  value: unknown
+): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 /**
  * Safely gets a nested property from an object
  */
-export function safeGet<T>(obj: unknown, path: string, defaultValue?: T): T | undefined {
+export function safeGet<T>(
+  obj: unknown,
+  path: string,
+  defaultValue?: T
+): T | undefined {
   try {
-    const keys = path.split('.');
+    const keys = path.split(".");
     let result = obj;
     for (const key of keys) {
-      if (result && typeof result === 'object' && key in result) {
+      if (result && typeof result === "object" && key in result) {
         result = (result as Record<string, unknown>)[key];
       } else {
         return defaultValue;

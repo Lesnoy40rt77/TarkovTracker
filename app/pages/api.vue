@@ -25,11 +25,14 @@
           aria-labelledby="api-hero-title"
         >
           <v-icon size="64" class="mb-4" color="white">mdi-api</v-icon>
-          <h1 id="api-hero-title" class="text-h3 font-weight-bold mb-3 text-white">
-            {{ $t('page.api.title') }}
+          <h1
+            id="api-hero-title"
+            class="text-h3 font-weight-bold mb-3 text-white"
+          >
+            {{ $t("page.api.title") }}
           </h1>
           <p class="text-h6 mb-4 text-white opacity-90">
-            {{ $t('page.api.hero.description') }}
+            {{ $t("page.api.hero.description") }}
           </p>
           <div class="d-flex justify-center gap-3 flex-wrap">
             <v-btn
@@ -40,7 +43,7 @@
               prepend-icon="mdi-key-plus"
               @click="scrollToTokens"
             >
-              {{ $t('page.api.hero.create_token') }}
+              {{ $t("page.api.hero.create_token") }}
             </v-btn>
             <v-btn
               color="white"
@@ -50,7 +53,7 @@
               href="https://tarkovtracker-org.github.io/TarkovTracker/"
               target="_blank"
             >
-              {{ $t('page.api.hero.documentation') }}
+              {{ $t("page.api.hero.documentation") }}
             </v-btn>
           </div>
         </v-card>
@@ -73,9 +76,11 @@
           aria-label="Active API tokens count"
         >
           <v-icon size="32" class="mb-2" color="white">mdi-check-circle</v-icon>
-          <div class="text-h5 font-weight-bold text-white">{{ userTokenCount }}</div>
+          <div class="text-h5 font-weight-bold text-white">
+            {{ userTokenCount }}
+          </div>
           <div class="text-body-2 text-white opacity-80">
-            {{ $t('page.api.stats.active_tokens') }}
+            {{ $t("page.api.stats.active_tokens") }}
           </div>
         </v-card>
       </v-col>
@@ -87,8 +92,12 @@
           aria-label="API architecture type"
         >
           <v-icon size="32" class="mb-2" color="white">mdi-web</v-icon>
-          <div class="text-h5 font-weight-bold text-white">{{ $t('page.api.stats.rest') }}</div>
-          <div class="text-body-2 text-white opacity-80">{{ $t('page.api.stats.api_type') }}</div>
+          <div class="text-h5 font-weight-bold text-white">
+            {{ $t("page.api.stats.rest") }}
+          </div>
+          <div class="text-body-2 text-white opacity-80">
+            {{ $t("page.api.stats.api_type") }}
+          </div>
         </v-card>
       </v-col>
       <v-col cols="12" sm="6" md="3">
@@ -99,9 +108,11 @@
           aria-label="Security authentication method"
         >
           <v-icon size="32" class="mb-2" color="white">mdi-shield-check</v-icon>
-          <div class="text-h5 font-weight-bold text-white">{{ $t('page.api.stats.secure') }}</div>
+          <div class="text-h5 font-weight-bold text-white">
+            {{ $t("page.api.stats.secure") }}
+          </div>
           <div class="text-body-2 text-white opacity-80">
-            {{ $t('page.api.stats.bearer_auth') }}
+            {{ $t("page.api.stats.bearer_auth") }}
           </div>
         </v-card>
       </v-col>
@@ -113,9 +124,11 @@
           aria-label="Data synchronization type"
         >
           <v-icon size="32" class="mb-2" color="white">mdi-clock-fast</v-icon>
-          <div class="text-h5 font-weight-bold text-white">{{ $t('page.api.stats.realtime') }}</div>
+          <div class="text-h5 font-weight-bold text-white">
+            {{ $t("page.api.stats.realtime") }}
+          </div>
           <div class="text-body-2 text-white opacity-80">
-            {{ $t('page.api.stats.data_access') }}
+            {{ $t("page.api.stats.data_access") }}
           </div>
         </v-card>
       </v-col>
@@ -126,29 +139,44 @@
       <v-col v-if="fireuser.loggedIn" cols="12" sm="12" md="10" lg="8" xl="8">
         <fitted-card icon="mdi-key-chain" icon-color="white">
           <template #title>
-            {{ $t('page.settings.card.apitokens.title') }}
+            {{ $t("page.settings.card.apitokens.title") }}
           </template>
           <template #content>
             <!-- Quick Help Chips -->
             <div class="px-4 mb-4">
               <div class="d-flex flex-wrap gap-2">
-                <v-chip color="info" variant="flat" size="small" prepend-icon="mdi-shield-check">
+                <v-chip
+                  color="info"
+                  variant="flat"
+                  size="small"
+                  prepend-icon="mdi-shield-check"
+                >
                   <v-tooltip activator="parent" location="top">
-                    {{ $t('page.api.chips.secure_tooltip') }}
+                    {{ $t("page.api.chips.secure_tooltip") }}
                   </v-tooltip>
-                  {{ $t('page.api.chips.secure_auth') }}
+                  {{ $t("page.api.chips.secure_auth") }}
                 </v-chip>
-                <v-chip color="success" variant="flat" size="small" prepend-icon="mdi-sync">
+                <v-chip
+                  color="success"
+                  variant="flat"
+                  size="small"
+                  prepend-icon="mdi-sync"
+                >
                   <v-tooltip activator="parent" location="top">
-                    {{ $t('page.api.chips.realtime_tooltip') }}
+                    {{ $t("page.api.chips.realtime_tooltip") }}
                   </v-tooltip>
-                  {{ $t('page.api.chips.realtime_data') }}
+                  {{ $t("page.api.chips.realtime_data") }}
                 </v-chip>
-                <v-chip color="warning" variant="flat" size="small" prepend-icon="mdi-code-json">
+                <v-chip
+                  color="warning"
+                  variant="flat"
+                  size="small"
+                  prepend-icon="mdi-code-json"
+                >
                   <v-tooltip activator="parent" location="top">
-                    {{ $t('page.api.chips.json_tooltip') }}
+                    {{ $t("page.api.chips.json_tooltip") }}
                   </v-tooltip>
-                  {{ $t('page.api.chips.json_api') }}
+                  {{ $t("page.api.chips.json_api") }}
                 </v-chip>
               </div>
             </div>
@@ -160,11 +188,14 @@
       <v-col v-else cols="12" sm="10" md="8" lg="6" xl="6">
         <fitted-card icon="mdi-key-chain" icon-color="white">
           <template #title>
-            {{ $t('page.settings.card.apitokens.title') }}
+            {{ $t("page.settings.card.apitokens.title") }}
           </template>
           <template #content>
             <div style="text-align: left" class="pt-2 px-4">
-              <i18n-t keypath="page.settings.card.apitokens.description" scope="global">
+              <i18n-t
+                keypath="page.settings.card.apitokens.description"
+                scope="global"
+              >
                 <template #openAPI_documentation>
                   <a
                     href="https://tarkovtracker-org.github.io/TarkovTracker/"
@@ -172,7 +203,9 @@
                     class="info-link"
                   >
                     <v-icon class="mr-1" size="16">mdi-file-document</v-icon
-                    >{{ $t('page.settings.card.apitokens.openAPI_documentation') }}
+                    >{{
+                      $t("page.settings.card.apitokens.openAPI_documentation")
+                    }}
                   </a>
                 </template>
               </i18n-t>
@@ -180,7 +213,7 @@
             <v-row justify="center">
               <v-col cols="12">
                 <v-alert dense outlined type="error" :value="true" class="ma-2">
-                  {{ $t('page.settings.card.apitokens.not_logged_in') }}
+                  {{ $t("page.settings.card.apitokens.not_logged_in") }}
                 </v-alert>
               </v-col>
             </v-row>
@@ -192,110 +225,132 @@
     <!-- Settings Cards Grid -->
     <v-row justify="center" class="mb-6">
       <!-- Data Migration -->
-      <v-col v-if="fireuser.loggedIn" cols="12" sm="12" md="8" lg="6" xl="6" class="d-flex">
+      <v-col
+        v-if="fireuser.loggedIn"
+        cols="12"
+        sm="12"
+        md="8"
+        lg="6"
+        xl="6"
+        class="d-flex"
+      >
         <data-migration-card class="flex-grow-1" />
       </v-col>
 
       <!-- Account Deletion -->
-      <v-col v-if="fireuser.loggedIn" cols="12" sm="12" md="4" lg="6" xl="6" class="d-flex">
+      <v-col
+        v-if="fireuser.loggedIn"
+        cols="12"
+        sm="12"
+        md="4"
+        lg="6"
+        xl="6"
+        class="d-flex"
+      >
         <account-deletion-card class="flex-grow-1" />
       </v-col>
     </v-row>
   </v-container>
 </template>
 <script setup>
-  import { ref, computed } from 'vue';
-  import { fireuser } from '@/plugins/firebase.client';
-  import { useLiveData } from '@/composables/livedata';
-  import ApiTokens from '@/features/settings/ApiTokens';
-  import DataMigrationCard from '@/features/settings/DataMigrationCard';
-  import AccountDeletionCard from '@/features/settings/AccountDeletionCard.vue';
-  import FittedCard from '@/features/ui/FittedCard';
+import { ref, computed } from "vue";
+// import { fireuser } from '@/plugins/firebase.client';
+import { useLiveData } from "@/composables/livedata";
+import ApiTokens from "@/features/settings/ApiTokens";
+import DataMigrationCard from "@/features/settings/DataMigrationCard";
+import AccountDeletionCard from "@/features/settings/AccountDeletionCard.vue";
+import FittedCard from "@/features/ui/FittedCard";
 
-  const { useSystemStore } = useLiveData();
-  const { systemStore } = useSystemStore();
+const { $supabase } = useNuxtApp();
+const { useSystemStore } = useLiveData();
+const { systemStore } = useSystemStore();
 
-  const tokensSection = ref(null);
+const tokensSection = ref(null);
 
-  // Computed properties for token count
-  const userTokenCount = computed(() => {
-    return systemStore.$state.tokens?.length || 0;
-  });
+// Computed properties for token count
+const userTokenCount = computed(() => {
+  return systemStore.$state.tokens?.length || 0;
+});
 
-  // Scroll to tokens section
-  const scrollToTokens = () => {
-    if (tokensSection.value) {
-      tokensSection.value.$el.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
-    }
-  };
+// Computed properties for user
+const fireuser = computed(() => ({
+  loggedIn: $supabase.user.loggedIn,
+}));
 
-  definePageMeta({
-    background: 'gas',
-  });
+// Scroll to tokens section
+const scrollToTokens = () => {
+  if (tokensSection.value) {
+    tokensSection.value.$el.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+};
+
+definePageMeta({
+  background: "gas",
+});
 </script>
 <style lang="scss" scoped>
-  a:link,
-  a:active,
-  a:visited {
-    color: rgba(var(--v-theme-link), 1);
-  }
-  .info-link {
-    text-decoration: none;
+a:link,
+a:active,
+a:visited {
+  color: rgba(var(--v-theme-link), 1);
+}
+.info-link {
+  text-decoration: none;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.gap-3 {
+  gap: 0.75rem;
+}
+
+// Responsive improvements
+@media (max-width: 960px) {
+  .text-h3 {
+    font-size: 2rem !important;
   }
 
-  .gap-2 {
-    gap: 0.5rem;
+  .text-h6 {
+    font-size: 1.125rem !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .text-h3 {
+    font-size: 1.75rem !important;
   }
 
-  .gap-3 {
+  .d-flex.justify-center.gap-3 {
+    flex-direction: column;
     gap: 0.75rem;
-  }
 
-  // Responsive improvements
-  @media (max-width: 960px) {
-    .text-h3 {
-      font-size: 2rem !important;
-    }
-
-    .text-h6 {
-      font-size: 1.125rem !important;
+    .v-btn {
+      width: 100%;
     }
   }
 
-  @media (max-width: 600px) {
-    .text-h3 {
-      font-size: 1.75rem !important;
-    }
+  .d-flex.flex-wrap.gap-2 {
+    gap: 0.25rem;
 
-    .d-flex.justify-center.gap-3 {
-      flex-direction: column;
-      gap: 0.75rem;
-
-      .v-btn {
-        width: 100%;
-      }
-    }
-
-    .d-flex.flex-wrap.gap-2 {
-      gap: 0.25rem;
-
-      .v-chip {
-        margin: 0.125rem;
-      }
+    .v-chip {
+      margin: 0.125rem;
     }
   }
+}
 
-  // Accessibility improvements
-  .v-card:focus-visible {
-    outline: 2px solid rgba(var(--v-theme-primary), 0.5);
-    outline-offset: 2px;
-  }
+// Accessibility improvements
+.v-card:focus-visible {
+  outline: 2px solid rgba(var(--v-theme-primary), 0.5);
+  outline-offset: 2px;
+}
 
-  .v-btn:focus-visible {
-    outline: 2px solid rgba(var(--v-theme-on-surface), 0.5);
-    outline-offset: 2px;
-  }
+.v-btn:focus-visible {
+  outline: 2px solid rgba(var(--v-theme-on-surface), 0.5);
+  outline-offset: 2px;
+}
 </style>

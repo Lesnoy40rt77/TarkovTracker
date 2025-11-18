@@ -46,8 +46,7 @@
   </v-list>
 </template>
 <script setup>
-import { defineAsyncComponent } from "vue";
-import { fireuser } from "@/plugins/firebase.client";
+import { computed, defineAsyncComponent } from "vue";
 
 const props = defineProps({
   isCollapsed: {
@@ -55,6 +54,11 @@ const props = defineProps({
     required: true,
   },
 });
+
+const { $supabase } = useNuxtApp();
+const fireuser = computed(() => ({
+  loggedIn: $supabase.user?.loggedIn ?? false,
+}));
 
 const DrawerItem = defineAsyncComponent(
   () => import("@/features/drawer/DrawerItem.vue")

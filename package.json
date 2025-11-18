@@ -21,13 +21,13 @@
     "@nuxt/test-utils": "^3.20.1",
     "@nuxt/ui": "^4.1.0",
     "@pinia/nuxt": "^0.11.3",
+    "@supabase/supabase-js": "^2.83.0",
     "@unhead/vue": "^2.0.19",
     "@vue/apollo-composable": "^4.2.2",
     "@vueuse/core": "^13.6.0",
     "better-sqlite3": "^12.4.1",
     "d3": "^7.9.0",
     "eslint": "^9.39.1",
-    "firebase": "^11.10.0",
     "graphology": "^0.26.0",
     "graphology-types": "^0.24.8",
     "graphql": "^16.11.0",
@@ -42,7 +42,6 @@
     "vue": "^3.5.24",
     "vue-i18n": "^11.1.11",
     "vue-router": "^4.6.3",
-    "vuefire": "^3.2.2",
     "vuetify": "^3.9.2"
   },
   "devDependencies": {

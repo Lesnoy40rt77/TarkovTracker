@@ -1,84 +1,89 @@
-import { computed, ref, watch, nextTick } from 'vue';
-import { defineStore } from 'pinia';
-import {
-  doc,
-  collection,
-  onSnapshot,
-  type DocumentData,
-  type Unsubscribe,
-} from 'firebase/firestore';
-import { fireuser, firestore } from '@/plugins/firebase.client';
-import { useFirebaseListener } from '@/composables/firebase/useFirebaseListener';
-import { useSystemStoreWithFirebase } from './useSystemStore';
-import type { TeamState, TeamGetters } from '@/types/tarkov';
-import type { Store } from 'pinia';
-import type { UserState } from '@/shared_state';
+import { computed, ref, watch, nextTick } from "vue";
+import { defineStore } from "pinia";
+import { useSupabaseListener } from '@/composables/supabase/useSupabaseListener';
+import { useSystemStoreWithFirebase } from "./useSystemStore";
+import type { TeamState, TeamGetters } from "@/types/tarkov";
+import type { Store } from "pinia";
+import type { UserState } from "@/shared_state";
 
 /**
  * Team store definition with getters for team info and members
  */
-export const useTeamStore = defineStore<string, TeamState, TeamGetters>('team', {
-  state: (): TeamState => ({}),
-  getters: {
-    teamOwner(state) {
-      return state?.owner || null;
-    },
-    isOwner(state) {
+export const useTeamStore = defineStore<string, TeamState, TeamGetters>(
+  "team",
+  {
+    state: (): TeamState => ({}),
+    getters: {
+      teamOwner(state) {
+        return state?.owner || null;
+      },
+      isOwner(state) {
+      const { $supabase } = useNuxtApp();
       const owner = state.owner;
-      return owner === fireuser.uid;
+      return owner === $supabase.user?.id;
     },
-    teamPassword(state) {
-      return state?.password || null;
-    },
-    teamMembers(state) {
-      return state?.members || [];
-    },
-    teammates(state) {
-      const currentMembers = state?.members;
-      const currentFireUID = fireuser?.uid;
+      teamPassword(state) {
+        return state?.password || null;
+      },
+      teamMembers(state) {
+        return state?.members || [];
+      },
+      teammates(state) {
+        const currentMembers = state?.members;
+      const { $supabase } = useNuxtApp();
+      const currentFireUID = $supabase.user?.id;
 
-      if (currentMembers && currentFireUID) {
-        return currentMembers.filter((member) => member !== currentFireUID);
-      }
+        if (currentMembers && currentFireUID) {
+          return currentMembers.filter((member) => member !== currentFireUID);
+        }
 
-      return [];
+        return [];
+      },
     },
-  },
-});
+  }
+);
 
+/**
+ * Composable that manages the team store with Firebase synchronization
+ */
 /**
  * Composable that manages the team store with Firebase synchronization
  */
 export function useTeamStoreWithFirebase() {
   const { systemStore } = useSystemStoreWithFirebase();
   const teamStore = useTeamStore();
-  const teamUnsubscribe = ref(null);
+  const { $supabase } = useNuxtApp();
 
   // Computed reference to the team document based on system store
-  const teamRef = computed(() => {
+  const teamFilter = computed(() => {
     const currentSystemStateTeam = systemStore.$state.team;
 
-    if (fireuser.loggedIn && currentSystemStateTeam && typeof currentSystemStateTeam === 'string') {
-      return doc(collection(firestore, 'team'), currentSystemStateTeam);
+    if (
+      $supabase.user.loggedIn &&
+      currentSystemStateTeam &&
+      typeof currentSystemStateTeam === "string"
+    ) {
+      return `id=eq.${currentSystemStateTeam}`;
     }
 
-    return null;
+    return undefined;
   });
 
-  const handleTeamSnapshot = (_data: DocumentData | null) => {};
+  const handleTeamSnapshot = (_data: Record<string, unknown> | null) => {};
 
-  // Setup Firebase listener
-  const { cleanup, isSubscribed } = useFirebaseListener({
+  // Setup Supabase listener
+  const { cleanup, isSubscribed } = useSupabaseListener({
     store: teamStore,
-    docRef: teamRef,
-    unsubscribe: teamUnsubscribe,
-    storeId: 'team',
-    onSnapshot: handleTeamSnapshot,
+    table: "teams",
+    filter: teamFilter.value,
+    storeId: "team",
+    onData: handleTeamSnapshot,
   });
+
+  // Watch for filter changes handled by useSupabaseListener
 
   return {
     teamStore,
-    teamRef,
     isSubscribed,
     cleanup,
   };
@@ -90,7 +95,7 @@ export function useTeamStoreWithFirebase() {
 export function useTeammateStores() {
   const { teamStore } = useTeamStoreWithFirebase();
   const teammateStores = ref<Record<string, Store<string, UserState>>>({});
-  const teammateUnsubscribes = ref<Record<string, Unsubscribe>>({});
+  const teammateUnsubscribes = ref<Record<string, () => void>>({});
 
   // Watch team state changes to manage teammate stores
   watch(
@@ -98,19 +103,24 @@ export function useTeammateStores() {
     async (newState, _oldState) => {
       await nextTick();
 
-      const currentFireUID = fireuser?.uid;
+      const { $supabase } = useNuxtApp();
+      const currentFireUID = $supabase.user?.id;
       const newTeammatesArray =
-        newState.members?.filter((member: string) => member !== currentFireUID) || [];
+        newState.members?.filter(
+          (member: string) => member !== currentFireUID
+        ) || [];
 
       // Remove stores for teammates no longer in the team
       for (const teammate of Object.keys(teammateStores.value)) {
         if (!newTeammatesArray.includes(teammate)) {
           if (teammateUnsubscribes.value[teammate]) {
             teammateUnsubscribes.value[teammate]();
-            const { [teammate]: _removed, ...rest } = teammateUnsubscribes.value;
+            const { [teammate]: _removed, ...rest } =
+              teammateUnsubscribes.value;
             teammateUnsubscribes.value = rest;
           }
-          const { [teammate]: _storeRemoved, ...restStores } = teammateStores.value;
+          const { [teammate]: _storeRemoved, ...restStores } =
+            teammateStores.value;
           teammateStores.value = restStores as typeof teammateStores.value;
         }
       }
@@ -123,7 +133,7 @@ export function useTeammateStores() {
           }
         }
       } catch (error) {
-        console.error('Error managing teammate stores:', error);
+        console.error("Error managing teammate stores:", error);
       }
     },
     {
@@ -136,8 +146,8 @@ export function useTeammateStores() {
   const createTeammateStore = async (teammateId: string) => {
     try {
       // Import required dependencies
-      const { defineStore } = await import('pinia');
-      const { getters, actions, defaultState } = await import('@/shared_state');
+      const { defineStore } = await import("pinia");
+      const { getters, actions, defaultState } = await import("@/shared_state");
 
       // Define the teammate store
       const storeDefinition = defineStore(`teammate-${teammateId}`, {
@@ -149,29 +159,16 @@ export function useTeammateStores() {
       const storeInstance = storeDefinition();
       teammateStores.value[teammateId] = storeInstance;
 
-      // Setup Firebase listener for this teammate
-      teammateUnsubscribes.value[teammateId] = onSnapshot(
-        doc(firestore, 'progress', teammateId),
-        (snapshot) => {
-          const firestoreDocData = snapshot.data();
-          const docExists = snapshot.exists();
-
-          if (docExists && firestoreDocData) {
-            storeInstance.$patch(firestoreDocData);
-          } else {
-            storeInstance.$patch(JSON.parse(JSON.stringify(defaultState)));
-          }
-        },
-        (error) => {
-          if (error.code === 'permission-denied' && teammateUnsubscribes.value[teammateId]) {
-            teammateUnsubscribes.value[teammateId]();
-            const { [teammateId]: _removed, ...rest } = teammateUnsubscribes.value;
-            teammateUnsubscribes.value = rest;
-          } else {
-            console.error(`Error in teammate ${teammateId} listener:`, error);
-          }
-        }
-      );
+      // Setup Supabase listener for this teammate
+      // Note: We need to store the cleanup function, not the unsubscribe function directly
+      const { cleanup } = useSupabaseListener({
+        store: storeInstance,
+        table: 'user_progress',
+        filter: `user_id=eq.${teammateId}`,
+        storeId: `teammate-${teammateId}`,
+      });
+      
+      teammateUnsubscribes.value[teammateId] = cleanup;
     } catch (error) {
       console.error(`Error creating store for teammate ${teammateId}:`, error);
     }

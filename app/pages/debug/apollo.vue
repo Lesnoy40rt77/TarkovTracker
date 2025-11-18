@@ -114,14 +114,7 @@ import { useTarkovDataQuery } from "@/composables/api/useTarkovApi";
 import { useTarkovStore } from "@/stores/tarkov";
 
 const tarkovStore = useTarkovStore();
-
-// Map internal game modes to API game modes
-// Internal: "pvp" | "pve"
-// API: "regular" | "pve"
-const gameMode = computed(() => {
-  const internalMode = tarkovStore.getCurrentGameMode() || "pvp";
-  return internalMode === "pvp" ? "regular" : "pve";
-});
+const gameMode = computed(() => tarkovStore.getCurrentGameMode() || "regular");
 
 const { result, error, loading, refetch, languageCode } =
   useTarkovDataQuery(gameMode);

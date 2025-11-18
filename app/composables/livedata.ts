@@ -1,11 +1,12 @@
-import { useTeammateStores, useTeamStoreWithFirebase } from '@/stores/useTeamStore';
-import { useSystemStoreWithFirebase } from '@/stores/useSystemStore';
-import { useProgressStore } from '@/stores/progress';
-import { useTarkovStore } from '@/stores/tarkov';
+import {
+  useTeammateStores,
+  useTeamStoreWithFirebase,
+} from "@/stores/useTeamStore";
+import { useSystemStoreWithFirebase } from "@/stores/useSystemStore";
+import { useProgressStoreWithSupabase } from "@/stores/progress";
+import { useTarkovStore } from "@/stores/tarkov";
 // Legacy support - the actual implementation is now in the modular composables
 // This maintains backward compatibility while using the new structure
-// Moved to @/composables/utils/storeHelpers.ts as clearStaleState
-// Moved to @/composables/firebase/useFirebaseListener.ts
 // Team and system store implementations moved to modular composables
 // Global state for backward compatibility
 let globalTeammateStores: ReturnType<typeof useTeammateStores> | null = null;
@@ -36,7 +37,7 @@ export function useLiveData() {
   return {
     useTeamStore: useTeamStoreWithFirebase,
     useSystemStore: useSystemStoreWithFirebase,
-    useProgressStore,
+    useProgressStore: useProgressStoreWithSupabase,
     teammateStores: globalTeammateStores?.teammateStores,
     tarkovStore: getTarkovStore(),
   };

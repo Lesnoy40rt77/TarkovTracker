@@ -271,9 +271,15 @@ import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/app";
 import { useUserStore } from "@/stores/user";
 import { useTarkovStore } from "@/stores/tarkov";
-import { fireuser } from "@/plugins/firebase";
+// import { fireuser } from "@/plugins/firebase"; // DEPRECATED
 import type { GameMode } from "@/shared_state";
-// DisplayNameInput is auto-imported by Nuxt
+
+const { $supabase } = useNuxtApp();
+const fireuser = computed(() => ({
+  loggedIn: $supabase.user.loggedIn,
+}));
+
+// DisplayNameInput is auto-imported by NuxtseUserStore();
 const userStore = useUserStore();
 const tarkovStore = useTarkovStore();
 const resetDialog = ref(false);

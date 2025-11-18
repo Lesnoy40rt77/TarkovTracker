@@ -1,9 +1,22 @@
-import type Graph from 'graphology';
-import type { ApolloError } from '@apollo/client/core';
-import type { Store, StateTree, _GettersTree } from 'pinia';
-import type { Ref, ComputedRef } from 'vue';
-import type { UserState } from '@/shared_state';
-import type { Unsubscribe, DocumentReference, DocumentData } from 'firebase/firestore';
+import type Graph from "graphology";
+import type { ApolloError } from "@apollo/client/core";
+import type { Store, StateTree, _GettersTree } from "pinia";
+import type { Ref, ComputedRef } from "vue";
+import type { UserState } from "@/shared_state";
+/**
+ * Type definitions for Tarkov data structures
+ * This file defines the structure for:
+ * - Task completion tracking
+ * - Hideout module progress
+ * - Game objectives and quest data
+ */
+
+// Legacy Firebase type - no longer used
+// import type {
+//   Unsubscribe,
+//   DocumentReference,
+//   DocumentData,
+// } from "firebase/firestore";
 
 // Core Tarkov Data Types
 export interface TarkovItem {
@@ -189,14 +202,14 @@ export interface NeededItemBase {
 }
 
 export interface NeededItemTaskObjective extends NeededItemBase {
-  needType: 'taskObjective';
+  needType: "taskObjective";
   taskId: string;
   type?: string;
   markerItem?: TarkovItem;
 }
 
 export interface NeededItemHideoutModule extends NeededItemBase {
-  needType: 'hideoutModule';
+  needType: "hideoutModule";
   hideoutModule: HideoutModule;
 }
 
@@ -264,13 +277,13 @@ export interface TeamGetters extends _GettersTree<TeamState> {
   teammates: (state: TeamState) => string[];
 }
 
-// Firebase Types
-export interface FirebaseListenerConfig {
-  refToWatch: ComputedRef<DocumentReference<DocumentData> | null>;
-  unsubscribe: Ref<Unsubscribe | null>;
-  store: Store;
-  storeId?: string;
-}
+// Firebase Types - Legacy, no longer used
+// export interface FirebaseListenerConfig {
+//   refToWatch: ComputedRef<DocumentReference<DocumentData> | null>;
+//   unsubscribe: Ref<Unsubscribe | null>;
+//   store: Store;
+//   storeId?: string;
+// }
 
 // Composable Return Types
 export interface TarkovDataComposable {

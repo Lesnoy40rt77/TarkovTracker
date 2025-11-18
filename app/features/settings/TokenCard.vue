@@ -86,7 +86,7 @@
   </v-sheet>
 </template>
 <script setup>
-  import { firestore, functions, doc, getDoc, httpsCallable } from '@/plugins/firebase.client';
+  // import { firestore, functions, doc, getDoc, httpsCallable } from '@/plugins/firebase.client'; // TODO: Move to Cloudflare Workers
   import { computed, nextTick, ref } from 'vue';
   import QRCode from 'qrcode';
   import { useUserStore } from '@/stores/user';

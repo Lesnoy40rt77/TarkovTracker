@@ -49,7 +49,7 @@
     ref,
   } from 'vue';
   import { useLiveData } from '@/composables/livedata';
-  import { fireuser } from '@/plugins/firebase.client';
+  // import { fireuser } from '@/plugins/firebase.client'; // TODO: Move to Cloudflare Workers
   const IconCard = defineAsyncComponent(() => import('@/features/ui/IconCard'));
   const TeammemberCard = defineAsyncComponent(() => import('@/features/team/TeammemberCard'));
   const TrackerTip = defineAsyncComponent(() => import('@/features/ui/TrackerTip'));

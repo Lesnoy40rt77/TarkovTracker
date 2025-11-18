@@ -252,7 +252,7 @@
 <script setup>
   import { ref, computed } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import { functions, httpsCallable, auth } from '@/plugins/firebase.client';
+  // import { functions, httpsCallable, auth } from '@/plugins/firebase.client'; // TODO: Move to Cloudflare Workers
   import { useLiveData } from '@/composables/livedata';
   import availablePermissions from '@/utils/api_permissions';
   import TokenCard from '@/features/settings/TokenCard.vue';
