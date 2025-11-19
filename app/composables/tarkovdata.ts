@@ -1,8 +1,12 @@
-import { computed, ref } from 'vue';
-import { useTarkovApi } from '@/composables/api/useTarkovApi';
-import { useTaskData } from '@/composables/data/useTaskData';
-import { useHideoutData } from '@/composables/data/useHideoutData';
-import { useMapData, useTraderData, usePlayerLevelData } from '@/composables/data/useMapData';
+import { computed, ref, watch } from "vue";
+import { useTarkovApi } from "@/composables/api/useTarkovApi";
+import { useTaskData } from "@/composables/data/useTaskData";
+import { useHideoutData } from "@/composables/data/useHideoutData";
+import {
+  useMapData,
+  useTraderData,
+  usePlayerLevelData,
+} from "@/composables/data/useMapData";
 import type {
   TarkovDataComposable,
   Task,
@@ -14,15 +18,24 @@ import type {
   HideoutModule,
   NeededItemTaskObjective,
   NeededItemHideoutModule,
-} from '@/types/tarkov';
-import type { AbstractGraph } from 'graphology-types';
+} from "@/types/tarkov";
+import type { AbstractGraph } from "graphology-types";
+import { DISABLED_TASKS } from "@/utils/constants";
 // Re-export the new modular composables for backward compatibility
-export { useTarkovApi, useTarkovDataQuery, useTarkovHideoutQuery } from '@/composables/api/useTarkovApi';
-export { useTaskData } from '@/composables/data/useTaskData';
-export { useHideoutData } from '@/composables/data/useHideoutData';
-export { useMapData, useTraderData, usePlayerLevelData } from '@/composables/data/useMapData';
+export {
+  useTarkovApi,
+  useTarkovDataQuery,
+  useTarkovHideoutQuery,
+} from "@/composables/api/useTarkovApi";
+export { useTaskData } from "@/composables/data/useTaskData";
+export { useHideoutData } from "@/composables/data/useHideoutData";
+export {
+  useMapData,
+  useTraderData,
+  usePlayerLevelData,
+} from "@/composables/data/useMapData";
 // Re-export types for backward compatibility
-export type { Task } from '@/types/tarkov';
+export type { Task } from "@/types/tarkov";
 // Global state variables for backward compatibility
 // These will be initialized when useTarkovData is first called
 let globalTaskData: ReturnType<typeof useTaskData> | null = null;
@@ -40,6 +53,40 @@ function initializeGlobalData() {
     globalTraderData = useTraderData();
     globalPlayerData = usePlayerLevelData();
     globalApiData = useTarkovApi();
+
+    // Sync global data to exported refs for backward compatibility
+    watch(globalTaskData.tasks, (val) => (tasks.value = val));
+    watch(globalTaskData.taskGraph, (val) => (taskGraph.value = val));
+    watch(globalTaskData.objectiveMaps, (val) => (objectiveMaps.value = val));
+    watch(
+      globalTaskData.alternativeTasks,
+      (val) => (alternativeTasks.value = val)
+    );
+    watch(globalTaskData.objectiveGPS, (val) => (objectiveGPS.value = val));
+    watch(globalTaskData.mapTasks, (val) => (mapTasks.value = val));
+    watch(globalTaskData.objectives, (val) => (objectives.value = val));
+    watch(
+      globalTaskData.neededItemTaskObjectives,
+      (val) => (neededItemTaskObjectives.value = val)
+    );
+    watch(globalTaskData.loading, (val) => (loading.value = val));
+
+    watch(
+      globalHideoutData.hideoutStations,
+      (val) => (hideoutStations.value = val)
+    );
+    watch(
+      globalHideoutData.hideoutModules,
+      (val) => (hideoutModules.value = val)
+    );
+    watch(globalHideoutData.hideoutGraph, (val) => (hideoutGraph.value = val));
+    watch(
+      globalHideoutData.neededItemHideoutModules,
+      (val) => (neededItemHideoutModules.value = val)
+    );
+    watch(globalHideoutData.loading, (val) => (hideoutLoading.value = val));
+
+    watch(globalTraderData.traders, (val) => (traders.value = val));
   }
 }
 // Re-export for backward compatibility - these will be empty until useTarkovData is called
@@ -56,24 +103,9 @@ export const neededItemTaskObjectives = ref<NeededItemTaskObjective[]>([]);
 export const neededItemHideoutModules = ref<NeededItemHideoutModule[]>([]);
 export const loading = ref<boolean>(false);
 export const hideoutLoading = ref<boolean>(false);
-// Map loading functionality moved to @/composables/api/useTarkovApi.ts
-// Helper functions moved to @/composables/utils/graphHelpers.ts
-// Language extraction moved to @/composables/api/useTarkovApi.ts
-// Disabled tasks moved to @/composables/data/useTaskData.ts
-const disabledTasks = [
-  '61e6e5e0f5b9633f6719ed95',
-  '61e6e60223374d168a4576a6',
-  '61e6e621bfeab00251576265',
-  '61e6e615eea2935bc018a2c5',
-  '61e6e60c5ca3b3783662be27',
-];
-// Watchers moved to individual data composables
-// Task processing moved to @/composables/data/useTaskData.ts
-// Computed properties moved to individual data composables
-export const objectives = ref<TaskObjective[]>([]);
-export const maps = ref<TarkovMap[]>([]);
 export const traders = ref<Trader[]>([]);
-export const playerLevels = ref<PlayerLevel[]>([]);
+export const objectives = ref<TaskObjective[]>([]);
+const disabledTasks = DISABLED_TASKS;
 const minPlayerLevel = ref<number>(1);
 const maxPlayerLevel = ref<number>(79);
 /**
@@ -90,27 +122,9 @@ export function useTarkovData(): TarkovDataComposable {
   const mapData = globalMapData!;
   const traderData = globalTraderData!;
   const playerData = globalPlayerData!;
-  // Update the exported refs with the real data
-  hideoutStations.value = hideoutData.hideoutStations.value;
-  hideoutModules.value = hideoutData.hideoutModules.value;
-  hideoutGraph.value = hideoutData.hideoutGraph.value;
-  tasks.value = taskData.tasks.value;
-  taskGraph.value = taskData.taskGraph.value;
-  objectiveMaps.value = taskData.objectiveMaps.value;
-  alternativeTasks.value = taskData.alternativeTasks.value;
-  objectiveGPS.value = taskData.objectiveGPS.value;
-  mapTasks.value = taskData.mapTasks.value;
-  objectives.value = taskData.objectives.value;
-  maps.value = mapData.maps.value;
-  traders.value = traderData.traders.value;
-  playerLevels.value = playerData.playerLevels.value;
-  minPlayerLevel.value = playerData.minPlayerLevel.value;
-  maxPlayerLevel.value = playerData.maxPlayerLevel.value;
-  neededItemTaskObjectives.value = taskData.neededItemTaskObjectives.value;
-  neededItemHideoutModules.value = hideoutData.neededItemHideoutModules.value;
-  loading.value = taskData.loading.value;
-  hideoutLoading.value = hideoutData.loading.value;
-  // Return the combined interface for backward compatibility
+
+  // Return refs directly from child composables to preserve reactivity
+  // DO NOT copy .value - that breaks reactivity!
   return {
     availableLanguages: api.availableLanguages,
     languageCode: api.languageCode,

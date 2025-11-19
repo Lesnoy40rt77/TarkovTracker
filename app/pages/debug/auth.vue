@@ -3,19 +3,15 @@
     <v-card>
       <v-card-title>Firebase Auth Debug Page</v-card-title>
       <v-card-subtitle>Testing Firebase Authentication</v-card-subtitle>
-
       <v-card-text>
         <v-alert v-if="!user.loggedIn" type="warning" class="mb-4">
           You are not logged in
         </v-alert>
-
         <v-alert v-if="user.loggedIn" type="success" class="mb-4">
           Successfully authenticated!
         </v-alert>
-
         <div class="auth-info mb-4">
           <h3 class="mb-3">Auth State:</h3>
-
           <v-simple-table dense>
             <tbody>
               <tr>
@@ -45,9 +41,7 @@
             </tbody>
           </v-simple-table>
         </div>
-
         <v-divider class="my-4" />
-
         <h3 class="mb-3">User Store State:</h3>
         <div class="store-info mb-4">
           <v-simple-table dense>
@@ -63,12 +57,9 @@
             </tbody>
           </v-simple-table>
         </div>
-
         <v-divider class="my-4" />
-
         <div class="actions">
           <AuthButtons v-if="!user.loggedIn" />
-
           <v-btn
             v-if="user.loggedIn"
             color="error"
@@ -78,25 +69,18 @@
             Logout
           </v-btn>
         </div>
-
         <v-divider class="my-4" />
-
         <h3 class="mb-3">Raw User Object:</h3>
         <pre class="debug-json">{{ JSON.stringify(user, null, 2) }}</pre>
       </v-card-text>
     </v-card>
   </v-container>
 </template>
-
 <script setup lang="ts">
 import { useUserStore } from "@/stores/user";
-// import { fireuser } from "@/plugins/firebase.client";
-// import { getAuth, signOut } from "firebase/auth";
-
 const { $supabase } = useNuxtApp();
 const user = $supabase.user;
 const userStore = useUserStore();
-
 const handleLogout = async () => {
   try {
     await $supabase.signOut();
@@ -105,7 +89,6 @@ const handleLogout = async () => {
   }
 };
 </script>
-
 <style scoped>
 .auth-info,
 .store-info {
@@ -113,7 +96,6 @@ const handleLogout = async () => {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 4px;
 }
-
 .debug-json {
   max-height: 400px;
   overflow-y: auto;

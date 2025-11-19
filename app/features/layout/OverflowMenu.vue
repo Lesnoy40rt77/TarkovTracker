@@ -271,20 +271,20 @@ import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/app";
 import { useUserStore } from "@/stores/user";
 import { useTarkovStore } from "@/stores/tarkov";
-// import { fireuser } from "@/plugins/firebase"; // DEPRECATED
-import type { GameMode } from "@/shared_state";
-
+import {
+  GAME_EDITIONS,
+  PMC_FACTIONS,
+  GAME_MODE_OPTIONS,
+  type GameMode,
+} from "@/utils/constants";
 const { $supabase } = useNuxtApp();
 const fireuser = computed(() => ({
   loggedIn: $supabase.user.loggedIn,
 }));
-
-// DisplayNameInput is auto-imported by NuxtseUserStore();
 const userStore = useUserStore();
 const tarkovStore = useTarkovStore();
 const resetDialog = ref(false);
 const fullResetDialog = ref(false);
-
 const unhideTips = () => {
   userStore.unhideTips();
 };
@@ -292,21 +292,8 @@ const enableHideAllTips = () => {
   userStore.enableHideAllTips();
 };
 const appStore = useAppStore();
-
 // Game mode options
-const gameModeOptions = [
-  {
-    label: "PvP",
-    value: "pvp",
-    icon: "mdi-sword-cross",
-  },
-  {
-    label: "PvE",
-    value: "pve",
-    icon: "mdi-account-group",
-  },
-];
-
+const gameModeOptions = GAME_MODE_OPTIONS;
 const selectedGameMode = computed({
   get() {
     return tarkovStore.getCurrentGameMode();
@@ -315,17 +302,11 @@ const selectedGameMode = computed({
     tarkovStore.switchGameMode(newMode);
   },
 });
-
 // PMC Faction options
-const PMCFactions = [
-  { title: "USEC", value: "USEC" },
-  { title: "BEAR", value: "BEAR" },
-];
-
+const PMCFactions = PMC_FACTIONS;
 const factionImage = (faction: string) => {
   return `img/factions/${faction}.webp`;
 };
-
 const currentPMCFaction = computed({
   get() {
     return tarkovStore.getPMCFaction();
@@ -334,17 +315,7 @@ const currentPMCFaction = computed({
     tarkovStore.setPMCFaction(newValue);
   },
 });
-
-// Game Edition options
-const gameEditions = [
-  { title: "Standard Edition", value: 1 },
-  { title: "Left Behind Edition", value: 2 },
-  { title: "Prepare for Escape Edition", value: 3 },
-  { title: "Edge of Darkness (Limited Edition)", value: 4 },
-  { title: "Unheard Edition", value: 5 },
-  { title: "Unheard + Edge Of Darkness (EOD) Edition", value: 6 },
-];
-
+const gameEditions = GAME_EDITIONS;
 const currentGameEdition = computed({
   get() {
     return tarkovStore.getGameEdition();
@@ -353,7 +324,6 @@ const currentGameEdition = computed({
     tarkovStore.setGameEdition(newValue);
   },
 });
-
 const streamerMode = computed({
   get() {
     return userStore.getStreamerMode;
@@ -379,7 +349,6 @@ const currentLocale = computed({
       )[0] || localeItems.value[0]
     );
   },
-  // setter
   set(newValue) {
     if (!newValue) return;
     const localeValue =

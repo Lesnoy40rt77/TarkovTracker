@@ -62,9 +62,6 @@ const AuthButtons = defineAsyncComponent(
   () => import("@/features/auth/AuthButtons")
 );
 
-definePageMeta({
-  background: "checkpoint",
-});
 </script>
 <style scoped>
 .login-page {

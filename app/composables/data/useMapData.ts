@@ -1,27 +1,29 @@
-import { computed } from 'vue';
-import { useTarkovDataQuery, useTarkovApi } from '@/composables/api/useTarkovApi';
-import { useTarkovStore } from '@/stores/tarkov';
-import type { TarkovMap, Trader, PlayerLevel } from '@/types/tarkov';
+import { computed } from "vue";
+import {
+  useTarkovDataQuery,
+  useTarkovApi,
+} from "@/composables/api/useTarkovApi";
+import { useTarkovStore } from "@/stores/tarkov";
+import type { TarkovMap, Trader, PlayerLevel } from "@/types/tarkov";
 // Mapping from GraphQL map names to static data keys
 const MAP_NAME_MAPPING: { [key: string]: string } = {
-  'night factory': 'factory',
-  'the lab': 'lab',
-  'ground zero 21+': 'groundzero',
-  'the labyrinth': 'labyrinth',
+  "night factory": "factory",
+  "the lab": "lab",
+  "ground zero 21+": "groundzero",
+  "the labyrinth": "labyrinth",
 };
 /**
  * Composable for managing map data with static SVG integration
  */
 export function useMapData() {
   const store = useTarkovStore();
-
   // Get current gamemode from store and convert to the format expected by API
-  const currentGameMode = computed(() => {
-    const mode = store.getCurrentGameMode();
-    return mode === 'pve' ? 'pve' : 'regular'; // API expects 'regular' for PvP, 'pve' for PvE
-  });
-
-  const { result: queryResult, error, loading } = useTarkovDataQuery(currentGameMode);
+  const currentGameMode = computed(() => store.getCurrentGameMode());
+  const {
+    result: queryResult,
+    error,
+    loading,
+  } = useTarkovDataQuery(currentGameMode);
   const { staticMapData } = useTarkovApi();
   // Computed property for maps with merged static data
   const maps = computed<TarkovMap[]>(() => {
@@ -30,7 +32,8 @@ export function useMapData() {
     }
     const mergedMaps = queryResult.value.maps.map((map) => {
       const lowerCaseName = map.name.toLowerCase();
-      const mapKey = MAP_NAME_MAPPING[lowerCaseName] || lowerCaseName.replace(/\s+|\+/g, '');
+      const mapKey =
+        MAP_NAME_MAPPING[lowerCaseName] || lowerCaseName.replace(/\s+|\+/g, "");
       const staticData = staticMapData.value?.[mapKey];
       if (staticData?.svg) {
         return {
@@ -38,7 +41,9 @@ export function useMapData() {
           svg: staticData.svg,
         };
       } else {
-        console.warn(`Static SVG data not found for map: ${map.name} (lookup key: ${mapKey})`);
+        console.warn(
+          `Static SVG data not found for map: ${map.name} (lookup key: ${mapKey})`
+        );
         return map;
       }
     });
@@ -87,7 +92,9 @@ export function useMapData() {
    */
   const getStaticMapKey = (mapName: string): string => {
     const lowerCaseName = mapName.toLowerCase();
-    return MAP_NAME_MAPPING[lowerCaseName] || lowerCaseName.replace(/\s+|\+/g, '');
+    return (
+      MAP_NAME_MAPPING[lowerCaseName] || lowerCaseName.replace(/\s+|\+/g, "")
+    );
   };
   /**
    * Check if a map has SVG data available
@@ -119,20 +126,21 @@ export function useMapData() {
  */
 export function useTraderData() {
   const store = useTarkovStore();
-
   // Get current gamemode from store and convert to the format expected by API
-  const currentGameMode = computed(() => {
-    const mode = store.getCurrentGameMode();
-    return mode === 'pve' ? 'pve' : 'regular'; // API expects 'regular' for PvP, 'pve' for PvE
-  });
-
-  const { result: queryResult, error, loading } = useTarkovDataQuery(currentGameMode);
+  const currentGameMode = computed(() => store.getCurrentGameMode());
+  const {
+    result: queryResult,
+    error,
+    loading,
+  } = useTarkovDataQuery(currentGameMode);
   // Computed property for sorted traders
   const traders = computed<Trader[]>(() => {
     if (!queryResult.value?.traders) {
       return [];
     }
-    return [...queryResult.value.traders].sort((a, b) => a.name.localeCompare(b.name));
+    return [...queryResult.value.traders].sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
   });
   /**
    * Get trader by ID
@@ -167,16 +175,17 @@ export function useTraderData() {
  */
 export function usePlayerLevelData() {
   const store = useTarkovStore();
-
   // Get current gamemode from store and convert to the format expected by API
-  const currentGameMode = computed(() => {
-    const mode = store.getCurrentGameMode();
-    return mode === 'pve' ? 'pve' : 'regular'; // API expects 'regular' for PvP, 'pve' for PvE
-  });
-
-  const { result: queryResult, error, loading } = useTarkovDataQuery(currentGameMode);
+  const currentGameMode = computed(() => store.getCurrentGameMode());
+  const {
+    result: queryResult,
+    error,
+    loading,
+  } = useTarkovDataQuery(currentGameMode);
   // Computed properties for player levels
-  const playerLevels = computed<PlayerLevel[]>(() => queryResult.value?.playerLevels || []);
+  const playerLevels = computed<PlayerLevel[]>(
+    () => queryResult.value?.playerLevels || []
+  );
   const minPlayerLevel = computed<number>(() => {
     if (!playerLevels.value.length) return 1;
     return Math.min(...playerLevels.value.map((l) => l.level));

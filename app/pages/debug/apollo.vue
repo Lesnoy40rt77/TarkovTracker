@@ -3,19 +3,15 @@
     <v-card>
       <v-card-title>Apollo GraphQL Debug Page</v-card-title>
       <v-card-subtitle>Testing Tarkov API Data Fetching</v-card-subtitle>
-
       <v-card-text>
         <v-alert v-if="loading" type="info" class="mb-4">
           Loading data from GraphQL API...
         </v-alert>
-
         <v-alert v-if="error" type="error" class="mb-4">
           <strong>Error:</strong> {{ error.message }}
         </v-alert>
-
         <div v-if="result" class="debug-data">
           <h3 class="mb-3">Query Results:</h3>
-
           <!-- Traders -->
           <v-expansion-panels class="mb-4">
             <v-expansion-panel>
@@ -33,7 +29,6 @@
                 </v-list>
               </v-expansion-panel-text>
             </v-expansion-panel>
-
             <!-- Tasks -->
             <v-expansion-panel>
               <v-expansion-panel-title>
@@ -53,7 +48,6 @@
                 </v-list>
               </v-expansion-panel-text>
             </v-expansion-panel>
-
             <!-- Maps -->
             <v-expansion-panel>
               <v-expansion-panel-title>
@@ -67,7 +61,6 @@
                 </v-list>
               </v-expansion-panel-text>
             </v-expansion-panel>
-
             <!-- Player Levels -->
             <v-expansion-panel>
               <v-expansion-panel-title>
@@ -86,15 +79,12 @@
               </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
-
           <v-divider class="my-4" />
-
           <div class="debug-info">
             <strong>Language:</strong> {{ languageCode }}<br />
             <strong>Game Mode:</strong> {{ gameMode }}
           </div>
         </div>
-
         <v-btn
           color="primary"
           :loading="loading"
@@ -107,25 +97,20 @@
     </v-card>
   </v-container>
 </template>
-
 <script setup lang="ts">
 import { computed } from "vue";
 import { useTarkovDataQuery } from "@/composables/api/useTarkovApi";
 import { useTarkovStore } from "@/stores/tarkov";
-
 const tarkovStore = useTarkovStore();
 const gameMode = computed(() => tarkovStore.getCurrentGameMode() || "regular");
-
 const { result, error, loading, refetch, languageCode } =
   useTarkovDataQuery(gameMode);
 </script>
-
 <style scoped>
 .debug-data {
   max-height: 600px;
   overflow-y: auto;
 }
-
 .debug-info {
   padding: 16px;
   background: rgba(255, 255, 255, 0.05);

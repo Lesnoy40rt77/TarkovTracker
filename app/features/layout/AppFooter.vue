@@ -11,14 +11,26 @@
     "
   >
     <v-container class="text-center footer-background mx-0">
-      <v-row justify="center" align="center" class="mb-2" style="font-size: 12px">
+      <v-row
+        justify="center"
+        align="center"
+        class="mb-2"
+        style="font-size: 12px"
+      >
         <!-- Community Links -->
         <v-col cols="12" sm="4" class="footer-section">
           <div class="footer-links d-flex flex-column align-center">
             <div class="mb-1">
-              <i18n-t keypath="footer.call_to_action.discord_phrase" scope="global">
+              <i18n-t
+                keypath="footer.call_to_action.discord_phrase"
+                scope="global"
+              >
                 <template #discord>
-                  <a href="https://discord.gg/zeAP4Ng" target="_blank" class="footer-link">
+                  <a
+                    href="https://discord.gg/zeAP4Ng"
+                    target="_blank"
+                    class="footer-link"
+                  >
                     <div class="d-inline-flex align-center">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -47,22 +59,27 @@
                           c0 1.17-.83 2.12-1.89 2.12z"
                         />
                       </svg>
-                      {{ t('footer.call_to_action.discord') }}
+                      {{ t("footer.call_to_action.discord") }}
                     </div>
                   </a>
                 </template>
               </i18n-t>
             </div>
             <div class="mb-1">
-              <i18n-t keypath="footer.call_to_action.github_phrase" scope="global">
+              <i18n-t
+                keypath="footer.call_to_action.github_phrase"
+                scope="global"
+              >
                 <template #github>
                   <a
                     href="https://github.com/tarkovtracker-org/TarkovTracker"
                     target="_blank"
                     class="footer-link"
                   >
-                    <v-icon class="footer-icon mr-1" size="14">mdi-github</v-icon>
-                    {{ t('footer.call_to_action.github') }}
+                    <v-icon class="footer-icon mr-1" size="14"
+                      >mdi-github</v-icon
+                    >
+                    {{ t("footer.call_to_action.github") }}
                   </a>
                 </template>
               </i18n-t>
@@ -97,18 +114,23 @@
               </svg>
               Support on Ko-fi
             </a>
-            <div class="support-text">Help keep TarkovTracker free and updated</div>
+            <div class="support-text">
+              Help keep TarkovTracker free and updated
+            </div>
           </div>
         </v-col>
-
         <!-- Legal Links Section -->
         <v-col cols="12" sm="4" class="footer-section">
           <div class="footer-links d-flex flex-column align-center">
             <div class="mb-1">
-              <router-link to="/terms" target="_blank" class="footer-link">Terms</router-link>
+              <router-link to="/terms" target="_blank" class="footer-link"
+                >Terms</router-link
+              >
             </div>
             <div class="mb-1">
-              <router-link to="/privacy" target="_blank" class="footer-link">Privacy</router-link>
+              <router-link to="/privacy" target="_blank" class="footer-link"
+                >Privacy</router-link
+              >
             </div>
           </div>
         </v-col>
@@ -116,11 +138,15 @@
       <!-- Footer Bottom Section -->
       <v-container
         class="text-center"
-        style="font-size: 11px; margin-bottom: 0 !important; padding-bottom: 0 !important"
+        style="
+          font-size: 11px;
+          margin-bottom: 0 !important;
+          padding-bottom: 0 !important;
+        "
       >
         <div class="copyright-notice mb-1">
-          Game content and materials are trademarks and copyrights of Battlestate Games and its
-          licensors. All rights reserved.
+          Game content and materials are trademarks and copyrights of
+          Battlestate Games and its licensors. All rights reserved.
         </div>
         <div class="brand-copyright" style="margin-bottom: 0 !important">
           TarkovTracker &copy; 2020 - {{ new Date().getFullYear() }}
@@ -130,115 +156,115 @@
   </v-footer>
 </template>
 <script setup>
-  import { useI18n } from 'vue-i18n';
-  const { t } = useI18n({ useScope: 'global' });
+import { useI18n } from "vue-i18n";
+const { t } = useI18n({ useScope: "global" });
 </script>
 <style lang="scss" scoped>
-  .footer-background {
-    background-color: rgba(0, 0, 0, 0.4);
-    max-width: 100% !important;
-    padding: 8px 16px;
-    margin-bottom: 0 !important;
-  }
-  // Ensure the footer sits flush at bottom
-  :deep(.v-footer) {
-    margin-bottom: 0 !important;
-    padding-bottom: 0 !important;
-  }
-  :deep(.v-container) {
-    margin-bottom: 0 !important;
-    padding-bottom: 0 !important;
-  }
-  // Force footer to bottom with no gaps
-  :deep(.v-footer__extension) {
-    margin-bottom: 0 !important;
-    padding-bottom: 0 !important;
-  }
-  :deep(.v-row) {
-    margin-bottom: 0 !important;
-  }
-  :deep(.v-col) {
-    padding-bottom: 0 !important;
-    margin-bottom: 0 !important;
-  }
-  .footer-section {
-    margin-bottom: 8px;
-  }
-  .footer-links {
-    gap: 4px;
-  }
-  .footer-link {
-    color: rgba(255, 255, 255, 0.7);
+.footer-background {
+  background-color: rgba(0, 0, 0, 0.4);
+  max-width: 100% !important;
+  padding: 8px 16px;
+  margin-bottom: 0 !important;
+}
+// Ensure the footer sits flush at bottom
+:deep(.v-footer) {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+:deep(.v-container) {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+// Force footer to bottom with no gaps
+:deep(.v-footer__extension) {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+:deep(.v-row) {
+  margin-bottom: 0 !important;
+}
+:deep(.v-col) {
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+.footer-section {
+  margin-bottom: 8px;
+}
+.footer-links {
+  gap: 4px;
+}
+.footer-link {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  &:hover {
+    color: rgba(var(--v-theme-primary), 1);
     text-decoration: none;
-    font-size: 12px;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    &:hover {
-      color: rgba(var(--v-theme-primary), 1);
-      text-decoration: none;
-    }
-    &:link,
-    &:active,
-    &:visited {
-      color: rgba(255, 255, 255, 0.7);
-    }
-    &:hover {
-      color: rgba(var(--v-theme-primary), 1);
-    }
   }
-  .footer-icon {
-    color: currentColor;
-    opacity: 0.8;
+  &:link,
+  &:active,
+  &:visited {
+    color: rgba(255, 255, 255, 0.7);
+  }
+  &:hover {
+    color: rgba(var(--v-theme-primary), 1);
+  }
+}
+.footer-icon {
+  color: currentColor;
+  opacity: 0.8;
+}
+.kofi-link {
+  background: linear-gradient(135deg, #ff5f5f 0%, #ff9500 100%);
+  color: white !important;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 4px rgba(255, 95, 95, 0.3);
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(255, 95, 95, 0.4);
+    color: white !important;
+  }
+}
+.support-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.support-text {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+  line-height: 1.2;
+}
+.copyright-notice {
+  line-height: 1.3;
+  margin-bottom: 4px;
+  color: rgba(255, 255, 255, 0.6);
+}
+.brand-copyright {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+}
+// Icon specific styling
+:deep(.mdi-github) {
+  color: #ffffff !important;
+}
+// Mobile responsive adjustments
+@media (max-width: 600px) {
+  .footer-section {
+    margin-bottom: 12px;
   }
   .kofi-link {
-    background: linear-gradient(135deg, #ff5f5f 0%, #ff9500 100%);
-    color: white !important;
-    padding: 4px 12px;
-    border-radius: 16px;
-    font-size: 11px;
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 4px rgba(255, 95, 95, 0.3);
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(255, 95, 95, 0.4);
-      color: white !important;
-    }
-  }
-  .support-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-  }
-  .support-text {
-    font-size: 9px;
-    color: rgba(255, 255, 255, 0.5);
-    font-style: italic;
-    line-height: 1.2;
-  }
-  .copyright-notice {
-    line-height: 1.3;
     margin-bottom: 4px;
-    color: rgba(255, 255, 255, 0.6);
   }
-  .brand-copyright {
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.7);
-  }
-  // Icon specific styling
-  :deep(.mdi-github) {
-    color: #ffffff !important;
-  }
-  // Mobile responsive adjustments
-  @media (max-width: 600px) {
-    .footer-section {
-      margin-bottom: 12px;
-    }
-    .kofi-link {
-      margin-bottom: 4px;
-    }
-  }
+}
 </style>

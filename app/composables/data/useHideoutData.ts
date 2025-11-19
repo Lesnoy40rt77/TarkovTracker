@@ -24,13 +24,8 @@ import type { AbstractGraph } from "graphology-types";
  */
 export function useHideoutData() {
   const store = useTarkovStore();
-
   // Get current gamemode from store and convert to the format expected by API
-  const currentGameMode = computed(() => {
-    const mode = store.getCurrentGameMode();
-    return mode === "pve" ? "pve" : "regular"; // API expects 'regular' for PvP, 'pve' for PvE
-  });
-
+  const currentGameMode = computed(() => store.getCurrentGameMode());
   const {
     result: queryResult,
     error,

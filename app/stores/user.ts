@@ -3,7 +3,6 @@ import { defineStore, type StoreDefinition } from "pinia";
 import { watch } from "vue";
 import { pinia as pluginPinia } from "@/plugins/pinia.client";
 import { useNuxtApp } from "#imports";
-// import type { StoreWithFireswapExt } from "@/plugins/pinia-firestore";
 // Define the state structure
 interface UserState {
   allTipsHidden: boolean;
@@ -124,7 +123,6 @@ type UserStoreDefinition = StoreDefinition<
   UserGetters,
   UserActions
 >;
-
 export const useUserStore: UserStoreDefinition = defineStore("swapUser", {
   state: (): UserState => {
     const state = JSON.parse(JSON.stringify(defaultState));
@@ -286,13 +284,11 @@ export const useUserStore: UserStoreDefinition = defineStore("swapUser", {
     },
   },
 }) as UserStoreDefinition;
-
 // Watch for Supabase user state changing
 if (import.meta.client) {
   setTimeout(() => {
     try {
       const { $supabase } = useNuxtApp();
-
       watch(
         () => $supabase.user.loggedIn,
         (_newValue: boolean) => {

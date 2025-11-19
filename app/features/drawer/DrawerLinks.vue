@@ -47,19 +47,16 @@
 </template>
 <script setup>
 import { computed, defineAsyncComponent } from "vue";
-
 const props = defineProps({
   isCollapsed: {
     type: Boolean,
     required: true,
   },
 });
-
 const { $supabase } = useNuxtApp();
 const fireuser = computed(() => ({
   loggedIn: $supabase.user?.loggedIn ?? false,
 }));
-
 const DrawerItem = defineAsyncComponent(
   () => import("@/features/drawer/DrawerItem.vue")
 );

@@ -59,7 +59,6 @@
         </v-card>
       </v-col>
     </v-row>
-
     <!-- Quick Stats Section -->
     <v-row
       v-if="fireuser.loggedIn"
@@ -133,7 +132,6 @@
         </v-card>
       </v-col>
     </v-row>
-
     <!-- API Tokens Section -->
     <v-row ref="tokensSection" justify="center" class="mb-6">
       <v-col v-if="fireuser.loggedIn" cols="12" sm="12" md="10" lg="8" xl="8">
@@ -180,7 +178,6 @@
                 </v-chip>
               </div>
             </div>
-
             <api-tokens />
           </template>
         </fitted-card>
@@ -221,7 +218,6 @@
         </fitted-card>
       </v-col>
     </v-row>
-
     <!-- Settings Cards Grid -->
     <v-row justify="center" class="mb-6">
       <!-- Data Migration -->
@@ -236,7 +232,6 @@
       >
         <data-migration-card class="flex-grow-1" />
       </v-col>
-
       <!-- Account Deletion -->
       <v-col
         v-if="fireuser.loggedIn"
@@ -260,23 +255,18 @@ import ApiTokens from "@/features/settings/ApiTokens";
 import DataMigrationCard from "@/features/settings/DataMigrationCard";
 import AccountDeletionCard from "@/features/settings/AccountDeletionCard.vue";
 import FittedCard from "@/features/ui/FittedCard";
-
 const { $supabase } = useNuxtApp();
 const { useSystemStore } = useLiveData();
 const { systemStore } = useSystemStore();
-
 const tokensSection = ref(null);
-
 // Computed properties for token count
 const userTokenCount = computed(() => {
   return systemStore.$state.tokens?.length || 0;
 });
-
 // Computed properties for user
 const fireuser = computed(() => ({
   loggedIn: $supabase.user.loggedIn,
 }));
-
 // Scroll to tokens section
 const scrollToTokens = () => {
   if (tokensSection.value) {
@@ -286,10 +276,6 @@ const scrollToTokens = () => {
     });
   }
 };
-
-definePageMeta({
-  background: "gas",
-});
 </script>
 <style lang="scss" scoped>
 a:link,
@@ -300,55 +286,44 @@ a:visited {
 .info-link {
   text-decoration: none;
 }
-
 .gap-2 {
   gap: 0.5rem;
 }
-
 .gap-3 {
   gap: 0.75rem;
 }
-
 // Responsive improvements
 @media (max-width: 960px) {
   .text-h3 {
     font-size: 2rem !important;
   }
-
   .text-h6 {
     font-size: 1.125rem !important;
   }
 }
-
 @media (max-width: 600px) {
   .text-h3 {
     font-size: 1.75rem !important;
   }
-
   .d-flex.justify-center.gap-3 {
     flex-direction: column;
     gap: 0.75rem;
-
     .v-btn {
       width: 100%;
     }
   }
-
   .d-flex.flex-wrap.gap-2 {
     gap: 0.25rem;
-
     .v-chip {
       margin: 0.125rem;
     }
   }
 }
-
 // Accessibility improvements
 .v-card:focus-visible {
   outline: 2px solid rgba(var(--v-theme-primary), 0.5);
   outline-offset: 2px;
 }
-
 .v-btn:focus-visible {
   outline: 2px solid rgba(var(--v-theme-on-surface), 0.5);
   outline-offset: 2px;

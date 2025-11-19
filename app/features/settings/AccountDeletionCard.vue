@@ -6,7 +6,6 @@
       </template>
       <template #content>
         <div class="pa-4">
-          <!-- Warning Section -->
           <v-alert type="error" variant="tonal" class="mb-4" prominent>
             <template #prepend>
               <v-icon>mdi-alert-circle</v-icon>
@@ -23,8 +22,6 @@
               <li>All personal information</li>
             </ul>
           </v-alert>
-
-          <!-- Team Ownership Warning -->
           <v-alert
             v-if="hasOwnedTeams"
             type="warning"
@@ -41,8 +38,6 @@
               without other members will be deleted.
             </div>
           </v-alert>
-
-          <!-- Account Information -->
           <v-card variant="outlined" class="mb-4">
             <v-card-text>
               <div class="text-subtitle-1 mb-2">Account Information</div>
@@ -112,8 +107,6 @@
               </div>
             </v-card-text>
           </v-card>
-
-          <!-- Deletion Button -->
           <div class="text-center">
             <v-btn
               color="error"
@@ -131,25 +124,19 @@
       </template>
     </fitted-card>
   </div>
-
-  <!-- Confirmation Dialog -->
   <v-dialog v-model="showConfirmationDialog" max-width="600" persistent>
     <v-card>
       <v-card-title class="text-h5 text-error d-flex align-center">
         <v-icon class="mr-2" color="error">mdi-alert-circle</v-icon>
         Confirm Account Deletion
       </v-card-title>
-
       <v-card-text class="pt-4">
-        <!-- Final Warning -->
         <v-alert type="error" variant="flat" class="mb-4">
           <div class="font-weight-bold">This action is irreversible!</div>
           <div class="mt-1">
             All your data will be permanently deleted and cannot be recovered.
           </div>
         </v-alert>
-
-        <!-- Security Notice -->
         <div class="mb-4">
           <div class="text-subtitle-1 mb-2">Security Confirmation</div>
           <div class="text-body-2 text-medium-emphasis mb-3">
@@ -157,8 +144,6 @@
             below. This action is permanent and cannot be undone.
           </div>
         </div>
-
-        <!-- Confirmation Input -->
         <div class="mb-4">
           <div class="text-subtitle-1 mb-2">
             Type "DELETE MY ACCOUNT" to confirm:
@@ -174,13 +159,10 @@
             @input="confirmationError = false"
           />
         </div>
-
-        <!-- Error Display -->
         <v-alert v-if="deleteError" type="error" variant="tonal" class="mb-4">
           {{ deleteError }}
         </v-alert>
       </v-card-text>
-
       <v-card-actions class="pa-4">
         <v-spacer />
         <v-btn variant="text" :disabled="isDeleting" @click="closeDialog">
@@ -198,8 +180,6 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-
-  <!-- Success Dialog - Teleported to body to persist after signout -->
   <teleport to="body">
     <v-dialog v-model="showSuccessDialog" max-width="500" persistent>
       <v-card>
@@ -207,7 +187,6 @@
           <v-icon class="mr-2" color="success">mdi-check-circle</v-icon>
           Account Deleted Successfully
         </v-card-title>
-
         <v-card-text class="pt-4">
           <div class="text-body-1 mb-3">
             Your account and all associated data have been permanently deleted.
@@ -217,7 +196,6 @@
             dashboard.
           </div>
         </v-card-text>
-
         <v-card-actions class="pa-4">
           <v-spacer />
           <v-btn color="primary" variant="flat" @click="redirectToHome">
@@ -228,25 +206,18 @@
     </v-dialog>
   </teleport>
 </template>
-
 <script setup>
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
-// import { fireuser, auth, functions, httpsCallable } from '@/plugins/firebase.client';
 import { useLiveData } from "@/composables/livedata";
 import FittedCard from "@/features/ui/FittedCard.vue";
-
-// Disable automatic attribute inheritance since we handle it manually
 defineOptions({
   inheritAttrs: false,
 });
-
 const { $supabase } = useNuxtApp();
 const router = useRouter();
 const { useTeamStore } = useLiveData();
 const { teamStore } = useTeamStore();
-
-// Reactive data
 const showConfirmationDialog = ref(false);
 const showSuccessDialog = ref(false);
 const confirmationText = ref("");
@@ -254,28 +225,21 @@ const confirmationError = ref(false);
 const deleteError = ref("");
 const isDeleting = ref(false);
 const accountIdCopied = ref(false);
-
-// Computed properties
 const hasOwnedTeams = computed(() => {
   return (
     teamStore.$state.team && teamStore.$state.team.owner === $supabase.user.id
   );
 });
-
 const ownedTeamsCount = computed(() => {
-  return hasOwnedTeams.value ? 1 : 0; // Assuming user can only own one team
+  return hasOwnedTeams.value ? 1 : 0;
 });
-
 const canDelete = computed(() => {
   return confirmationText.value === "DELETE MY ACCOUNT";
 });
-
-// Methods
 const formatDate = (dateString) => {
   if (!dateString) return "Unknown";
   return new Date(dateString).toLocaleDateString();
 };
-
 const copyAccountId = async () => {
   try {
     await navigator.clipboard.writeText($supabase.user.id);
@@ -287,40 +251,26 @@ const copyAccountId = async () => {
     console.error("Failed to copy account ID:", error);
   }
 };
-
 const closeDialog = () => {
   showConfirmationDialog.value = false;
   confirmationText.value = "";
   confirmationError.value = false;
   deleteError.value = "";
 };
-
 const deleteAccount = async () => {
   if (!canDelete.value) {
     confirmationError.value = true;
     return;
   }
-
   isDeleting.value = true;
   deleteError.value = "";
-
   try {
     // TODO: Implement Supabase account deletion (likely via RPC or Edge Function)
     console.warn("Account deletion not yet implemented for Supabase");
     deleteError.value =
       "Account deletion is currently disabled during migration.";
-
-    // Simulate delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Fail for now
     throw new Error("Account deletion is currently disabled.");
-
-    /*
-      // Success - show success dialog first, then sign out in the redirect function
-      showConfirmationDialog.value = false;
-      showSuccessDialog.value = true;
-      */
   } catch (error) {
     console.error("Account deletion error:", error);
     deleteError.value =
@@ -329,19 +279,12 @@ const deleteAccount = async () => {
     isDeleting.value = false;
   }
 };
-
 const redirectToHome = async () => {
   try {
     showSuccessDialog.value = false;
     console.log("Signing out user and redirecting to dashboard...");
-
-    // Clear ALL localStorage data before signing out
     localStorage.clear();
-
-    // Sign out the user now that they've seen the success message
     await $supabase.signOut();
-
-    // Navigate to dashboard
     await router.push("/");
     console.log("Successfully signed out and redirected to dashboard");
   } catch (error) {
@@ -350,20 +293,16 @@ const redirectToHome = async () => {
   }
 };
 </script>
-
 <style scoped>
 .account-deletion-card {
   border: 1px solid rgb(var(--v-theme-error));
 }
-
 .account-deletion-card :deep(.v-card) {
   border-color: rgb(var(--v-theme-error));
 }
-
 ul {
   list-style-type: disc;
 }
-
 ul li {
   margin-bottom: 0.25rem;
 }

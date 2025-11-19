@@ -5,11 +5,7 @@ import { useI18n } from "vue-i18n";
 import { createVueI18nAdapter } from "vuetify/locale/adapters/vue-i18n";
 import { mdi } from "vuetify/iconsets/mdi";
 import { i18n } from "./i18n.client";
-import {
-  createVuetify,
-  type VuetifyOptions,
-  type ThemeDefinition,
-} from "vuetify";
+import { createVuetify, type ThemeDefinition } from "vuetify";
 type ColorThemeKeys =
   | "primary"
   | "secondary"
@@ -45,7 +41,7 @@ const trackerTheme: ThemeDefinition = {
   colors: {
     ...colorTheme,
     link: "#118cf7",
-    bgdarken: colors.grey.darken4,
+    bgdarken: "#0A0A09",
     enough: "#001638",
     questlink: colors.grey.lighten4,
     objectiveahead: "#193011",
@@ -53,8 +49,8 @@ const trackerTheme: ThemeDefinition = {
     objectiveuncomplete: "#391111",
     objectiveenough: "#2e455a",
     chartbase: "#ffffff",
-    sitebackground: "#121212",
-    contentbackground: "#1E1E1E",
+    sitebackground: "#0A0A09",
+    contentbackground: "#181817",
   },
 };
 // Remove explicit VuetifyOptions type to allow type inference
@@ -84,9 +80,7 @@ const vuetifyOptions = {
     },
   },
 };
-
 export const vuetify = createVuetify(vuetifyOptions);
-
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.use(vuetify);
   return { provide: { vuetify } };

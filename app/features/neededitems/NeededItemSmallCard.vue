@@ -1,7 +1,6 @@
 <template>
   <KeepAlive>
     <v-sheet
-      ref="cardRef"
       rounded
       style="position: relative"
       class="fill-height"
@@ -23,23 +22,18 @@
         <!-- Item image -->
         <div class="d-flex align-self-stretch item-panel fill-height">
           <v-img
-            v-if="isVisible"
             :src="imageItem.image512pxLink"
-            :lazy-src="imageItem.baseImageLink"
             :class="itemImageClasses"
-            lazy
           >
             <template #placeholder>
               <v-row class="fill-height ma-0" align="center" justify="center">
-                <v-progress-circular indeterminate color="grey-lighten-5"></v-progress-circular>
+                <v-progress-circular
+                  indeterminate
+                  color="grey-lighten-5"
+                ></v-progress-circular>
               </v-row>
             </template>
           </v-img>
-          <div v-else :class="[itemImageClasses, 'image-placeholder']">
-            <v-row class="fill-height ma-0" align="center" justify="center">
-              <v-progress-circular indeterminate color="grey-lighten-5"></v-progress-circular>
-            </v-row>
-          </div>
         </div>
       </div>
       <v-dialog v-model="smallDialog" activator="parent" :width="smallDialogWidth" scrim="#9A8866">
@@ -182,13 +176,17 @@
   </KeepAlive>
 </template>
 <script setup>
-  import { defineAsyncComponent, computed, inject, ref, onMounted, onUnmounted } from 'vue';
-  import { useTarkovData } from '@/composables/tarkovdata';
-  import { useTarkovStore } from '@/stores/tarkov';
-  import { useDisplay } from 'vuetify';
-  import { useProgressStore } from '@/stores/progress';
-  const TaskLink = defineAsyncComponent(() => import('@/features/tasks/TaskLink'));
-  const StationLink = defineAsyncComponent(() => import('@/features/hideout/StationLink'));
+  import { defineAsyncComponent, computed, inject, ref } from "vue";
+  import { useTarkovData } from "@/composables/tarkovdata";
+  import { useTarkovStore } from "@/stores/tarkov";
+  import { useDisplay } from "vuetify";
+  import { useProgressStore } from "@/stores/progress";
+  const TaskLink = defineAsyncComponent(
+    () => import("@/features/tasks/TaskLink")
+  );
+  const StationLink = defineAsyncComponent(
+    () => import("@/features/hideout/StationLink")
+  );
   const props = defineProps({
     need: {
       type: Object,
@@ -202,11 +200,11 @@
   const smallDialog = ref(false);
   const smallDialogWidth = computed(() => {
     if (smAndDown.value) {
-      return '100%';
+      return "100%";
     } else if (mdAndUp.value) {
-      return '50%';
+      return "50%";
     } else {
-      return '100%';
+      return "100%";
     }
   });
   const {
@@ -220,31 +218,7 @@
     item,
     teamNeeds,
     imageItem,
-  } = inject('neededitem');
-  // Intersection observer for lazy loading
-  const cardRef = ref(null);
-  const isVisible = ref(false);
-  let observer = null;
-  onMounted(() => {
-    if (cardRef.value?.$el) {
-      observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            isVisible.value = true;
-            observer?.disconnect();
-          }
-        },
-        {
-          rootMargin: '50px',
-          threshold: 0.1,
-        }
-      );
-      observer.observe(cardRef.value.$el);
-    }
-  });
-  onUnmounted(() => {
-    observer?.disconnect();
-  });
+  } = inject("neededitem");
   const itemImageClasses = computed(() => {
     return {
       [`item-bg-${item.value.backgroundColor}`]: true,

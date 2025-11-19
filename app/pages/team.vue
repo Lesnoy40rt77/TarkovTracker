@@ -49,8 +49,5 @@ const fireuser = computed(() => ({
   loggedIn: $supabase.user.loggedIn,
 }));
 
-definePageMeta({
-  background: "busstation",
-});
 </script>
 <style lang="scss" scoped></style>

@@ -6,19 +6,15 @@ import {
   migrateToGameModeStructure,
   type UserState,
   type UserActions,
-  type GameMode,
 } from "@/shared_state";
+import { GAME_MODES, type GameMode } from "@/utils/constants";
 import { useSupabaseSync } from "@/composables/supabase/useSupabaseSync";
-
-// Define the store, letting Pinia infer the type
 export const useTarkovStore = defineStore("swapTarkov", {
   state: () => {
-    // Start with default state
     return JSON.parse(JSON.stringify(defaultState)) as UserState;
   },
   getters: {
     ...getters,
-    // Override getters to trigger migration before data access
     isTaskComplete: function (state) {
       return (taskId: string) => {
         (
@@ -47,14 +43,10 @@ export const useTarkovStore = defineStore("swapTarkov", {
   actions: {
     ...(actions as UserActions),
     async switchGameMode(mode: GameMode) {
-      // Switch the current game mode using the base action
       actions.switchGameMode.call(this, mode);
-
-      // If user is logged in, sync the gamemode change to backend
       const { $supabase } = useNuxtApp();
       if ($supabase.user.loggedIn && $supabase.user.id) {
         try {
-          // Send complete state to Supabase
           const completeState = {
             user_id: $supabase.user.id,
             current_game_mode: mode,
@@ -62,7 +54,6 @@ export const useTarkovStore = defineStore("swapTarkov", {
             pvp_data: this.pvp,
             pve_data: this.pve,
           };
-
           await $supabase.client.from("user_progress").upsert(completeState);
         } catch (error) {
           console.error("Error syncing gamemode to backend:", error);
@@ -70,14 +61,12 @@ export const useTarkovStore = defineStore("swapTarkov", {
       }
     },
     migrateDataIfNeeded() {
-      // Check if we need to migrate data
       const needsMigration =
         !this.currentGameMode ||
         !this.pvp ||
         !this.pve ||
         ((this as unknown as Record<string, unknown>).level !== undefined &&
           !this.pvp?.level);
-
       if (needsMigration) {
         console.log(
           "Migrating legacy data structure to gamemode-aware structure"
@@ -85,8 +74,6 @@ export const useTarkovStore = defineStore("swapTarkov", {
         const currentState = JSON.parse(JSON.stringify(this.$state));
         const migratedData = migrateToGameModeStructure(currentState);
         this.$patch(migratedData);
-
-        // If user is logged in, save the migrated structure to Supabase
         const { $supabase } = useNuxtApp();
         if ($supabase.user.loggedIn && $supabase.user.id) {
           try {
@@ -109,9 +96,7 @@ export const useTarkovStore = defineStore("swapTarkov", {
         console.error("User not logged in. Cannot reset online profile.");
         return;
       }
-
       try {
-        // Set the Supabase record to a fresh defaultState
         const freshDefaultState = JSON.parse(JSON.stringify(defaultState));
         await $supabase.client.from("user_progress").upsert({
           user_id: $supabase.user.id,
@@ -120,11 +105,7 @@ export const useTarkovStore = defineStore("swapTarkov", {
           pvp_data: freshDefaultState.pvp,
           pve_data: freshDefaultState.pve,
         });
-
-        // Clear ALL localStorage data for full account reset
         localStorage.clear();
-
-        // Reset the local Pinia store state to default using $patch
         this.$patch(JSON.parse(JSON.stringify(defaultState)));
       } catch (error) {
         console.error("Error resetting online profile:", error);
@@ -136,32 +117,21 @@ export const useTarkovStore = defineStore("swapTarkov", {
         console.error("User not logged in. Cannot reset game mode data.");
         return;
       }
-
       const currentMode = this.getCurrentGameMode();
-
       try {
-        // Create fresh default progress data for the current game mode
         const freshProgressData = JSON.parse(
           JSON.stringify(defaultState[currentMode])
         );
-
-        // Update only the current game mode data in Supabase
         const updateData: Record<string, unknown> = {
           user_id: $supabase.user.id,
         };
-
-        if (currentMode === "pvp") {
+        if (currentMode === GAME_MODES.PVP) {
           updateData.pvp_data = freshProgressData;
         } else {
           updateData.pve_data = freshProgressData;
         }
-
         await $supabase.client.from("user_progress").upsert(updateData);
-
-        // Clear ALL localStorage data for gamemode reset
         localStorage.clear();
-
-        // Reset only the current game mode data in the local store
         this.$patch({ [currentMode]: freshProgressData });
       } catch (error) {
         console.error(`Error resetting ${currentMode} game mode data:`, error);
@@ -169,45 +139,31 @@ export const useTarkovStore = defineStore("swapTarkov", {
     },
   },
 });
-
-// Legacy initialization removed - handled by initializeTarkovSync in app.vue
-
-/**
- * Initialize Supabase sync for tarkov store
- */
 export function initializeTarkovSync() {
   const tarkovStore = useTarkovStore();
   const { $supabase } = useNuxtApp();
-
   if (import.meta.client && $supabase.user.loggedIn) {
     console.log("[TarkovStore] Setting up Supabase sync and listener");
-
     let isInitialLoad = true;
-
-    // Load initial data from Supabase
     const loadData = async () => {
       const { data, error } = await $supabase.client
         .from("user_progress")
         .select("*")
         .eq("user_id", $supabase.user.id)
         .single();
-
       if (error) {
         console.error("[TarkovStore] Error loading data:", error);
         isInitialLoad = false;
         return;
       }
-
       if (data) {
         console.log("[TarkovStore] Loading data from Supabase:", data);
         tarkovStore.$patch({
-          currentGameMode: data.current_game_mode || "pvp",
+          currentGameMode: data.current_game_mode || GAME_MODES.PVP,
           gameEdition: data.game_edition || 1,
           pvp: data.pvp_data || {},
           pve: data.pve_data || {},
         });
-
-        // Mark initial load complete after a short delay
         setTimeout(() => {
           isInitialLoad = false;
           console.log("[TarkovStore] Initial load complete, sync enabled");
@@ -216,27 +172,20 @@ export function initializeTarkovSync() {
         isInitialLoad = false;
       }
     };
-
-    // Load data immediately
     loadData();
-
-    // Setup sync to save changes (but skip during initial load)
     useSupabaseSync({
       store: tarkovStore,
       table: "user_progress",
       debounceMs: 250,
       transform: (state: unknown) => {
         const userState = state as UserState;
-
-        // Skip sync during initial load
         if (isInitialLoad) {
           console.log("[TarkovStore] Skipping sync during initial load");
           return undefined as unknown as Record<string, unknown>; // Return null to skip sync
         }
-
         return {
           user_id: $supabase.user.id,
-          current_game_mode: userState.currentGameMode || "pvp",
+          current_game_mode: userState.currentGameMode || GAME_MODES.PVP,
           game_edition:
             typeof userState.gameEdition === "string"
               ? parseInt(userState.gameEdition)

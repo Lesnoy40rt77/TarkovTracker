@@ -98,7 +98,6 @@
     text-overflow: ellipsis;
     margin-inline-start: 8px !important;
   }
-
   .v-drawer-item-rail {
     width: 26px;
   }

@@ -11,13 +11,6 @@ import type { UserState } from "@/shared_state";
  * - Game objectives and quest data
  */
 
-// Legacy Firebase type - no longer used
-// import type {
-//   Unsubscribe,
-//   DocumentReference,
-//   DocumentData,
-// } from "firebase/firestore";
-
 // Core Tarkov Data Types
 export interface TarkovItem {
   id: string;
@@ -32,7 +25,6 @@ export interface TarkovItem {
   image8xLink?: string;
   backgroundColor?: string;
 }
-
 export interface ItemRequirement {
   id: string;
   item: TarkovItem;
@@ -40,38 +32,32 @@ export interface ItemRequirement {
   quantity: number;
   foundInRaid?: boolean;
 }
-
 export interface StationLevelRequirement {
   id: string;
   station: { id: string; name: string };
   level: number;
 }
-
 export interface SkillRequirement {
   id: string;
   name: string;
   level: number;
 }
-
 export interface TraderRequirement {
   id: string;
   trader: { id: string; name: string };
   value: number;
 }
-
 export interface TaskTraderLevelRequirement {
   id: string;
   trader: { id: string; name: string };
   level: number;
 }
-
 export interface Craft {
   id: string;
   duration: number;
   requiredItems: ItemRequirement[];
   rewardItems: ItemRequirement[];
 }
-
 export interface HideoutLevel {
   id: string;
   level: number;
@@ -83,14 +69,12 @@ export interface HideoutLevel {
   traderRequirements: TraderRequirement[];
   crafts: Craft[];
 }
-
 export interface HideoutStation {
   id: string;
   name: string;
   normalizedName?: string;
   levels: HideoutLevel[];
 }
-
 export interface HideoutModule extends HideoutLevel {
   stationId: string;
   predecessors: string[];
@@ -98,7 +82,6 @@ export interface HideoutModule extends HideoutLevel {
   parents: string[];
   children: string[];
 }
-
 export interface TaskObjective {
   id: string;
   description?: string;
@@ -114,18 +97,15 @@ export interface TaskObjective {
   optional?: boolean;
   taskId?: string;
 }
-
 export interface TaskRequirement {
   task: { id: string; name?: string };
   status?: string[];
 }
-
 export interface FinishReward {
   __typename?: string;
   status?: string;
   quest?: { id: string };
 }
-
 export interface Task {
   id: string;
   tarkovDataId?: number;
@@ -148,7 +128,6 @@ export interface Task {
   parents?: string[];
   children?: string[];
 }
-
 export interface TarkovMap {
   id: string;
   name: string;
@@ -163,36 +142,30 @@ export interface TarkovMap {
         bounds: number[][];
       };
 }
-
 export interface Trader {
   id: string;
   name: string;
   normalizedName?: string;
   imageLink?: string;
 }
-
 export interface PlayerLevel {
   level: number;
   exp: number;
   levelBadgeImageLink: string;
 }
-
 // Query Result Types
 export interface LanguageQueryResult {
   __type?: { enumValues: { name: string }[] };
 }
-
 export interface TarkovDataQueryResult {
   tasks: Task[];
   maps: TarkovMap[];
   traders: Trader[];
   playerLevels: PlayerLevel[];
 }
-
 export interface TarkovHideoutQueryResult {
   hideoutStations: HideoutStation[];
 }
-
 // Needed Items Types
 export interface NeededItemBase {
   id: string;
@@ -200,31 +173,26 @@ export interface NeededItemBase {
   count: number;
   foundInRaid?: boolean;
 }
-
 export interface NeededItemTaskObjective extends NeededItemBase {
   needType: "taskObjective";
   taskId: string;
   type?: string;
   markerItem?: TarkovItem;
 }
-
 export interface NeededItemHideoutModule extends NeededItemBase {
   needType: "hideoutModule";
   hideoutModule: HideoutModule;
 }
-
 // Lookup Types
 export interface ObjectiveMapInfo {
   objectiveID: string;
   mapID: string;
 }
-
 export interface ObjectiveGPSInfo {
   objectiveID: string;
   x?: number;
   y?: number;
 }
-
 export interface StaticMapData {
   [key: string]: {
     id: number;
@@ -249,26 +217,22 @@ export interface StaticMapData {
     };
   };
 }
-
 // Store Types
 export interface SystemState extends StateTree {
   tokens?: string[];
   team?: string | null;
 }
-
 export interface SystemGetters extends _GettersTree<SystemState> {
   userTokens: (state: SystemState) => string[];
   userTokenCount: (state: SystemState) => number;
   userTeam: (state: SystemState) => string | null;
   userTeamIsOwn: (state: SystemState) => boolean;
 }
-
 export interface TeamState extends StateTree {
   owner?: string | null;
   password?: string | null;
   members?: string[];
 }
-
 export interface TeamGetters extends _GettersTree<TeamState> {
   teamOwner: (state: TeamState) => string | null;
   isOwner: (state: TeamState) => boolean;
@@ -276,20 +240,11 @@ export interface TeamGetters extends _GettersTree<TeamState> {
   teamMembers: (state: TeamState) => string[];
   teammates: (state: TeamState) => string[];
 }
-
-// Firebase Types - Legacy, no longer used
-// export interface FirebaseListenerConfig {
-//   refToWatch: ComputedRef<DocumentReference<DocumentData> | null>;
-//   unsubscribe: Ref<Unsubscribe | null>;
-//   store: Store;
-//   storeId?: string;
-// }
-
 // Composable Return Types
 export interface TarkovDataComposable {
   availableLanguages: Ref<string[] | null>;
   languageCode: ComputedRef<string>;
-  queryErrors: Ref<ApolloError | null>;
+  queryErrors: Ref<Error | null | undefined>;
   queryResults: Ref<TarkovDataQueryResult | null>;
   lastQueryTime: Ref<number | null>;
   loading: Ref<boolean>;
@@ -316,7 +271,6 @@ export interface TarkovDataComposable {
   minPlayerLevel: ComputedRef<number>;
   maxPlayerLevel: ComputedRef<number>;
 }
-
 export interface LiveDataComposable {
   useTeamStore: () => Store<string, TeamState, TeamGetters>;
   useSystemStore: () => Store<string, SystemState, SystemGetters>;

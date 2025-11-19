@@ -1,273 +1,91 @@
-# Nuxt Migration Checklist
+### ✅ Completed Systems
 
-## Current Nuxt Status — November 18, 2025
-- [x] Nuxt 4 app scaffolded with `srcDir: app`, SPA mode (`ssr: false`), Vuetify auto-imported via `vite-plugin-vuetify`.
-- [x] File-based routing in `app/pages` for dashboard (`index`), tasks, items, hideout, team, api (settings), login, and 404 (`NotFound`); placeholder `terms` and `privacy` added to clear router warnings.
-- [x] Standard layout registered through `app/layouts/default.vue` using `StandardLayout` (drawer/app-bar/footer wired).
-- [x] Pinia enabled via `@pinia/nuxt`; existing stores live in `app/stores` (app, progress, tarkov, user, system).
-- [x] Vue I18n Vite plugin configured; locales present in `app/locales`.
-- [x] Firebase plugin stub added (`app/plugins/firebase.ts`) to satisfy Nuxt plugin loading while re-exporting firebase helpers.
-- [x] Nuxt Content config added (`content.config.ts`) with a default collection; warning resolved.
-- [x] Path aliases `@` and `~` mapped to `app/` in `nuxt.config.ts`.
-- [x] Apollo client setup and GraphQL composables verified (debug page shows 11 traders, 508 tasks, 13 maps)
-- [x] Firebase Auth initialization verified (auth state tracking working, OAuth buttons visible)
-- [ ] VueFire configuration and real-time listeners still need end-to-end validation with authenticated user.
-- [x] Game mode mapping (pvp→regular) applied globally in `useTarkovApi.ts`.
+- [x] Nuxt 4 app configured with `srcDir: app`, SPA mode (`ssr: false`)
+- [x] Vuetify 3 integrated via `vite-plugin-vuetify` with auto-imports
 
-## Critical Gaps for Deployment
-- [ ] **Missing Component**: `app/features/dashboard/TrackerDashboard.vue` is missing. The home page will not render.
-- [ ] **Deployment Config**: `firebase.json` and `firestore.rules` are missing.
-- [ ] **VueFire**: Real-time listeners need final validation.
+## Remaining Work
 
-## Component Migration Status
-- **Dashboard**: `TrackerDashboard.vue` MISSING. `TrackerStat.vue` present.
-- **Tasks**: `TaskCard.vue` and dependencies present.
-- **Hideout**: `HideoutCard.vue` present.
-- **Settings**: `ApiTokens.vue`, `DataMigrationCard.vue`, `AccountDeletionCard.vue` present.
-- **Maps**: `TarkovMap.vue` present.
-- **UI**: `TrackerTip.vue`, `RefreshButton.vue`, `FittedCard.vue` present.
+### 1. Backend Integration & Testing
 
-## Quick Reference - What to Migrate from TarkovTracker
+**Supabase Real-time Sync**
+- [ ] End-to-end validation of Supabase real-time listeners with authenticated users
+- [ ] Verify team collaboration features work with Supabase backend
+- [ ] Test data synchronization under various network conditions
 
-### Project Scope Summary
-- **116 TypeScript/Vue files** (~1.1MB frontend source)
-- **58 Vue components** across 12 feature modules
-- **5 Pinia stores** for state management
-- **8 routes** with nested layouts
-- **6 languages** (i18n)
-- **Multiple APIs**: GraphQL (Apollo) + Firebase Firestore + REST
+**Team Features Migration**
+- [ ] Migrate team Cloud Functions to Cloudflare Workers
+  - Currently marked with TODO comments in:
+    - `app/features/team/TeamMembers.vue`
+    - `app/features/team/MyTeam.vue`
+    - `app/features/team/TeamInvite.vue`
+    - `app/features/team/TeammemberCard.vue`
 
----
+**API Token Management**
+- [ ] Migrate API token generation to Cloudflare Workers
+  - Currently marked with TODO in:
+    - `app/features/settings/TokenCard.vue`
+    - `app/features/settings/ApiTokens.vue`
+    - `app/pages/api.vue`
 
-## Core Systems to Migrate
+### 2. Data Validation
 
-### 1. State Management (Pinia)
-**Location**: `frontend/src/stores/`
-- [ ] app.ts - UI & settings state
-- [ ] progress.ts - Player progression (PvP/PvE dual tracking)
-- [ ] tarkov.ts - Game data
-- [ ] user.ts - User account & preferences
-- [ ] useSystemStore.ts - System state
+- [ ] Test legacy data migration with real user data
+- [ ] Verify PvP/PvE game mode switching maintains data integrity
+- [ ] Validate Supabase sync handles all edge cases
 
-**Special Notes**:
-- Game mode split (PvP/PvE) - needs dual state tracking
-- Firebase persistence via pinia-firestore plugin
-- Data migration support for legacy formats
+### 3. Deployment Configuration
 
-### 2. Routing System
-**Location**: `frontend/src/router/`
-- [ ] 8 routes: dashboard, tasks, items, hideout, settings, login, team, 404
-- [ ] StandardLayout nested structure
-- [ ] Route metadata (background images)
-- [ ] Lazy-loaded components
+- [ ] Configure Cloudflare Pages deployment settings
+- [ ] Set up Cloudflare Workers for backend functions
+- [ ] Configure Supabase database schema and policies
+- [ ] Set up environment variables for production
 
-**Nuxt Migration Strategy**: Convert to file-based routing (`pages/` directory)
+### 4. Testing & Quality Assurance
 
-### 3. API Integration
-**Location**: `frontend/src/composables/api/`
-
-**GraphQL (Apollo Client)**:
-- [ ] Apollo client setup
-- [ ] tarkovDataQuery - tasks, traders, levels
-- [ ] tarkovHideoutQuery - hideout modules
-- [ ] languageQuery - language detection
-
-**Firebase Services**:
-- [ ] Authentication (OAuth: Google, GitHub)
-- [ ] Firestore Database
-- [ ] Cloud Storage
-- [ ] Cloud Functions
-
-**Key Composables to Migrate**:
-- [ ] useTarkovApi.ts - Apollo queries
-- [ ] useTarkovDataQuery() - Main data fetching
-- [ ] useTarkovHideoutQuery() - Hideout data
-- [ ] useFirebaseListener.ts - Real-time listeners
-
-### 4. Composables & Business Logic
-**Location**: `frontend/src/composables/`
-
-**Essential Composables**:
-- [ ] api/useTarkovApi.ts
-- [ ] data/useTaskData.ts - Task processing
-- [ ] data/useHideoutData.ts - Hideout management
-- [ ] data/useMapData.ts - Maps & traders
-- [ ] firebase/useFirebaseListener.ts
-- [ ] useDataMigration.ts - Legacy data conversion
-- [ ] useTaskFiltering.ts - Task filtering logic
-- [ ] useTarkovTime.ts - Tarkov time utils
-
-**Utility Composables**:
-- [ ] utils/graphHelpers.ts - Graph operations
-- [ ] utils/i18nHelpers.ts - i18n integration
-- [ ] utils/storeHelpers.ts - Store utilities
-
-### 5. UI Components (58 Total)
-**Location**: `frontend/src/features/`
-
-**Feature Modules** (with component counts):
-- [ ] auth/ - Login/OAuth (2 components)
-- [ ] dashboard/ - Dashboard/home (2 components)
-- [ ] drawer/ - Navigation (6 components)
-- [ ] game/ - Game mode selection (4 components)
-- [ ] hideout/ - Hideout tracking (2 components)
-- [ ] layout/ - Layout wrapper (2 components)
-- [ ] maps/ - Map visualization (3 components)
-- [ ] neededitems/ - Items tracker (6 components)
-- [ ] settings/ - Settings panel (7 components)
-- [ ] tasks/ - Task management (13 components)
-- [ ] team/ - Team collaboration (3 components)
-- [ ] ui/ - Generic components (4 components)
-
-**Migration Strategy**: Keep feature-based structure, use Nuxt's auto-imports
-
-### 6. Pages (8 Routes)
-**Location**: `frontend/src/pages/`
-- [ ] TrackerDashboard.vue
-- [ ] TaskList.vue
-- [ ] NeededItems.vue
-- [ ] HideoutList.vue
-- [ ] TeamManagement.vue
-- [ ] TrackerSettings.vue
-- [ ] LoginInterface.vue
-- [ ] NotFound.vue
-
-**Nuxt Migration**: Convert to `app/pages/` with file-based routing
-
-### 7. Internationalization (6 Languages)
-**Location**: `frontend/src/locales/`
-- [ ] en.json5 - English
-- [ ] de.json5 - German
-- [ ] es.json5 - Spanish
-- [ ] fr.json5 - French
-- [ ] ru.json5 - Russian
-- [ ] uk.json5 - Ukrainian
-
-**Setup to Migrate**:
-- [ ] Vue I18n configuration
-- [ ] i18n Vite plugin
-- [ ] Language detection logic
-- [ ] Locale switching in settings
-
-### 8. Types & Interfaces
-**Location**: `frontend/src/types/`
-- [ ] tarkov.ts - Core domain types (extensive)
-- [ ] ApiMigrationTypes.ts - API compatibility types
-
-### 9. Utilities & Services
-**Location**: `frontend/src/utils/`
-- [ ] DataMigrationService.ts (20.7KB) - Legacy data handling
-- [ ] DataValidationUtils.ts - Input validation
-- [ ] GraphQL queries:
-  - [ ] tarkovdataquery.ts
-  - [ ] tarkovhideoutquery.ts
-  - [ ] languagequery.ts
+- [ ] Update existing tests for Supabase (currently have Firebase mocks)
+- [ ] Add E2E tests for critical user flows
+- [ ] Test performance with backdrop-filter removal (already done)
+- [ ] Cross-browser testing
+- [ ] Mobile responsiveness testing
 
 ---
 
-## Configuration & Build
+## What Cannot Be Validated (Need Manual Testing)
 
-### Configuration Files to Adapt
-- [ ] tsconfig.json → Nuxt's tsconfig
-- [ ] vite.config.ts → Nuxt's nuxt.config.ts
-- [ ] Environment variables (.env files)
-- [ ] eslint.config.js → Update for Nuxt
-- [ ] .prettierrc.json → Keep as-is
+The following items are implemented in code but require live testing with real users/data:
 
-### Plugins to Setup
-- [ ] Firebase plugin
-- [ ] Apollo GraphQL plugin
-- [ ] Vuetify plugin
-- [ ] Vue I18n plugin
-- [ ] Pinia plugin
-
-### TypeScript Path Aliases
-- [ ] @/ → Use Nuxt's default resolution
+1. **Supabase Authentication Flow** - Login/logout with Discord and Twitch OAuth
+2. **Real-time Team Sync** - Multiple users collaborating on same team
+3. **Data Migration** - Users with legacy single-mode data upgrading to dual-mode
+4. **Offline Support** - Pinia persistence when network is unavailable
+5. **API Rate Limiting** - Apollo cache behavior under load
 
 ---
 
-## Testing Infrastructure (Compatible)
-- [ ] Vitest - No major changes needed
-- [ ] Playwright E2E tests - No major changes needed
-- [ ] Vue Test Utils - Compatible with Nuxt
-- [ ] ESLint + Prettier - Update config for Nuxt
+## Architecture Notes
 
----
+### Backend Transition: Firebase → Supabase + Cloudflare Workers
 
-## Data Files
-- [ ] shared_state.ts - Game mode structure definitions
-- [ ] api/maps.json - Static map data (in composables/api/)
+The codebase is transitioning from Firebase to a new stack:
 
----
+**Before:**
+- Firebase Auth (OAuth)
+- Firebase Firestore (Database)
+- Firebase Cloud Functions (Backend)
 
-## Special Considerations
+**After:**
+- Supabase Auth (OAuth) ✅ Implemented
+- Supabase Database ✅ Plugin ready
+- Cloudflare Workers (Backend) ⏳ In progress
 
-### Game Mode Split (PvP/PvE)
-- Progress store maintains separate state for each mode
-- Requires careful migration of player data
-- Switching logic must be preserved
+### Key Files with TODOs
 
-### Data Migration System
-- Handles legacy single-mode → dual-mode conversion
-- Validates data integrity
-- Syncs with Firebase
-- **Keep as-is in Nuxt version**
+Search for `TODO: Move to Cloudflare Workers` in:
+- `app/features/settings/TokenCard.vue`
+- `app/features/settings/ApiTokens.vue`
+- `app/features/team/*.vue`
 
-### Real-time Sync
-- VueFire integration for Firestore
-- Real-time listeners in composables
-- Offline support via Pinia
-- Auto-subscription management
-
-### GraphQL Caching
-- Apollo cache-first strategy
-- Language-aware query variables
-- Game mode as query parameter
-
----
-
-## Dependency Updates Needed
-### Already Compatible:
-- Pinia v3
-- Vue I18n v11
-- Firebase v11-12
-- Apollo Client v3
-- Vuetify v3
-- D3.js v7
-- Vitest, Playwright, ESLint
-
-### Nuxt-Specific:
-- Add `nuxt` (v3.x)
-- Add `@nuxtjs/i18n` (if using Nuxt module)
-- May need to adjust Apollo integration
-
----
-
-## Summary of Effort
-
-**Low Complexity** (Direct Migration):
-- Pinia stores
-- Composables
-- UI components
-- Types
-- Tests
-
-**Medium Complexity** (Some Adaptation):
-- Routing (file-based → auto)
-- Plugins (register with Nuxt)
-- Build config (Vite → Nuxt)
-- Path aliases (auto-configured)
-
-**High Complexity** (Requires Testing):
-- Firebase + Pinia persistence
-- Apollo GraphQL setup
-- Game mode dual-state handling
-- Data migration system
-
-**Estimated Timeline**: 2-3 weeks for full migration + testing
-
----
-
-## Files to Keep Reference
-- Full analysis: `TARKOV_TRACKER_ANALYSIS.md` (in this directory)
-- Original project: `/home/lab/Github/TarkovTracker/`
+**What's Left:**
+- ⏳ Backend Cloud Functions → Cloudflare Workers migration
+- ⏳ Live testing with authenticated users
+- ⏳ Production deployment configuration

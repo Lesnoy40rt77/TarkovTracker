@@ -1,28 +1,24 @@
 <template>
-  <v-sheet ref="cardRef" rounded :class="itemCardClasses">
+  <v-sheet rounded :class="itemCardClasses">
     <!-- Flexbox display -->
     <div class="fill-height">
       <div class="d-flex flex-column align-end fill-height">
         <!-- Item image -->
         <div class="d-flex align-self-stretch item-panel">
           <v-img
-            v-if="imageItem && isVisible"
+            v-if="imageItem"
             :src="imageItem.image512pxLink"
-            :lazy-src="imageItem.baseImageLink"
             :class="itemImageClasses"
-            lazy
           >
             <template #placeholder>
               <v-row class="fill-height ma-0" align="center" justify="center">
-                <v-progress-circular indeterminate color="grey-lighten-5"></v-progress-circular>
+                <v-progress-circular
+                  indeterminate
+                  color="grey-lighten-5"
+                ></v-progress-circular>
               </v-row>
             </template>
           </v-img>
-          <div v-else-if="imageItem" :class="[itemImageClasses, 'image-placeholder']">
-            <v-row class="fill-height ma-0" align="center" justify="center">
-              <v-progress-circular indeterminate color="grey-lighten-5"></v-progress-circular>
-            </v-row>
-          </div>
         </div>
         <!-- Item name, directly below item image -->
         <div v-if="item" class="d-flex align-self-center mt-2 mx-2">
@@ -142,18 +138,22 @@
   </v-sheet>
 </template>
 <script setup>
-  import { defineAsyncComponent, computed, inject, ref, onMounted, onUnmounted } from 'vue';
-  import { useProgressStore } from '@/stores/progress';
-  import { useTarkovStore } from '@/stores/tarkov';
-  const TaskLink = defineAsyncComponent(() => import('@/features/tasks/TaskLink'));
-  const StationLink = defineAsyncComponent(() => import('@/features/hideout/StationLink'));
+  import { defineAsyncComponent, computed, inject } from "vue";
+  import { useProgressStore } from "@/stores/progress";
+  import { useTarkovStore } from "@/stores/tarkov";
+  const TaskLink = defineAsyncComponent(
+    () => import("@/features/tasks/TaskLink")
+  );
+  const StationLink = defineAsyncComponent(
+    () => import("@/features/hideout/StationLink")
+  );
   const props = defineProps({
     need: {
       type: Object,
       required: true,
     },
   });
-  defineEmits(['increaseCount', 'decreaseCount', 'toggleCount']);
+  defineEmits(["increaseCount", "decreaseCount", "toggleCount"]);
   const progressStore = useProgressStore();
   const tarkovStore = useTarkovStore();
   const {
@@ -167,31 +167,7 @@
     item,
     teamNeeds,
     imageItem,
-  } = inject('neededitem');
-  // Intersection observer for lazy loading
-  const cardRef = ref(null);
-  const isVisible = ref(false);
-  let observer = null;
-  onMounted(() => {
-    if (cardRef.value?.$el) {
-      observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            isVisible.value = true;
-            observer?.disconnect();
-          }
-        },
-        {
-          rootMargin: '50px',
-          threshold: 0.1,
-        }
-      );
-      observer.observe(cardRef.value.$el);
-    }
-  });
-  onUnmounted(() => {
-    observer?.disconnect();
-  });
+  } = inject("neededitem");
   const itemImageClasses = computed(() => {
     return {
       [`item-bg-${item.value.backgroundColor}`]: true,

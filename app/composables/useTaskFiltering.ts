@@ -2,18 +2,15 @@ import { ref, shallowRef } from "vue";
 import { useProgressStore } from "@/stores/progress";
 import { useTarkovData } from "@/composables/tarkovdata";
 import type { Task } from "@/types/tarkov";
-
 interface MergedMap {
   id: string;
   mergedIds?: string[];
 }
-
 export function useTaskFiltering() {
   const progressStore = useProgressStore();
   const { tasks, disabledTasks } = useTarkovData();
   const reloadingTasks = ref(false);
   const visibleTasks = shallowRef([]);
-
   const mapObjectiveTypes = [
     "mark",
     "zone",
@@ -25,7 +22,6 @@ export function useTaskFiltering() {
     "plantQuestItem",
     "shoot",
   ];
-
   /**
    * Filter tasks by primary view (all, maps, traders)
    */
@@ -43,7 +39,6 @@ export function useTaskFiltering() {
     }
     return taskList;
   };
-
   /**
    * Filter tasks by map, handling merged maps (Ground Zero, Factory)
    */
@@ -55,7 +50,6 @@ export function useTaskFiltering() {
     const mergedMap = mergedMaps.find(
       (m) => m.mergedIds && m.mergedIds.includes(mapView)
     );
-
     if (mergedMap && mergedMap.mergedIds) {
       const ids = mergedMap.mergedIds;
       return taskList.filter((task) => {
@@ -64,7 +58,6 @@ export function useTaskFiltering() {
           ? task.locations
           : [];
         let hasMap = ids.some((id: string) => taskLocations.includes(id));
-
         // Check objectives[].maps
         if (!hasMap && Array.isArray(task.objectives)) {
           hasMap = task.objectives.some(
@@ -87,7 +80,6 @@ export function useTaskFiltering() {
       );
     }
   };
-
   /**
    * Filter tasks by status (available, locked, completed) and user view
    */
@@ -102,7 +94,6 @@ export function useTaskFiltering() {
       return filterTasksForUser(taskList, secondaryView, userView);
     }
   };
-
   /**
    * Filter tasks for all team members view
    */
@@ -113,39 +104,31 @@ export function useTaskFiltering() {
       );
       return [];
     }
-
     const tempVisibleTasks = [];
-
     for (const task of taskList) {
       const usersWhoNeedTask = [];
       let taskIsNeededBySomeone = false;
-
       for (const teamId of Object.keys(progressStore.visibleTeamStores || {})) {
         const isUnlockedForUser =
           progressStore.unlockedTasks?.[task.id]?.[teamId] === true;
         const isCompletedByUser =
           progressStore.tasksCompletions?.[task.id]?.[teamId] === true;
-
         // Check faction requirements for this specific user
         const userFaction = progressStore.playerFaction[teamId];
         const taskFaction = task.factionName;
         const factionMatch =
           taskFaction === "Any" || taskFaction === userFaction;
-
         if (isUnlockedForUser && !isCompletedByUser && factionMatch) {
           taskIsNeededBySomeone = true;
           usersWhoNeedTask.push(progressStore.getDisplayName(teamId));
         }
       }
-
       if (taskIsNeededBySomeone) {
         tempVisibleTasks.push({ ...task, neededBy: usersWhoNeedTask });
       }
     }
-
     return tempVisibleTasks;
   };
-
   /**
    * Filter tasks for specific user
    */
@@ -155,7 +138,6 @@ export function useTaskFiltering() {
     userView: string
   ) => {
     let filtered = taskList;
-
     if (secondaryView === "available") {
       filtered = filtered.filter(
         (task) => progressStore.unlockedTasks?.[task.id]?.[userView] === true
@@ -174,7 +156,6 @@ export function useTaskFiltering() {
         (task) => progressStore.tasksCompletions?.[task.id]?.[userView] === true
       );
     }
-
     // Filter by faction
     return filtered.filter(
       (task) =>
@@ -182,7 +163,6 @@ export function useTaskFiltering() {
         task.factionName === progressStore.playerFaction[userView]
     );
   };
-
   /**
    * Calculate task totals per map for badge display
    */
@@ -195,23 +175,19 @@ export function useTaskFiltering() {
     activeUserView: string
   ) => {
     const mapTaskCounts: Record<string, number> = {};
-
     for (const map of mergedMaps) {
       // If merged, count for both IDs
       const ids = map.mergedIds || [map.id];
       const mapId = ids[0];
       if (!mapId) continue;
       mapTaskCounts[mapId] = 0;
-
       for (const task of tasks) {
         if (disabledTasks.includes(task.id)) continue;
         if (hideGlobalTasks && !task.map) continue;
         if (hideNonKappaTasks && task.kappaRequired !== true) continue;
-
         const taskLocations = Array.isArray(task.locations)
           ? task.locations
           : [];
-
         if (taskLocations.length === 0 && Array.isArray(task.objectives)) {
           for (const obj of task.objectives) {
             if (Array.isArray(obj.maps)) {
@@ -223,7 +199,6 @@ export function useTaskFiltering() {
             }
           }
         }
-
         // If any of the merged IDs are present
         if (ids.some((id: string) => taskLocations.includes(id))) {
           // Check if task is available for the user
@@ -233,7 +208,6 @@ export function useTaskFiltering() {
                   Boolean
                 )
               : progressStore.unlockedTasks[task.id]?.[activeUserView];
-
           if (unlocked) {
             let anyObjectiveLeft = false;
             for (const objective of task.objectives || []) {
@@ -247,14 +221,12 @@ export function useTaskFiltering() {
                   activeUserView === "all"
                     ? Object.values(completions).every(Boolean)
                     : completions[activeUserView] === true;
-
                 if (!isComplete) {
                   anyObjectiveLeft = true;
                   break;
                 }
               }
             }
-
             if (anyObjectiveLeft) {
               const mapId = ids[0];
               if (mapId && mapTaskCounts[mapId] !== undefined) {
@@ -265,10 +237,8 @@ export function useTaskFiltering() {
         }
       }
     }
-
     return mapTaskCounts;
   };
-
   /**
    * Main function to update visible tasks based on all filters
    */
@@ -285,12 +255,9 @@ export function useTaskFiltering() {
     if (tasksLoading || !tasks.value || !Array.isArray(disabledTasks)) {
       return;
     }
-
     reloadingTasks.value = true;
-
     try {
       let visibleTaskList = JSON.parse(JSON.stringify(tasks.value));
-
       // Apply primary view filter
       visibleTaskList = filterTasksByView(
         visibleTaskList,
@@ -299,20 +266,17 @@ export function useTaskFiltering() {
         activeTraderView,
         mergedMaps
       );
-
       // Apply status and user filters
       visibleTaskList = filterTasksByStatus(
         visibleTaskList,
         activeSecondaryView,
         activeUserView
       );
-
       visibleTasks.value = visibleTaskList;
     } finally {
       reloadingTasks.value = false;
     }
   };
-
   return {
     visibleTasks,
     reloadingTasks,

@@ -1,24 +1,19 @@
 /**
  * Simplified store initialization and data migration utilities
  */
-
 // Extend Window interface for custom properties
 declare global {
   interface Window {
     __TARKOV_DATA_MIGRATED?: boolean;
   }
 }
-
 let isStoreInitialized = false;
-
 export function markInitialized(): void {
   isStoreInitialized = true;
 }
-
 export function isInitialized(): boolean {
   return isStoreInitialized;
 }
-
 export function forceInitialize(): void {
   markInitialized();
 }
@@ -32,7 +27,6 @@ export function wasDataMigrated(): boolean {
   }
   return false;
 }
-
 export function markDataMigrated(): void {
   if (typeof window !== "undefined") {
     window.__TARKOV_DATA_MIGRATED = true;
@@ -43,6 +37,5 @@ export function markDataMigrated(): void {
     }
   }
 }
-
 // No-op Nuxt plugin so the file isn't ignored during auto-registration
 export default defineNuxtPlugin(() => ({}));

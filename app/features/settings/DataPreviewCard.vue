@@ -117,7 +117,7 @@
 </template>
 <script setup lang="ts">
 import { computed } from "vue";
-import { getEditionName } from "@/utils/gameEditions";
+import { getEditionName } from "@/utils/constants";
 const props = defineProps({
   data: {
     type: Object,

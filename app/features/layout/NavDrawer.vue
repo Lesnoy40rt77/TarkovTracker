@@ -24,12 +24,7 @@ import { useAppStore } from "@/stores/app";
 import { useDisplay } from "vuetify";
 const { mdAndDown } = useDisplay();
 const appStore = useAppStore();
-
-// Calculate the effective rail state
 const isRailActive = computed(() => !mdAndDown.value && appStore.drawerRail);
-
-// Set up component loading
-// Set up component loading
 const TrackerLogo = defineAsyncComponent(
   () => import("@/features/drawer/TrackerLogo.vue")
 );

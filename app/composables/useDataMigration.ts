@@ -5,10 +5,7 @@ import DataMigrationService, {
   type ProgressData,
 } from "@/utils/DataMigrationService";
 // import { useTarkovStore } from "@/stores/tarkov";
-// import type { StoreWithFireswapExt } from "@/plugins/pinia-firestore";
-
 export type ImportedData = ProgressData;
-
 export function useDataMigration() {
   // API migration state
   const apiToken = ref("");
@@ -18,20 +15,15 @@ export function useDataMigration() {
   const fetchingApi = ref(false);
   const apiFetchSuccess = ref(false);
   const showToken = ref(false);
-
   // Import state
   const importing = ref(false);
   const importError = ref("");
   const importSuccess = ref(false);
   const confirmDialog = ref(false);
   const importedData = ref<ProgressData | null>(null);
-
   // Dialog state
   const showObjectivesDetails = ref(false);
   const showFailedTaskDetails = ref(false);
-
-  // const tarkovStore = useTarkovStore(); // Removed - no longer needed
-
   // Computed properties for data counts
   const countCompletedTasks = computed(() => {
     if (!importedData.value?.taskCompletions) return 0;
@@ -39,51 +31,43 @@ export function useDataMigration() {
       (t) => t.complete
     ).length;
   });
-
   const countFailedTasks = computed(() => {
     if (!importedData.value?.taskCompletions) return 0;
     return Object.values(importedData.value.taskCompletions).filter(
       (t) => t.failed
     ).length;
   });
-
   const countTaskObjectives = computed(() => {
     if (!importedData.value?.taskObjectives) return 0;
     return Object.keys(importedData.value.taskObjectives).length;
   });
-
   const countHideoutModules = computed(() => {
     if (!importedData.value?.hideoutModules) return 0;
     return Object.values(importedData.value.hideoutModules).filter(
       (m) => m.complete
     ).length;
   });
-
   const countHideoutParts = computed(() => {
     if (!importedData.value?.hideoutParts) return 0;
     return Object.keys(importedData.value.hideoutParts).length;
   });
-
   const failedTasks = computed(() => {
     if (!importedData.value?.taskCompletions) return [];
     return Object.entries(importedData.value.taskCompletions)
       .filter(([_, task]) => task.failed === true)
       .map(([id, task]) => ({ id, ...task }));
   });
-
   // API functions
   const fetchWithApiToken = async () => {
     fetchingApi.value = true;
     apiError.value = "";
     apiFetchSuccess.value = false;
     apiEndpointError.value = "";
-
     try {
       if (!apiToken.value || apiToken.value.length < 10) {
         apiError.value = "Please enter a valid API token";
         return;
       }
-
       const endpoint = apiEndpoint.value.trim();
       try {
         new URL(endpoint);
@@ -92,12 +76,10 @@ export function useDataMigration() {
           "Please enter a valid URL (must start with https://)";
         return;
       }
-
       if (!endpoint.endsWith("/api/v2/progress")) {
         apiEndpointError.value = "Endpoint must end with /api/v2/progress";
         return;
       }
-
       const data = await DataMigrationService.fetchDataWithApiToken(
         apiToken.value,
         endpoint
@@ -107,7 +89,6 @@ export function useDataMigration() {
           "Failed to fetch data. Please check your token, endpoint, and try again.";
         return;
       }
-
       importedData.value = data;
       apiFetchSuccess.value = true;
       confirmDialog.value = true;
@@ -122,18 +103,15 @@ export function useDataMigration() {
       fetchingApi.value = false;
     }
   };
-
   const confirmImport = async () => {
     importing.value = true;
     importError.value = "";
-
     try {
       const { $supabase } = useNuxtApp();
       if (!$supabase.user.id) {
         importError.value = "User not logged in";
         return;
       }
-
       const result = await DataMigrationService.importDataToUser(
         $supabase.user.id,
         importedData.value!,
@@ -142,7 +120,6 @@ export function useDataMigration() {
       if (result) {
         importSuccess.value = true;
         markDataMigrated();
-
         // Trigger a page reload to reinitialize stores
         setTimeout(() => {
           window.location.reload();
@@ -160,7 +137,6 @@ export function useDataMigration() {
       confirmDialog.value = false;
     }
   };
-
   return {
     // State
     apiToken,
@@ -177,7 +153,6 @@ export function useDataMigration() {
     importedData,
     showObjectivesDetails,
     showFailedTaskDetails,
-
     // Computed
     countCompletedTasks,
     countFailedTasks,
@@ -185,7 +160,6 @@ export function useDataMigration() {
     countHideoutModules,
     countHideoutParts,
     failedTasks,
-
     // Methods
     fetchWithApiToken,
     confirmImport,

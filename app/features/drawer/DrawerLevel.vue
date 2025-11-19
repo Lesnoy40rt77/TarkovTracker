@@ -71,7 +71,6 @@
     </template>
   </div>
   <!-- <template v-if="mdAndDown">
-
     </template>
     <template v-else>
       {{ tarkovStore.storeSelected }}
@@ -93,7 +92,6 @@
   });
   const tarkovStore = useTarkovStore();
   const { minPlayerLevel, maxPlayerLevel, playerLevels } = useTarkovData();
-
   // Allow setting level to maxPlayerLevel + 1
   const maxPlayerLevelUI = computed(() => maxPlayerLevel.value + 1);
   const pmcFactionIcon = computed(() => {
@@ -104,12 +102,10 @@
     const entry = playerLevels.value.find((pl) => pl.level === level);
     return entry?.levelBadgeImageLink ?? '';
   });
-
   // Manual level editing logic
   const editingLevel = ref(false);
   const levelInputValue = ref(tarkovStore.playerLevel());
   const levelInput = ref(null);
-
   function startEditingLevel() {
     editingLevel.value = true;
     levelInputValue.value = tarkovStore.playerLevel();
@@ -117,7 +113,6 @@
       if (levelInput.value) levelInput.value.focus();
     });
   }
-
   function saveLevel() {
     let newLevel = parseInt(levelInputValue.value, 10);
     if (isNaN(newLevel)) newLevel = minPlayerLevel.value;
@@ -178,7 +173,6 @@
     line-height: 1.2;
   }
 </style>
-
 <style>
   input[type='number']::-webkit-inner-spin-button,
   input[type='number']::-webkit-outer-spin-button {

@@ -69,6 +69,7 @@ import { useDisplay } from "vuetify";
 import { useRoute } from "vue-router";
 import { useTarkovData } from "@/composables/tarkovdata";
 import { useI18n } from "vue-i18n";
+import { GAME_MODES } from "@/utils/constants";
 const { t } = useI18n({ useScope: "global" });
 const state = reactive({ menu: null });
 const appStore = useAppStore();
@@ -79,15 +80,12 @@ const navBarIcon = computed(() => {
     ? "mdi-menu-open"
     : "mdi-menu";
 });
-
 const currentGameMode = computed(() => {
   return tarkovStore.getCurrentGameMode();
 });
-
 const gameModeColor = computed(() => {
-  return currentGameMode.value === "pvp" ? "red" : "green";
+  return currentGameMode.value === GAME_MODES.PVP ? "red" : "green";
 });
-
 const OverflowMenu = defineAsyncComponent(
   () => import("@/features/layout/OverflowMenu.vue")
 );

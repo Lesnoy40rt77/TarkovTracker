@@ -2,7 +2,6 @@ import { computed } from "vue";
 import { defineStore } from "pinia";
 import { useSupabaseListener } from "@/composables/supabase/useSupabaseListener";
 import type { SystemState, SystemGetters } from "@/types/tarkov";
-
 /**
  * System store definition with getters for user tokens and team info
  */
@@ -27,14 +26,9 @@ export const useSystemStore = defineStore<string, SystemState, SystemGetters>(
     },
   }
 );
-
-/**
- * Composable that manages the system store with Firebase synchronization
- */
 export function useSystemStoreWithFirebase() {
   const systemStore = useSystemStore();
   const { $supabase } = useNuxtApp();
-
   // Computed reference to the system document
   const systemFilter = computed(() => {
     if ($supabase.user.loggedIn && $supabase.user.id) {
@@ -42,7 +36,6 @@ export function useSystemStoreWithFirebase() {
     }
     return undefined;
   });
-
   // Setup Supabase listener
   const { cleanup, isSubscribed } = useSupabaseListener({
     store: systemStore,
@@ -50,14 +43,12 @@ export function useSystemStoreWithFirebase() {
     filter: systemFilter.value,
     storeId: "system",
   });
-
   // Watch for filter changes to update listener
   watch(systemFilter, (newFilter) => {
     if (newFilter) {
       // Re-initialize listener if needed, handled by useSupabaseListener internal watch
     }
   });
-
   return {
     systemStore,
     isSubscribed,

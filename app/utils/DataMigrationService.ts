@@ -1,5 +1,6 @@
 // import { firestore, doc, getDoc, setDoc } from '@/plugins/firebase.client';
-import type { GameMode, UserProgressData } from "@/shared_state";
+import type { UserProgressData } from "@/shared_state";
+import type { GameMode } from "@/utils/constants";
 // import { defaultState, migrateToGameModeStructure } from "@/shared_state";
 // Define a basic interface for the progress data structure
 export interface ProgressData {
@@ -52,26 +53,21 @@ export default class DataMigrationService {
     taskObjectives: ProgressData["taskObjectives"]
   ): UserProgressData["taskObjectives"] {
     const transformed: UserProgressData["taskObjectives"] = {};
-
     if (taskObjectives) {
       for (const [id, objective] of Object.entries(taskObjectives)) {
         const transformedObjective: Record<string, unknown> = {
           complete: objective.complete || false,
           count: objective.count || 0,
         };
-
         // Only include timestamp if it's not null/undefined
         if (objective.timestamp !== null && objective.timestamp !== undefined) {
           transformedObjective.timestamp = objective.timestamp;
         }
-
         transformed[id] = transformedObjective;
       }
     }
-
     return transformed;
   }
-
   /**
    * Transform hideout parts to ensure proper timestamp format
    * @param hideoutParts The hideout parts to transform
@@ -81,23 +77,19 @@ export default class DataMigrationService {
     hideoutParts: ProgressData["hideoutParts"]
   ): UserProgressData["hideoutParts"] {
     const transformed: UserProgressData["hideoutParts"] = {};
-
     if (hideoutParts) {
       for (const [id, part] of Object.entries(hideoutParts)) {
         const transformedPart: Record<string, unknown> = {
           complete: part.complete || false,
           count: part.count || 0,
         };
-
         // Only include timestamp if it's not null/undefined
         if (part.timestamp !== null && part.timestamp !== undefined) {
           transformedPart.timestamp = part.timestamp;
         }
-
         transformed[id] = transformedPart;
       }
     }
-
     return transformed;
   }
   /**
@@ -161,10 +153,7 @@ export default class DataMigrationService {
         .select("level, task_completions, task_objectives, hideout_modules")
         .eq("user_id", uid)
         .single();
-
       if (error || !data) return false;
-
-      // Check if there's meaningful progress
       const hasProgress =
         (data.level && data.level > 1) ||
         (data.task_completions &&
@@ -172,7 +161,6 @@ export default class DataMigrationService {
         (data.task_objectives &&
           Object.keys(data.task_objectives).length > 0) ||
         (data.hideout_modules && Object.keys(data.hideout_modules).length > 0);
-
       return !!hasProgress;
     } catch (error) {
       console.warn("[DataMigrationService] Error in hasUserData:", error);
@@ -187,14 +175,10 @@ export default class DataMigrationService {
    */
   static async migrateDataToUser(uid: string): Promise<boolean> {
     if (!uid) return false;
-
     try {
       const localData = this.getLocalData();
       if (!localData) return false;
-
       const { $supabase } = useNuxtApp();
-
-      // Check existing data
       const hasExisting = await this.hasUserData(uid);
       if (hasExisting) {
         console.warn(
@@ -202,7 +186,6 @@ export default class DataMigrationService {
         );
         return false;
       }
-
       // Prepare data for Supabase (map to snake_case columns)
       const supabaseData = {
         user_id: uid,
@@ -222,11 +205,9 @@ export default class DataMigrationService {
         // For now, we'll assume the schema handles the main fields.
         // If we need to store migration metadata, we might need a metadata column or just ignore it for now as it's less critical.
       };
-
       const { error } = await $supabase.client
         .from("user_progress")
         .upsert(supabaseData);
-
       if (error) {
         console.error(
           "[DataMigrationService] Error migrating data to Supabase:",
@@ -234,7 +215,6 @@ export default class DataMigrationService {
         );
         return false;
       }
-
       // Backup local data
       const backupKey = `progress_backup_${new Date().toISOString()}`;
       try {
@@ -245,7 +225,6 @@ export default class DataMigrationService {
           backupError
         );
       }
-
       return true;
     } catch (error) {
       console.error(
@@ -255,9 +234,7 @@ export default class DataMigrationService {
       return false;
     }
   }
-
   // ... exportDataForMigration and validateImportData remain largely the same ...
-
   /**
    * Import data from another domain/file to a user's account.
    * @param {string} uid The user's UID
@@ -270,10 +247,8 @@ export default class DataMigrationService {
     _targetGameMode?: GameMode
   ): Promise<boolean> {
     if (!uid || !importedData) return false;
-
     try {
       const { $supabase } = useNuxtApp();
-
       // Transform and map to Supabase schema
       const supabaseData = {
         user_id: uid,
@@ -295,11 +270,9 @@ export default class DataMigrationService {
         ),
         last_updated: new Date().toISOString(),
       };
-
       const { error } = await $supabase.client
         .from("user_progress")
         .upsert(supabaseData);
-
       if (error) {
         console.error(
           `[DataMigrationService] Supabase error importing data for user ${uid}:`,
@@ -307,13 +280,11 @@ export default class DataMigrationService {
         );
         return false;
       }
-
       // Update local storage
       // We might need to reconstruct the local storage format if the app still relies on it for some things,
       // but primarily we rely on the store syncing from Supabase now.
       // For safety, we can update the local 'progress' key with the imported data structure.
       localStorage.setItem(LOCAL_PROGRESS_KEY, JSON.stringify(importedData));
-
       return true;
     } catch (error) {
       console.error(
@@ -347,7 +318,6 @@ export default class DataMigrationService {
         headers,
       });
       if (!response.ok) {
-        // let errorText = await response.text(); // Removed to simplify
         console.error(
           `[DataMigrationService] API token fetch failed: ${response.status}`
         );

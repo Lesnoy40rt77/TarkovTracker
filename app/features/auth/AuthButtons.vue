@@ -79,7 +79,6 @@
 <script setup>
 import { ref, onMounted, nextTick } from "vue";
 import DataMigrationService from "@/utils/DataMigrationService";
-
 const { $supabase } = useNuxtApp();
 const loading = ref({
   google: false, // Kept for compatibility if needed, but we'll use Twitch/Discord
@@ -88,7 +87,6 @@ const loading = ref({
   discord: false,
 });
 const hasLocalData = ref(false);
-
 // Prevent automatic navigation after login - we'll handle it manually
 onMounted(async () => {
   try {
@@ -101,7 +99,6 @@ onMounted(async () => {
     console.error("Error in onMounted:", error);
   }
 });
-
 const signInWithTwitch = async () => {
   try {
     loading.value.twitch = true;
@@ -111,7 +108,6 @@ const signInWithTwitch = async () => {
     loading.value.twitch = false;
   }
 };
-
 const signInWithDiscord = async () => {
   try {
     loading.value.discord = true;

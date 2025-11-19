@@ -287,8 +287,6 @@
           gamemode_pvp_description: 'Gameplay Tarkov standard avec combat PvP',
           gamemode_pve_title: 'PvE (Coopératif)',
           gamemode_pve_description: 'Mode de jeu coopératif PvE',
-          gamemode_dual_title: 'Mode dual',
-          gamemode_dual_description: 'Accès aux données de progression PvP et PvE',
           permissions_title: 'Permissions du token',
           permissions_description: "Sélectionnez les permissions minimales nécessaires pour votre cas d'usage. Vous pouvez toujours créer des tokens supplémentaires avec différentes permissions.",
           permissions_error: 'Veuillez sélectionner au moins une permission pour ce token.',

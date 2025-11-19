@@ -42,34 +42,28 @@
 <script setup>
 import { defineAsyncComponent, computed } from "vue";
 import { useUserStore } from "@/stores/user";
-
 defineProps({
   isCollapsed: {
     type: Boolean,
     required: true,
   },
 });
-
 const { $supabase } = useNuxtApp();
 const userStore = useUserStore();
 const DrawerItem = defineAsyncComponent(
   () => import("@/features/drawer/DrawerItem.vue")
 );
-
 const isLoggedIn = computed(() => $supabase.user?.loggedIn ?? false);
-
 const avatarSrc = computed(() => {
   return userStore.getStreamerMode || !$supabase.user.photoURL
     ? "/img/default-avatar.svg"
     : $supabase.user.photoURL;
 });
-
 const userDisplayName = computed(() => {
   return userStore.getStreamerMode
     ? "User"
     : $supabase.user.displayName || "User";
 });
-
 function logout() {
   $supabase.signOut();
 }

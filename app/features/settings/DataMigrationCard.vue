@@ -2,7 +2,9 @@
   <fitted-card icon="mdi-database-import-outline" icon-color="white">
     <template #title>Data Migration</template>
     <template #content>
-      <p class="mb-4">Migrate your progress data from the old TarkovTracker site.</p>
+      <p class="mb-4">
+        Migrate your progress data from the old TarkovTracker site.
+      </p>
       <v-card variant="flat" class="mb-3">
         <v-card-text>
           <MigrationSteps />
@@ -17,9 +19,13 @@
               hide-details="auto"
               class="mb-4"
               :type="migration.showToken.value ? 'text' : 'password'"
-              :append-inner-icon="migration.showToken.value ? 'mdi-eye-off' : 'mdi-eye'"
+              :append-inner-icon="
+                migration.showToken.value ? 'mdi-eye-off' : 'mdi-eye'
+              "
               autocomplete="off"
-              @click:append-inner="migration.showToken.value = !migration.showToken.value"
+              @click:append-inner="
+                migration.showToken.value = !migration.showToken.value
+              "
             ></v-text-field>
             <div class="d-flex justify-space-between align-center">
               <div v-if="migration.fetchingApi.value">
@@ -44,7 +50,9 @@
               <v-btn
                 color="primary"
                 :loading="migration.fetchingApi.value"
-                :disabled="!migration.apiToken.value || migration.fetchingApi.value"
+                :disabled="
+                  !migration.apiToken.value || migration.fetchingApi.value
+                "
                 class="px-4"
                 @click="migration.fetchWithApiToken"
               >
@@ -65,22 +73,28 @@
         :importing="migration.importing.value"
         @confirm="migration.confirmImport"
         @show-objectives-details="migration.showObjectivesDetails.value = true"
-        @show-failed-tasks-details="migration.showFailedTaskDetails.value = true"
+        @show-failed-tasks-details="
+          migration.showFailedTaskDetails.value = true
+        "
       />
       <v-dialog v-model="migration.showObjectivesDetails.value" max-width="500">
         <v-card>
-          <v-card-title class="text-h6">Task Objectives Information</v-card-title>
+          <v-card-title class="text-h6"
+            >Task Objectives Information</v-card-title
+          >
           <v-card-text>
             <p>
-              The count of {{ migration.countTaskObjectives.value }} task objectives represents all
-              objective data in your import.
+              The count of {{ migration.countTaskObjectives.value }} task
+              objectives represents all objective data in your import.
             </p>
             <p class="mt-3">
-              The dashboard may show a different number because it only counts unique task
-              objectives that are currently relevant to your progress.
+              The dashboard may show a different number because it only counts
+              unique task objectives that are currently relevant to your
+              progress.
             </p>
             <p class="mt-3">
-              This difference is normal and doesn't indicate any problem with your data migration.
+              This difference is normal and doesn't indicate any problem with
+              your data migration.
             </p>
           </v-card-text>
           <v-card-actions>
@@ -99,11 +113,15 @@
           <v-card-title class="text-h6">Failed Task Details</v-card-title>
           <v-card-text>
             <p>
-              These tasks are marked as "failed" in your data. This typically happens when you chose
-              a different quest branch or when a task became unavailable.
+              These tasks are marked as "failed" in your data. This typically
+              happens when you chose a different quest branch or when a task
+              became unavailable.
             </p>
             <v-list density="compact">
-              <v-list-item v-for="task in migration.failedTasks.value" :key="task.id">
+              <v-list-item
+                v-for="task in migration.failedTasks.value"
+                :key="task.id"
+              >
                 <v-list-item-title>
                   Task ID: {{ task.id }}
                   <v-chip size="small" color="red" class="ml-2">Failed</v-chip>
@@ -114,8 +132,8 @@
               </v-list-item>
             </v-list>
             <p class="mt-3">
-              <strong>Note:</strong> This is normal for tasks that are mutually exclusive with other
-              tasks you've completed.
+              <strong>Note:</strong> This is normal for tasks that are mutually
+              exclusive with other tasks you've completed.
             </p>
           </v-card-text>
           <v-card-actions>
@@ -133,9 +151,9 @@
   </fitted-card>
 </template>
 <script setup>
-  import { useDataMigration } from '@/composables/useDataMigration';
-  import FittedCard from '@/features/ui/FittedCard.vue';
-  import MigrationSteps from './MigrationSteps.vue';
-  import ImportConfirmDialog from './ImportConfirmDialog.vue';
-  const migration = useDataMigration();
+import { useDataMigration } from "@/composables/useDataMigration";
+import FittedCard from "@/features/ui/FittedCard.vue";
+import MigrationSteps from "./MigrationSteps.vue";
+import ImportConfirmDialog from "./ImportConfirmDialog.vue";
+const migration = useDataMigration();
 </script>

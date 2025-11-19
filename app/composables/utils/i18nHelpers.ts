@@ -1,22 +1,18 @@
 import { computed, getCurrentInstance } from "vue";
 import { useI18n } from "vue-i18n";
-
 // Global flag to track i18n readiness
 let i18nReady = false;
-
 /**
  * Mark i18n as ready (called from main.ts after setup)
  */
 export function markI18nReady() {
   i18nReady = true;
 }
-
 /**
  * Safely gets the current locale from i18n, falling back to 'en' if not in component context
  */
 export function useSafeLocale() {
   const instance = getCurrentInstance();
-
   if (instance && i18nReady) {
     try {
       // Use useI18n with explicit global scope to avoid parent scope warnings
@@ -29,12 +25,10 @@ export function useSafeLocale() {
       console.warn("[useSafeLocale] Could not access i18n context:", error);
     }
   }
-
   // Fallback to browser language or English if not in component context or i18n not ready
   const browserLang = getBrowserLanguage();
   return computed(() => browserLang);
 }
-
 /**
  * Extracts language code from locale, falling back to 'en'
  */
@@ -47,7 +41,6 @@ export function extractLanguageCode(
     ? browserLocale
     : "en";
 }
-
 /**
  * Gets the browser's language preference as a fallback
  */

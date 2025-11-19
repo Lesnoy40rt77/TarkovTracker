@@ -19,34 +19,19 @@ import type {
   ObjectiveGPSInfo,
 } from "@/types/tarkov";
 import type Graph from "graphology";
-
-// Disabled tasks list
-const DISABLED_TASKS: string[] = [
-  "61e6e5e0f5b9633f6719ed95",
-  "61e6e60223374d168a4576a6",
-  "61e6e621bfeab00251576265",
-  "61e6e615eea2935bc018a2c5",
-  "61e6e60c5ca3b3783662be27",
-];
-
+import { DISABLED_TASKS } from "@/utils/constants";
 /**
  * Composable for managing task data, relationships, and derived information
  */
 export function useTaskData() {
   const store = useTarkovStore();
-
   // Get current gamemode from store and convert to the format expected by API
-  const currentGameMode = computed(() => {
-    const mode = store.getCurrentGameMode();
-    return mode === "pve" ? "pve" : "regular"; // API expects 'regular' for PvP, 'pve' for PvE
-  });
-
+  const currentGameMode = computed(() => store.getCurrentGameMode());
   const {
     result: queryResult,
     error,
     loading,
   } = useTarkovDataQuery(currentGameMode);
-
   // Reactive state
   const tasks = ref<Task[]>([]);
   const taskGraph = ref(createGraph());
@@ -55,7 +40,6 @@ export function useTaskData() {
   const objectiveGPS = ref<{ [taskId: string]: ObjectiveGPSInfo[] }>({});
   const mapTasks = ref<{ [mapId: string]: string[] }>({});
   const neededItemTaskObjectives = ref<NeededItemTaskObjective[]>([]);
-
   // Computed properties
   const objectives = computed<TaskObjective[]>(() => {
     if (!tasks.value.length) return [];
@@ -69,11 +53,9 @@ export function useTaskData() {
     });
     return allObjectives;
   });
-
   const enabledTasks = computed(() =>
     tasks.value.filter((task) => !DISABLED_TASKS.includes(task.id))
   );
-
   /**
    * Builds the task graph from task requirements
    */
@@ -81,7 +63,6 @@ export function useTaskData() {
     const newGraph = createGraph();
     const activeRequirements: { task: Task; requirement: TaskRequirement }[] =
       [];
-
     // Add all tasks as nodes and process non-active requirements
     taskList.forEach((task) => {
       safeAddNode(newGraph, task.id);
@@ -99,7 +80,6 @@ export function useTaskData() {
         }
       });
     });
-
     // Handle active requirements by linking predecessors
     activeRequirements.forEach(({ task, requirement }) => {
       const requiredTaskNodeId = requirement.task.id;
@@ -110,10 +90,8 @@ export function useTaskData() {
         });
       }
     });
-
     return newGraph;
   };
-
   /**
    * Processes tasks to extract map, GPS, and item information
    */
@@ -123,7 +101,6 @@ export function useTaskData() {
     const tempObjectiveGPS: { [taskId: string]: ObjectiveGPSInfo[] } = {};
     const tempAlternativeTasks: { [taskId: string]: string[] } = {};
     const tempNeededObjectives: NeededItemTaskObjective[] = [];
-
     taskList.forEach((task) => {
       // Process finish rewards for alternative tasks
       if (Array.isArray(task.finishRewards)) {
@@ -140,7 +117,6 @@ export function useTaskData() {
           }
         });
       }
-
       // Process objectives
       task.objectives?.forEach((objective) => {
         // Map and location data
@@ -152,7 +128,6 @@ export function useTaskData() {
           if (!tempMapTasks[mapId].includes(task.id)) {
             tempMapTasks[mapId].push(task.id);
           }
-
           if (!tempObjectiveMaps[task.id]) {
             tempObjectiveMaps[task.id] = [];
           }
@@ -160,7 +135,6 @@ export function useTaskData() {
             objectiveID: String(objective.id),
             mapID: String(mapId),
           });
-
           // GPS coordinates
           if (objective.x !== undefined && objective.y !== undefined) {
             if (!tempObjectiveGPS[task.id]) {
@@ -173,7 +147,6 @@ export function useTaskData() {
             });
           }
         }
-
         // Item requirements
         if (objective?.item?.id || objective?.markerItem?.id) {
           tempNeededObjectives.push({
@@ -189,7 +162,6 @@ export function useTaskData() {
         }
       });
     });
-
     return {
       tempMapTasks,
       tempObjectiveMaps,
@@ -198,7 +170,6 @@ export function useTaskData() {
       tempNeededObjectives,
     };
   };
-
   /**
    * Enhances tasks with graph relationship data
    */
@@ -212,7 +183,6 @@ export function useTaskData() {
       children: getChildren(graph, task.id),
     }));
   };
-
   // Watch for query result changes
   watch(
     queryResult,
@@ -225,7 +195,6 @@ export function useTaskData() {
             newResult.tasks,
             newGraph
           );
-
           // Update reactive state
           tasks.value = enhancedTasks;
           taskGraph.value = newGraph;

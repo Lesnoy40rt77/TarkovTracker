@@ -1,6 +1,5 @@
 <template>
   <v-container>
-    <!-- Welcome / Stats Section -->
     <v-row>
       <v-col cols="12">
         <v-card class="mb-4">
@@ -56,8 +55,6 @@
         </v-card>
       </v-col>
     </v-row>
-
-    <!-- Recent/Active Tasks Section -->
     <v-row>
       <v-col cols="12">
         <h2 class="text-h5 mb-3">{{ $t("page.tasks.primaryviews.all") }}</h2>
@@ -85,40 +82,30 @@
     </v-row>
   </v-container>
 </template>
-
 <script setup lang="ts">
 import { computed, defineAsyncComponent } from "vue";
 import { useTarkovStore } from "@/stores/tarkov";
 import { useProgressStore } from "@/stores/progress";
 import { useTarkovData } from "@/composables/tarkovdata";
-
-// Components
 const TrackerStat = defineAsyncComponent(() => import("./TrackerStat.vue"));
 const TaskCard = defineAsyncComponent(
   () => import("@/features/tasks/TaskCard.vue")
 );
-
 const tarkovStore = useTarkovStore();
 const progressStore = useProgressStore();
 const { tasks, loading } = useTarkovData();
-
-// Computed Stats
 const gameEditionLabel = computed(() => {
   const edition = tarkovStore.gameEdition;
-  // Map edition number to label if needed, or just display
-  return edition === 5 ? "Edge of Darkness" : "Standard"; // Simplified mapping
+  return edition === 5 ? "Edge of Darkness" : "Standard";
 });
-
 const completedTasksCount = computed(() => {
   if (!progressStore.tasksCompletions) return 0;
-  // Count tasks marked as complete for 'self'
   let count = 0;
   for (const taskId in progressStore.tasksCompletions) {
     if (progressStore.tasksCompletions[taskId]?.self) count++;
   }
   return count;
 });
-
 const availableTasksCount = computed(() => {
   if (!progressStore.unlockedTasks) return 0;
   let count = 0;
@@ -127,7 +114,6 @@ const availableTasksCount = computed(() => {
   }
   return count;
 });
-
 const failedTasksCount = computed(() => {
   // Assuming failed status is stored similarly or derived
   // For now, returning 0 or implementing if store supports it
@@ -137,22 +123,17 @@ const failedTasksCount = computed(() => {
   if (!tasks.value) return 0;
   return tasks.value.filter((t) => tarkovStore.isTaskFailed(t.id)).length;
 });
-
-// Active Tasks (Limit to first 5 available for dashboard)
 const activeTasks = computed(() => {
   if (!tasks.value || !progressStore.unlockedTasks) return [];
-
   return tasks.value
     .filter((task) => {
-      // Show tasks that are unlocked for self and NOT complete
       const isUnlocked = progressStore.unlockedTasks[task.id]?.self;
       const isComplete = tarkovStore.isTaskComplete(task.id);
       return isUnlocked && !isComplete;
     })
-    .slice(0, 5); // Show top 5
+    .slice(0, 5);
 });
 </script>
-
 <style scoped>
 .gap-2 {
   gap: 8px;

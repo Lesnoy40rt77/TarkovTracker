@@ -1,9 +1,8 @@
 import { ref, computed, watch, onMounted, type ComputedRef } from "vue";
 import { useQuery, provideApolloClient } from "@vue/apollo-composable";
 import { apolloClient } from "@/plugins/apollo";
-import tarkovDataQuery from "@/utils/tarkovdataquery";
 import tarkovHideoutQuery from "@/utils/tarkovhideoutquery";
-import languageQuery from "@/utils/languagequery";
+import gql from "graphql-tag";
 import {
   useSafeLocale,
   extractLanguageCode,
@@ -15,6 +14,17 @@ import type {
   StaticMapData,
 } from "@/types/tarkov";
 import mapsData from "./maps.json";
+import { API_GAME_MODES, GAME_MODES } from "@/utils/constants";
+
+const languageQuery = gql`
+  query GetLanguageCodes {
+    __type(name: "LanguageCode") {
+      enumValues {
+        name
+      }
+    }
+  }
+`;
 // Provide Apollo client
 provideApolloClient(apolloClient);
 // Singleton state for caching
@@ -79,33 +89,28 @@ export function useTarkovApi() {
  * Composable for Tarkov main data queries (tasks, maps, traders, player levels)
  */
 export function useTarkovDataQuery(
-  gameMode: ComputedRef<string> = computed(() => "regular")
+  gameMode: ComputedRef<string> = computed(() => GAME_MODES.PVP)
 ) {
   // Get language code from the API composable to ensure consistency
   const { languageCode: apiLanguageCode } = useTarkovApi();
-
-  // Map internal game modes to API game modes
-  // Internal: "pvp" | "pve"
-  // API: "regular" | "pve"
   const apiGameMode = computed(() => {
-    const mode = gameMode.value;
-    return mode === "pvp" ? "regular" : mode;
+    const mode = gameMode.value as keyof typeof API_GAME_MODES;
+    return API_GAME_MODES[mode] || API_GAME_MODES[GAME_MODES.PVP];
+  });
+  const { data, error, status, refresh } = useFetch<{
+    data: TarkovDataQueryResult;
+  }>("/api/tarkov/data", {
+    query: computed(() => ({
+      lang: apiLanguageCode.value,
+      gameMode: apiGameMode.value,
+    })),
+    key: computed(
+      () => `tarkov-data-${apiLanguageCode.value}-${apiGameMode.value}`
+    ),
   });
 
-  const { result, error, loading, refetch } = useQuery<
-    TarkovDataQueryResult,
-    { lang: string; gameMode: string }
-  >(
-    tarkovDataQuery,
-    () => ({ lang: apiLanguageCode.value, gameMode: apiGameMode.value }),
-    {
-      fetchPolicy: "cache-first",
-      notifyOnNetworkStatusChange: true,
-      errorPolicy: "all",
-      // Allow query to execute immediately, don't wait for availableLanguages
-      // The languageCode computed will default to 'en' if languages aren't loaded yet
-    }
-  );
+  const result = computed(() => data.value?.data);
+  const loading = computed(() => status.value === "pending");
   // Watch for language and gameMode changes and refetch
   watch(
     [apiLanguageCode, apiGameMode],
@@ -114,7 +119,7 @@ export function useTarkovDataQuery(
         (oldLang !== newLang || oldGameMode !== newGameMode) &&
         availableLanguages.value
       ) {
-        refetch({ lang: newLang, gameMode: newGameMode });
+        refresh();
       }
     }
   );
@@ -122,7 +127,7 @@ export function useTarkovDataQuery(
     result,
     error,
     loading,
-    refetch,
+    refetch: refresh,
     languageCode: apiLanguageCode,
     gameMode,
   };
@@ -131,17 +136,15 @@ export function useTarkovDataQuery(
  * Composable for Tarkov hideout data queries
  */
 export function useTarkovHideoutQuery(
-  gameMode: ComputedRef<string> = computed(() => "regular")
+  gameMode: ComputedRef<string> = computed(() => GAME_MODES.PVP)
 ) {
   // Get language code from the API composable to ensure consistency
   const { languageCode: apiLanguageCode } = useTarkovApi();
-
   // Map internal game modes to API game modes
   const apiGameMode = computed(() => {
-    const mode = gameMode.value;
-    return mode === "pvp" ? "regular" : mode;
+    const mode = gameMode.value as keyof typeof API_GAME_MODES;
+    return API_GAME_MODES[mode] || API_GAME_MODES[GAME_MODES.PVP];
   });
-
   const { result, error, loading, refetch } = useQuery<
     TarkovHideoutQueryResult,
     { lang: string; gameMode: string }
