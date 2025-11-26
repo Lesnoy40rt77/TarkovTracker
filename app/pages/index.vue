@@ -4,20 +4,9 @@
   >
     <!-- Player Info Card -->
     <UCard class="mb-6">
-      <template #header>
-        <h2 class="text-xl font-bold">{{ $t("page.dashboard.title") }}</h2>
-      </template>
       <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
         <!-- User Info Column -->
         <div class="md:col-span-4 space-y-2">
-          <div class="text-base">
-            <span class="text-gray-400"
-              >{{ $t("navigation_drawer.level") }}:</span
-            >
-            <strong class="ml-2 text-white">{{
-              tarkovStore.playerLevel()
-            }}</strong>
-          </div>
           <div class="text-base">
             <span class="text-gray-400"
               >{{ $t("app_bar.overflow_menu.game_edition") }}:</span
