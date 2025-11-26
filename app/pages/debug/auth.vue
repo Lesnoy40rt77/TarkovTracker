@@ -44,7 +44,7 @@
           <h3 class="text-sm font-semibold text-surface-100">User Store State</h3>
           <div class="text-xs grid grid-cols-1 sm:grid-cols-2 gap-2 text-surface-300">
             <div><span class="font-semibold">ID from Store:</span> {{ user.id || "N/A" }}</div>
-            <div><span class="font-semibold">Store Initialized:</span> {{ userStore ? "Yes" : "No" }}</div>
+            <div><span class="font-semibold">Store Initialized:</span> {{ preferencesStore ? "Yes" : "No" }}</div>
           </div>
         </div>
 
@@ -70,10 +70,10 @@
   </div>
 </template>
 <script setup lang="ts">
-import { useUserStore } from "@/stores/user";
+import { usePreferencesStore } from "@/stores/preferences";
 const { $supabase } = useNuxtApp();
 const user = $supabase.user;
-const userStore = useUserStore();
+const preferencesStore = usePreferencesStore();
 const handleLogout = async () => {
   try {
     await $supabase.signOut();

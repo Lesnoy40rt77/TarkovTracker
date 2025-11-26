@@ -8,12 +8,13 @@
             style="overflow: -moz-hidden-unscrollable"
           >
             <span class="block">
-              <ItemImage
+              <GameItem
                 v-if="isVisible"
                 :image-item="imageItem"
                 :src="imageItem?.iconLink"
                 :is-visible="true"
                 size="small"
+                simple-mode
               />
             </span>
             <span
@@ -62,12 +63,13 @@
                   <div class="flex items-end flex-col h-full">
                     <!-- Item image -->
                     <div class="flex self-stretch aspect-video min-h-[100px]">
-                      <ItemImage
+                      <GameItem
                         v-if="imageItem"
                         :image-item="imageItem"
                         :src="imageItem.image512pxLink"
                         :is-visible="true"
-                        class="w-full h-full"
+                        size="large"
+                        simple-mode
                       />
                     </div>
                     <div class="flex self-center items-center mt-2 mx-2">
@@ -212,7 +214,6 @@ import {
 import { useTarkovStore } from "@/stores/tarkov";
 import { useBreakpoints } from "@vueuse/core";
 import ItemCountControls from "./components/ItemCountControls.vue";
-import ItemImage from "./components/ItemImage.vue";
 import RequirementInfo from "./components/RequirementInfo.vue";
 import TeamNeedsDisplay from "./components/TeamNeedsDisplay.vue";
 const TaskLink = defineAsyncComponent(() =>

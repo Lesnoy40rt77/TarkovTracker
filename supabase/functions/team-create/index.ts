@@ -30,10 +30,10 @@ serve(async (req) => {
 
     // Parse and validate request body
     const body = await req.json()
-    const fieldsError = validateRequiredFields(body, ["name", "password"])
+    const fieldsError = validateRequiredFields(body, ["name", "join_code"])
     if (fieldsError) return fieldsError
 
-    const { name, password, maxMembers = MAX_TEAM_MEMBERS } = body
+    const { name, join_code, maxMembers = MAX_TEAM_MEMBERS } = body
 
     // Validate team name length
     if (typeof name !== "string" || name.trim().length === 0) {
@@ -43,12 +43,12 @@ serve(async (req) => {
       return createErrorResponse("Team name cannot exceed 100 characters", 400)
     }
 
-    // Validate password length
-    if (typeof password !== "string" || password.length < 4) {
-      return createErrorResponse("Password must be at least 4 characters", 400)
+    // Validate join_code length
+    if (typeof join_code !== "string" || join_code.length < 4) {
+      return createErrorResponse("Join code must be at least 4 characters", 400)
     }
-    if (password.length > 255) {
-      return createErrorResponse("Password cannot exceed 255 characters", 400)
+    if (join_code.length > 255) {
+      return createErrorResponse("Join code cannot exceed 255 characters", 400)
     }
 
     // Validate maxMembers
@@ -77,7 +77,7 @@ serve(async (req) => {
       .from("teams")
       .insert({
         name: name.trim(),
-        password_hash: password, // In production, this should be hashed
+        join_code: join_code,
         max_members: maxMembers,
         owner_id: user.id,
         created_at: new Date().toISOString()
@@ -90,7 +90,7 @@ serve(async (req) => {
 
       // Check for unique constraint violation
       if (teamError.code === "23505") {
-        return createErrorResponse("A team with this name already exists", 409)
+        return createErrorResponse("A team with this name or join code already exists", 409)
       }
 
       return createErrorResponse("Failed to create team", 500)

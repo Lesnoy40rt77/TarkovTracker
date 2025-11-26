@@ -5,11 +5,11 @@
     </h1>
     <div class="grid gap-4 md:grid-cols-2">
       <!-- Section 1: General Settings -->
-      <FittedCard
-        :fill-height="false"
+      <GenericCard
         icon="mdi-cog"
         icon-color="primary"
         highlight-color="blue"
+        :fill-height="false"
         class="h-full"
       >
         <template #title>
@@ -47,12 +47,12 @@
                 <UCheckbox
                   v-model="streamerMode"
                   :disabled="
-                    Boolean(userStore.saving && userStore.saving.streamerMode)
+                    Boolean(preferencesStore.saving && preferencesStore.saving.streamerMode)
                   "
                   label=""
                 />
                 <UIcon
-                  v-if="userStore.saving && userStore.saving.streamerMode"
+                  v-if="preferencesStore.saving && preferencesStore.saving.streamerMode"
                   name="i-heroicons-arrow-path"
                   class="w-4 h-4 animate-spin text-primary-500"
                 />
@@ -68,13 +68,13 @@
             </div>
           </div>
         </template>
-      </FittedCard>
+      </GenericCard>
       <!-- Section 2: Game Profile -->
-      <FittedCard
-        :fill-height="false"
+      <GenericCard
         icon="mdi-controller"
         icon-color="secondary"
         highlight-color="secondary"
+        :fill-height="false"
         class="h-full"
       >
         <template #title>
@@ -138,14 +138,14 @@
             </div>
           </div>
         </template>
-      </FittedCard>
+      </GenericCard>
     </div>
     <!-- Section 3: Data Management -->
-    <FittedCard
-      :fill-height="false"
+    <GenericCard
       icon="mdi-database"
       icon-color="warning"
       highlight-color="tan"
+      :fill-height="false"
     >
       <template #title>
         <span class="text-lg font-semibold">{{
@@ -409,13 +409,13 @@
           </p>
         </div>
       </template>
-    </FittedCard>
+    </GenericCard>
     <!-- Section 4: API Management -->
-    <FittedCard
-      :fill-height="false"
+    <GenericCard
       icon="mdi-api"
       icon-color="primary"
       highlight-color="blue"
+      :fill-height="false"
     >
       <template #title>
         <span class="text-lg font-semibold">{{
@@ -466,7 +466,7 @@
           </p>
         </div>
       </template>
-    </FittedCard>
+    </GenericCard>
     <!-- Section 5: Data Migration -->
     <DataMigrationCard v-if="user.loggedIn" />
     <!-- Section 6: Account Management -->
@@ -477,10 +477,10 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
-import { useUserStore } from "@/stores/user";
+import { usePreferencesStore } from "@/stores/preferences";
 import { useTarkovStore } from "@/stores/tarkov";
 import { GAME_EDITIONS, PMC_FACTIONS } from "@/utils/constants";
-import FittedCard from "@/components/ui/FittedCard.vue";
+import GenericCard from "@/components/ui/GenericCard.vue";
 import AccountDeletionCard from "@/features/settings/AccountDeletionCard.vue";
 import DataMigrationCard from "@/features/settings/DataMigrationCard.vue";
 
@@ -494,7 +494,7 @@ const { $supabase } = useNuxtApp();
 const router = useRouter();
 const toast = useToast();
 const { locale, availableLocales } = useI18n({ useScope: "global" });
-const userStore = useUserStore();
+const preferencesStore = usePreferencesStore();
 const tarkovStore = useTarkovStore();
 const selectUi = {};
 const selectMenuUi = {
@@ -534,16 +534,16 @@ const selectedLocale = computed({
     if (!newValue) return;
     locale.value = newValue;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (userStore.$state as any).localeOverride = newValue;
+    (preferencesStore.$state as any).localeOverride = newValue;
   },
 });
 // Streamer mode
 const streamerMode = computed({
   get() {
-    return userStore.getStreamerMode;
+    return preferencesStore.getStreamerMode;
   },
   set(newValue) {
-    userStore.setStreamerMode(newValue);
+    preferencesStore.setStreamerMode(newValue);
   },
 });
 // Game edition

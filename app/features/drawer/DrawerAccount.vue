@@ -55,7 +55,7 @@
 <script setup>
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { useUserStore } from "@/stores/user";
+import { usePreferencesStore } from "@/stores/preferences";
 defineProps({
   isCollapsed: {
     type: Boolean,
@@ -63,16 +63,16 @@ defineProps({
   },
 });
 const { $supabase } = useNuxtApp();
-const userStore = useUserStore();
+const preferencesStore = usePreferencesStore();
 const { t } = useI18n();
 const isLoggedIn = computed(() => $supabase.user?.loggedIn ?? false);
 const avatarSrc = computed(() => {
-  return userStore.getStreamerMode || !$supabase.user.photoURL
+  return preferencesStore.getStreamerMode || !$supabase.user.photoURL
     ? "/img/default-avatar.svg"
     : $supabase.user.photoURL;
 });
 const userDisplayName = computed(() => {
-  return userStore.getStreamerMode
+  return preferencesStore.getStreamerMode
     ? "User"
     : $supabase.user.displayName || "User";
 });

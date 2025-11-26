@@ -19,7 +19,7 @@ A comprehensive Escape from Tarkov progress tracker built with Nuxt 4, featuring
 - **Styling**: Tailwind CSS v4
 - **State Management**: Pinia with three-store architecture
 - **Backend**: Supabase (authentication, database, real-time)
-- **API**: GraphQL integration with tarkov.dev
+- **API**: Nuxt server-side proxy to tarkov.dev GraphQL API
 - **Deployment**: Cloudflare Pages
 
 ## Setup
@@ -81,6 +81,7 @@ npm run preview
 - `app/stores/` - Pinia stores for state management
 - `app/composables/` - Reusable composition functions
 - `app/pages/` - File-based routing
+- `app/server/api/` - Nuxt server routes for API proxying
 - `docs/` - Project documentation and migration guides
 
 ## Documentation

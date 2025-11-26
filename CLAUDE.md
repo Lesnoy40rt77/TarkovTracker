@@ -80,10 +80,11 @@ The app supports **two separate game modes** (PvP and PvE) with independent prog
 
 ### External Data Sources
 
-**GraphQL API** (tarkov.dev):
+**API Data Fetching** (tarkov.dev):
 
-- Apollo Client configured in `app/plugins/apollo.ts`
-- Queries defined in `app/composables/api/useTarkovApi.ts`
+- Nuxt server-side routes in `app/server/api/tarkov/` act as a proxy to the `tarkov.dev` GraphQL API.
+- Client-side composables like `useSharedTarkovDataQuery` use `$fetch` to call these server routes.
+- This architecture provides caching, cleaner client-side code, and a single source of truth for data fetching.
 - Fetches: tasks, hideout stations, maps, traders, player levels
 - Data processing in `app/composables/data/` (useTaskData, useHideoutData, useMapData)
 
@@ -107,11 +108,11 @@ Components are auto-imported without path prefix (`pathPrefix: false`), so `feat
 
 Plugins in `app/plugins/` initialize core functionality:
 
-- `apollo.ts`: GraphQL client for tarkov.dev API
 - `supabase.client.ts`: Auth and database client
 - `vuetify.client.ts`: Material Design component library
 - `store-initializer.ts`: Initializes Pinia stores and data migration
 - `pinia.client.ts`: Pinia instance creation
+- `i18n.client.ts`: Internationalization support
 
 ### TypeScript Configuration
 
@@ -131,11 +132,14 @@ const { $supabase } = useNuxtApp();
 // Database: $supabase.client.from('table')
 ```
 
-### Accessing Apollo Client
+### Accessing API Data
+
+Composables in `app/composables/api/useSharedTarkovQuery.ts` handle client-side data fetching. They should be used instead of direct API calls.
 
 ```typescript
-const { $apollo } = useNuxtApp();
-// Or use composables from @vue/apollo-composable
+import { useSharedTarkovDataQuery } from '@/composables/api/useSharedTarkovQuery';
+
+const { result, error, loading, refetch } = useSharedTarkovDataQuery();
 ```
 
 ### Game Mode Data Access
@@ -159,20 +163,20 @@ const completions = progressStore.tasksCompletions;
 
 1. **Initial Load**:
 
-   - `app.vue` calls `useTarkovData()` to fetch game data from tarkov.dev API
-   - `store-initializer.ts` runs during plugin setup to hydrate stores from Supabase
-   - Auth state is initialized via `supabase.client.ts` plugin
+   - `app.vue` calls `useTarkovData()` to initialize composables for game data.
+   - `store-initializer.ts` runs during plugin setup to hydrate stores from Supabase.
+   - Auth state is initialized via `supabase.client.ts` plugin.
 
 2. **User Interactions**:
 
-   - UI components update Pinia stores
-   - `useSupabaseSync` watches for store changes (debounced)
-   - Changes are automatically persisted to Supabase if authenticated
+   - UI components update Pinia stores.
+   - `useSupabaseSync` watches for store changes (debounced).
+   - Changes are automatically persisted to Supabase if authenticated.
 
 3. **Team Collaboration**:
-   - `useSupabaseListener` listens for team member changes
-   - Creates dynamic Pinia stores for each teammate
-   - `progressStore` aggregates data across all team stores
+   - `useSupabaseListener` listens for team member changes.
+   - Creates dynamic Pinia stores for each teammate.
+   - `progressStore` aggregates data across all team stores.
 
 ## Testing
 

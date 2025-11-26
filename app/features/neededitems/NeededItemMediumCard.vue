@@ -5,11 +5,13 @@
       <div class="flex flex-col items-end h-full">
         <!-- Item image -->
         <div class="flex self-stretch aspect-video min-h-[138px]">
-          <ItemImage
+          <GameItem
             v-if="imageItem"
             :image-item="imageItem"
             :src="imageItem.image512pxLink"
             :is-visible="true"
+            size="large"
+            simple-mode
             class="w-full h-full"
           />
         </div>
@@ -87,7 +89,6 @@
 import { defineAsyncComponent, computed, inject } from "vue";
 import { useTarkovStore } from "@/stores/tarkov";
 import ItemCountControls from "./components/ItemCountControls.vue";
-import ItemImage from "./components/ItemImage.vue";
 import RequirementInfo from "./components/RequirementInfo.vue";
 import TeamNeedsDisplay from "./components/TeamNeedsDisplay.vue";
 const TaskLink = defineAsyncComponent(() =>

@@ -17,7 +17,7 @@
               :key="keyIndex"
               class="inline-block"
             >
-              <tarkov-item
+              <GameItem
                 :item-id="key.id"
                 :item-name="key.shortName"
                 :dev-link="key.link"
@@ -36,7 +36,6 @@
   </div>
 </template>
 <script setup>
-import TarkovItem from "@/features/game/TarkovItem.vue";
 defineProps({
   neededKeys: { type: Array, required: true },
 });

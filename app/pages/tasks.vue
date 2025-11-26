@@ -36,21 +36,21 @@
 import { computed, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { useUserStore } from "@/stores/user";
+import { usePreferencesStore } from "@/stores/preferences";
 import { useMetadataStore } from "@/stores/metadata";
 import { useTaskFiltering } from "@/composables/useTaskFiltering";
 import TaskCard from "@/features/tasks/TaskCard.vue";
 import TaskLoadingState from "@/features/tasks/TaskLoadingState.vue";
 import TaskEmptyState from "@/features/tasks/TaskEmptyState.vue";
 const { t } = useI18n({ useScope: "global" });
-const userStore = useUserStore();
+const preferencesStore = usePreferencesStore();
 const {
   getTaskPrimaryView,
   getTaskSecondaryView,
   getTaskUserView,
   getTaskMapView,
   getTaskTraderView,
-} = storeToRefs(userStore);
+} = storeToRefs(preferencesStore);
 const metadataStore = useMetadataStore();
 const { tasks, maps, loading: tasksLoading } = storeToRefs(metadataStore);
 const { visibleTasks, reloadingTasks, updateVisibleTasks } = useTaskFiltering();

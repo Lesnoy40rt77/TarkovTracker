@@ -48,11 +48,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { useUserStore } from "@/stores/user";
+import { usePreferencesStore } from "@/stores/preferences";
 
 // Define emits
 const emit = defineEmits(["close"]);
-const userStore = useUserStore();
+const preferencesStore = usePreferencesStore();
 const selectUi = {
   // Trigger
   base:
@@ -88,7 +88,7 @@ const currentLocale = computed({
     if (!newValue) return;
     locale.value = newValue;
     // Fix eslint error by avoiding 'any' type
-    userStore.setLocaleOverride(newValue);
+    preferencesStore.setLocaleOverride(newValue);
   },
 });
 const goToSettings = async () => {

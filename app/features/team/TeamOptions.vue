@@ -1,5 +1,5 @@
 <template>
-  <fitted-card
+  <GenericCard
     icon="mdi-account-wrench"
     icon-color="white"
     highlight-color="secondary"
@@ -68,55 +68,55 @@
         </div>
       </div>
     </template>
-  </fitted-card>
+  </GenericCard>
 </template>
 <script setup>
 import { computed } from "vue";
-import { useUserStore } from "@/stores/user";
-import FittedCard from "@/components/ui/FittedCard.vue";
-const userStore = useUserStore();
+import { usePreferencesStore } from "@/stores/preferences";
+import GenericCard from "@/components/ui/GenericCard.vue";
+const preferencesStore = usePreferencesStore();
 const taskHideAll = computed({
-  get: () => userStore.taskTeamAllHidden,
-  set: (value) => userStore.setQuestTeamHideAll(value),
+  get: () => preferencesStore.taskTeamAllHidden,
+  set: (value) => preferencesStore.setQuestTeamHideAll(value),
 });
 const taskHideAllLabel = computed(() =>
-  userStore.taskTeamAllHidden
+  preferencesStore.taskTeamAllHidden
     ? "page.team.card.teamoptions.task_hide_all"
     : "page.team.card.teamoptions.task_show_all"
 );
 const itemsHideAll = computed({
-  get: () => userStore.itemsTeamAllHidden,
-  set: (value) => userStore.setItemsTeamHideAll(value),
+  get: () => preferencesStore.itemsTeamAllHidden,
+  set: (value) => preferencesStore.setItemsTeamHideAll(value),
 });
 const itemsHideAllLabel = computed(() =>
-  userStore.itemsTeamAllHidden
+  preferencesStore.itemsTeamAllHidden
     ? "page.team.card.teamoptions.items_hide_all"
     : "page.team.card.teamoptions.items_show_all"
 );
 const itemsHideNonFIR = computed({
-  get: () => userStore.itemsTeamNonFIRHidden,
-  set: (value) => userStore.setItemsTeamHideNonFIR(value),
+  get: () => preferencesStore.itemsTeamNonFIRHidden,
+  set: (value) => preferencesStore.setItemsTeamHideNonFIR(value),
 });
 const itemsHideNonFIRLabel = computed(() =>
-  userStore.itemsTeamNonFIRHidden
+  preferencesStore.itemsTeamNonFIRHidden
     ? "page.team.card.teamoptions.items_hide_non_fir"
     : "page.team.card.teamoptions.items_show_non_fir"
 );
 const itemsHideHideout = computed({
-  get: () => userStore.itemsTeamHideoutHidden,
-  set: (value) => userStore.setItemsTeamHideHideout(value),
+  get: () => preferencesStore.itemsTeamHideoutHidden,
+  set: (value) => preferencesStore.setItemsTeamHideHideout(value),
 });
 const itemsHideHideoutLabel = computed(() =>
-  userStore.itemsTeamHideoutHidden
+  preferencesStore.itemsTeamHideoutHidden
     ? "page.team.card.teamoptions.items_hide_hideout"
     : "page.team.card.teamoptions.items_show_hideout"
 );
 const mapHideAll = computed({
-  get: () => userStore.mapTeamAllHidden,
-  set: (value) => userStore.setMapTeamHideAll(value),
+  get: () => preferencesStore.mapTeamAllHidden,
+  set: (value) => preferencesStore.setMapTeamHideAll(value),
 });
 const mapHideAllLabel = computed(() =>
-  userStore.mapTeamAllHidden
+  preferencesStore.mapTeamAllHidden
     ? "page.team.card.teamoptions.map_hide_all"
     : "page.team.card.teamoptions.map_show_all"
 );

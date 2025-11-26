@@ -1,5 +1,5 @@
 <template>
-  <fitted-card icon="mdi-database-import-outline" icon-color="white">
+  <GenericCard icon="mdi-database-import-outline" icon-color="white">
     <template #title>Data Migration</template>
     <template #content>
       <p class="mb-4">
@@ -153,11 +153,11 @@
         </UCard>
       </UModal>
     </template>
-  </fitted-card>
+  </GenericCard>
 </template>
 <script setup>
 import { useDataMigration } from "@/composables/useDataMigration";
-import FittedCard from "@/components/ui/FittedCard.vue";
+import GenericCard from "@/components/ui/GenericCard.vue";
 import MigrationSteps from "./MigrationSteps.vue";
 import ImportConfirmDialog from "./ImportConfirmDialog.vue";
 const migration = useDataMigration();

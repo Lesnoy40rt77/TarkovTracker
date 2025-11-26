@@ -1,4 +1,5 @@
 import { TARKOV_DATA_QUERY } from "~/server/utils/tarkov-queries";
+import { useEdgeCache, createTarkovFetcher } from "~/server/utils/useEdgeCache";
 
 // Supported languages by tarkov.dev API
 const SUPPORTED_LANGUAGES = [
@@ -47,111 +48,18 @@ export default defineEventHandler(async (event) => {
     gameMode = "regular";
   }
 
-  // Cloudflare Workers have a special caches.default property not in standard types
-  // In Node.js dev mode, caches is not defined at all
-  const isCacheAvailable =
-    typeof globalThis.caches !== "undefined" &&
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis.caches as any).default;
+  // Create cache key from parameters
+  const cacheKey = `data-${lang}-${gameMode}`;
+  
+  // Create fetcher function for tarkov.dev API
+  const fetcher = createTarkovFetcher(TARKOV_DATA_QUERY, { lang, gameMode });
 
-  try {
-    // Only use Cloudflare Cache API in production (Cloudflare Pages/Workers)
-    if (isCacheAvailable) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const cache = (globalThis.caches as any).default as Cache;
-
-      // Create a normalized cache key URL to ensure consistent caching
-      const cacheUrl = new URL(
-        `https://cache.tarkovtracker.io/api/tarkov/data`
-      );
-      cacheUrl.searchParams.set("lang", lang);
-      cacheUrl.searchParams.set("gameMode", gameMode);
-      const cacheKey = new Request(cacheUrl.toString());
-
-      // Check cache first
-      const cachedResponse = await cache.match(cacheKey);
-
-      if (cachedResponse) {
-        // CACHE HIT - Return immediately
-        const data = await cachedResponse.json();
-
-        setResponseHeaders(event, {
-          "X-Cache-Status": "HIT",
-          "X-Cache-Key": `${lang}-${gameMode}`,
-          "Cache-Control": `public, max-age=${CACHE_TTL}, s-maxage=${CACHE_TTL}`,
-        });
-
-        return data;
-      }
-
-      // CACHE MISS - Fetch from tarkov.dev API
-      console.log(`[EDGE] Cache miss for data: ${lang}-${gameMode}`);
-
-      const response = await $fetch("https://api.tarkov.dev/graphql", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: {
-          query: TARKOV_DATA_QUERY,
-          variables: { lang, gameMode },
-        },
-      });
-
-      // Store in edge cache with TTL
-      const cacheResponse = new Response(JSON.stringify(response), {
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": `public, max-age=${CACHE_TTL}, s-maxage=${CACHE_TTL}`,
-          "X-Cache-Status": "MISS",
-          "X-Cache-Key": `${lang}-${gameMode}`,
-        },
-      });
-
-      // Non-blocking cache write if waitUntil available
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const cfContext = (event.context as any).cloudflare?.context;
-      if (cfContext?.waitUntil) {
-        cfContext.waitUntil(cache.put(cacheKey, cacheResponse.clone()));
-      } else {
-        await cache.put(cacheKey, cacheResponse.clone());
-      }
-
-      setResponseHeaders(event, {
-        "X-Cache-Status": "MISS",
-        "X-Cache-Key": `${lang}-${gameMode}`,
-        "Cache-Control": `public, max-age=${CACHE_TTL}, s-maxage=${CACHE_TTL}`,
-      });
-
-      return response;
-    } else {
-      // DEV MODE - No edge caching, direct fetch
-      console.log(`[DEV] Fetching data for: ${lang}-${gameMode}`);
-
-      const response = await $fetch("https://api.tarkov.dev/graphql", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: {
-          query: TARKOV_DATA_QUERY,
-          variables: { lang, gameMode },
-        },
-      });
-
-      setResponseHeaders(event, {
-        "X-Cache-Status": "DEV",
-        "X-Cache-Key": `${lang}-${gameMode}`,
-        "Cache-Control": "no-cache",
-      });
-
-      return response;
-    }
-  } catch (error) {
-    console.error("Error fetching data from tarkov.dev:", error);
-    throw createError({
-      statusCode: 502,
-      statusMessage: "Failed to fetch data from tarkov.dev API",
-    });
-  }
+  // Use the shared edge cache utility
+  return await useEdgeCache(
+    event,
+    cacheKey,
+    fetcher,
+    CACHE_TTL,
+    { cacheKeyPrefix: 'tarkov' }
+  );
 });

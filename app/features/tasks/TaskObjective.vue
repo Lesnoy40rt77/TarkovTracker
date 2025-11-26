@@ -33,7 +33,7 @@
         class="flex items-center"
       >
         <div class="rounded-lg pr-0 flex items-start mb-2 bg-gray-800 w-fit">
-          <tarkov-item
+          <GameItem
             :item-id="relatedItem.id"
             :item-name="relatedItem.shortName"
             :dev-link="relatedItem.link"
@@ -79,9 +79,7 @@ const props = defineProps({
     required: true,
   },
 });
-const TarkovItem = defineAsyncComponent(() =>
-  import("@/features/game/TarkovItem.vue")
-);
+
 const metadataStore = useMetadataStore();
 const objectives = computed(() => metadataStore.objectives);
 const tarkovStore = useTarkovStore();

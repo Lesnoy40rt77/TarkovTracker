@@ -111,7 +111,7 @@ import { useI18n } from "vue-i18n";
 import { useBreakpoints } from "@vueuse/core";
 import { useTarkovStore } from "@/stores/tarkov";
 import { useProgressStore } from "@/stores/progress";
-import { useUserStore } from "@/stores/user";
+import { usePreferencesStore } from "@/stores/preferences";
 import { useMetadataStore } from "@/stores/metadata";
 const TaskInfo = defineAsyncComponent(() => import("./TaskInfo.vue"));
 const QuestKeys = defineAsyncComponent(() => import("./QuestKeys.vue"));
@@ -133,7 +133,7 @@ const breakpoints = useBreakpoints({
 const xs = breakpoints.smaller("sm");
 const tarkovStore = useTarkovStore();
 const progressStore = useProgressStore();
-const userStore = useUserStore();
+const preferencesStore = usePreferencesStore();
 const metadataStore = useMetadataStore();
 const tasks = computed(() => metadataStore.tasks);
 const taskStatusUpdated = ref(false);
@@ -195,13 +195,13 @@ const mapObjectiveTypes = [
   "plantQuestItem",
   "shoot",
 ];
-const onMapView = computed(() => userStore.getTaskPrimaryView === "maps");
+const onMapView = computed(() => preferencesStore.getTaskPrimaryView === "maps");
 const relevantViewObjectives = computed(() => {
   if (!onMapView.value) return props.task.objectives;
   return props.task.objectives.filter((o) => {
     if (!Array.isArray(o.maps) || !o.maps.length) return true;
     return (
-      o.maps.some((m) => m.id === userStore.getTaskMapView) &&
+      o.maps.some((m) => m.id === preferencesStore.getTaskMapView) &&
       mapObjectiveTypes.includes(o.type)
     );
   });
@@ -210,7 +210,7 @@ const irrelevantObjectives = computed(() => {
   if (!onMapView.value) return [];
   return props.task.objectives.filter((o) => {
     if (!Array.isArray(o.maps) || !o.maps.length) return false;
-    const onSelectedMap = o.maps.some((m) => m.id === userStore.getTaskMapView);
+    const onSelectedMap = o.maps.some((m) => m.id === preferencesStore.getTaskMapView);
     const isMapType = mapObjectiveTypes.includes(o.type);
     return !(onSelectedMap && isMapType);
   });
@@ -219,7 +219,7 @@ const uncompletedIrrelevantObjectives = computed(() =>
   props.task.objectives
     .filter((o) => {
       const onCorrectMap = o?.maps?.some(
-        (m) => m.id === userStore.getTaskMapView
+        (m) => m.id === preferencesStore.getTaskMapView
       );
       const isMapObjectiveType = mapObjectiveTypes.includes(o.type);
       return !onCorrectMap || !isMapObjectiveType;

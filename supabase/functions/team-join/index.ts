@@ -28,10 +28,10 @@ serve(async (req) => {
 
     // Parse and validate request body
     const body = await req.json()
-    const fieldsError = validateRequiredFields(body, ["teamId", "password"])
+    const fieldsError = validateRequiredFields(body, ["teamId", "join_code"])
     if (fieldsError) return fieldsError
 
-    const { teamId, password } = body
+    const { teamId, join_code } = body
 
     // Check if user is already in a team
     const { data: existingMembership, error: membershipCheckError } = await supabase
@@ -52,7 +52,7 @@ serve(async (req) => {
     // Get team details
     const { data: team, error: teamError } = await supabase
       .from("teams")
-      .select("id, name, password_hash, max_members")
+      .select("id, name, join_code, max_members")
       .eq("id", teamId)
       .single()
 
@@ -61,10 +61,9 @@ serve(async (req) => {
       return createErrorResponse("Team not found", 404)
     }
 
-    // Verify password
-    // Note: In production, this should use proper password hashing (bcrypt, argon2, etc.)
-    if (team.password_hash !== password) {
-      return createErrorResponse("Invalid team password", 403)
+    // Verify join code
+    if (team.join_code !== join_code) {
+      return createErrorResponse("Invalid team join code", 403)
     }
 
     // Check if team is full

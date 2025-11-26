@@ -12,7 +12,7 @@
 - `progress.ts` - Computed team aggregations (read-only)
   **Two Game Modes**: PvP and PvE maintain separate progress in same state structure (only 'pvp' and 'pve' modes supported)
   **Backend**: Supabase for auth/db, Cloudflare Workers for functions (in progress)
-  **GraphQL**: Apollo Client → tarkov.dev API for game data
+  **API**: Nuxt server-side proxy → tarkov.dev GraphQL API for game data
 ## Critical Areas Requiring Care
 1. **Game mode state structure** - Must preserve `{ currentGameMode, pvp: {...}, pve: {...} }`
 2. **Data migration system** - Converts legacy single-mode → separate PvP/PvE structure

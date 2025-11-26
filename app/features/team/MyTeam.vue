@@ -1,5 +1,5 @@
 <template>
-  <fitted-card
+  <GenericCard
     icon="mdi-account-supervisor"
     icon-color="white"
     highlight-color="secondary"
@@ -51,7 +51,7 @@
         </UButton>
       </div>
     </template>
-  </fitted-card>
+  </GenericCard>
 </template>
 <script setup>
 import { ref, computed, watch, nextTick } from "vue";
@@ -59,15 +59,15 @@ import { useI18n } from "vue-i18n";
 // Team functions moved to Cloudflare Workers - TODO: Implement replacement
 import { useTeamStoreWithSupabase } from "@/stores/useTeamStore";
 import { useSystemStoreWithSupabase } from "@/stores/useSystemStore";
-import { useUserStore } from "@/stores/user";
+import { usePreferencesStore } from "@/stores/preferences";
 import { useTarkovStore } from "@/stores/tarkov";
-import FittedCard from "@/components/ui/FittedCard.vue";
+import GenericCard from "@/components/ui/GenericCard.vue";
 import TeamInputRow from "./TeamInputRow.vue";
 
 const { t } = useI18n({ useScope: "global" });
 const { teamStore } = useTeamStoreWithSupabase();
 const { systemStore } = useSystemStoreWithSupabase();
-const userStore = useUserStore();
+const preferencesStore = usePreferencesStore();
 const tarkovStore = useTarkovStore();
 const { $supabase } = useNuxtApp();
 const toast = useToast();
@@ -204,7 +204,7 @@ const teamUrl = computed(() => {
 });
 
 const visibleUrl = computed(() =>
-  userStore.getStreamerMode
+  preferencesStore.getStreamerMode
     ? t("page.team.card.myteam.url_hidden")
     : teamUrl.value
 );

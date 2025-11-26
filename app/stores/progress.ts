@@ -1,10 +1,8 @@
 import { computed } from "vue";
 import { defineStore } from "pinia";
 import { useTarkovStore } from "~/stores/tarkov";
-import { useUserStore } from "~/stores/user";
+import { usePreferencesStore } from "~/stores/preferences";
 import { useMetadataStore } from "~/stores/metadata";
-import { useSupabaseListener } from "@/composables/supabase/useSupabaseListener";
-import { useSupabaseSync } from "@/composables/supabase/useSupabaseSync";
 import { useTeammateStores } from "./useTeamStore";
 import type { Task } from "~/types/tarkov";
 import type { Store } from "pinia";
@@ -49,13 +47,17 @@ type ProgressGetters = {
 };
 */
 export const useProgressStore = defineStore("progress", () => {
-  const userStore = useUserStore();
+  const preferencesStore = usePreferencesStore();
   const metadataStore = useMetadataStore();
   const { teammateStores } = useTeammateStores();
 
+  // Get the tarkov store to source "self" data directly from it
+  const tarkovStore = useTarkovStore();
+
   const teamStores = computed(() => {
     const stores: TeamStoresMap = {};
-    stores["self"] = useTarkovStore() as Store<string, UserState>;
+    // Source the "self" key directly from useTarkovStore() instead of maintaining local state
+    stores["self"] = tarkovStore as Store<string, UserState>;
 
     for (const teammate of Object.keys(teammateStores.value)) {
       if (teammateStores.value[teammate]) {
@@ -68,7 +70,7 @@ export const useProgressStore = defineStore("progress", () => {
   const visibleTeamStores = computed(() => {
     const visibleStores: TeamStoresMap = {};
     Object.entries(teamStores.value).forEach(([teamId, store]) => {
-      if (!userStore.teamIsHidden(teamId)) {
+      if (!preferencesStore.teamIsHidden(teamId)) {
         visibleStores[teamId] = store;
       }
     });
@@ -204,7 +206,7 @@ export const useProgressStore = defineStore("progress", () => {
     }
     return completions;
   });
-  const hideoutLevels = computed(() => {
+  const hideoutLevels = computed (() => {
     const levels: HideoutLevelMap = {};
     if (!metadataStore.hideoutStations.length || !visibleTeamStores.value) return {};
     for (const station of metadataStore.hideoutStations) {
@@ -420,70 +422,3 @@ export const useProgressStore = defineStore("progress", () => {
     getProgressPercentage,
   };
 });
-let isSyncInitialized = false;
-
-export function initializeProgressSync() {
-  const progressStore = useProgressStore();
-  const { $supabase } = useNuxtApp();
-
-  // Initialize sync only once and if user is logged in
-  if (import.meta.client && !isSyncInitialized && $supabase.user.loggedIn) {
-    isSyncInitialized = true;
-    
-    const progressFilter = computed(() => {
-      if ($supabase.user.loggedIn && $supabase.user.id) {
-        return `user_id=eq.${$supabase.user.id}`;
-      }
-      return undefined;
-    });
-
-    useSupabaseListener({
-      store: progressStore,
-      table: "user_progress",
-      filter: progressFilter.value,
-      storeId: "progress",
-      onData: (data) => {
-        if (data) {
-          if (data.pvp_data) {
-            progressStore.$patch({ pvp: data.pvp_data });
-          }
-          if (data.pve_data) {
-            progressStore.$patch({ pve: data.pve_data });
-          }
-          if (data.game_edition) {
-            progressStore.$patch({ gameEdition: data.game_edition });
-          }
-          if (data.current_game_mode) {
-            progressStore.$patch({ currentGameMode: data.current_game_mode });
-          }
-        }
-      },
-    });
-
-    useSupabaseSync({
-      store: progressStore,
-      table: "user_progress",
-      debounceMs: 250,
-      transform: (state: unknown) => {
-        const userState = state as UserState;
-        return {
-          user_id: $supabase.user.id,
-          current_game_mode: userState.currentGameMode || GAME_MODES.PVP,
-          game_edition:
-            typeof userState.gameEdition === "string"
-              ? parseInt(userState.gameEdition)
-              : userState.gameEdition,
-          pvp_data: userState.pvp || {},
-          pve_data: userState.pve || {},
-        };
-      },
-    });
-  }
-}
-
-export function useProgressStoreWithSupabase() {
-  initializeProgressSync();
-  return {
-    progressStore: useProgressStore(),
-  };
-}

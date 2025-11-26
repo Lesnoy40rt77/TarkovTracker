@@ -1,10 +1,13 @@
 <template>
   <div class="container mx-auto px-4 py-6 max-w-5xl">
-    <UCard class="bg-surface-900 border border-white/10" :ui="{ body: 'space-y-4' }">
+    <UCard
+      class="bg-surface-900 border border-white/10"
+      :ui="{ body: 'space-y-4' }"
+    >
       <template #header>
         <div class="space-y-1">
           <h1 class="text-xl font-semibold text-surface-50">
-            Apollo GraphQL Debug Page
+            Tarkov API Debug Page
           </h1>
           <p class="text-sm text-surface-300">
             Testing Tarkov API Data Fetching
@@ -17,7 +20,11 @@
         icon="i-heroicons-arrow-path"
         color="primary"
         variant="subtle"
-        :title="$t ? $t('debug.apollo.loading', 'Loading data from GraphQL API...') : 'Loading data from GraphQL API...'"
+        :title="
+          $t
+            ? $t('debug.apollo.loading', 'Loading data from API...')
+            : 'Loading data from API...'
+        "
       />
       <UAlert
         v-if="error"
@@ -59,11 +66,16 @@
             </ul>
           </UAccordionItem>
 
-          <UAccordionItem :label="`Player Levels (${result.playerLevels?.length || 0})`">
+          <UAccordionItem
+            :label="`Player Levels (${result.playerLevels?.length || 0})`"
+          >
             <div class="text-sm text-surface-200">
               First 5:
               {{
-                result.playerLevels?.slice(0, 5).map((l) => l.level).join(", ")
+                result.playerLevels
+                  ?.slice(0, 5)
+                  .map((l: any) => l.level)
+                  .join(", ")
               }}
             </div>
           </UAccordionItem>
@@ -72,8 +84,12 @@
         <div class="h-px bg-white/10"></div>
 
         <div class="text-sm text-surface-200 space-y-1">
-          <div><span class="font-semibold">Language:</span> {{ languageCode }}</div>
-          <div><span class="font-semibold">Game Mode:</span> {{ gameMode }}</div>
+          <div>
+            <span class="font-semibold">Language:</span> {{ languageCode }}
+          </div>
+          <div>
+            <span class="font-semibold">Game Mode:</span> {{ gameMode }}
+          </div>
         </div>
       </div>
 
@@ -92,13 +108,17 @@
 </template>
 <script setup lang="ts">
 import { computed } from "vue";
-import { useTarkovDataQuery } from "@/composables/api/useTarkovApi";
+import { useSharedTarkovDataQuery } from "@/composables/api/useSharedTarkovQuery";
 import { useTarkovStore } from "@/stores/tarkov";
 import { API_GAME_MODES, GAME_MODES } from "@/utils/constants";
 
 const tarkovStore = useTarkovStore();
-const gameMode = computed(() => tarkovStore.getCurrentGameMode() || API_GAME_MODES[GAME_MODES.PVP]);
-const { result, error, loading, refetch, languageCode } =
-  useTarkovDataQuery(gameMode);
+const gameMode = computed(
+  () => tarkovStore.getCurrentGameMode() || API_GAME_MODES[GAME_MODES.PVP]
+);
+const { result, error, loading, refetch, languageCode: apiLanguageCode } =
+  useSharedTarkovDataQuery();
+
+// Alias for template consistency
+const languageCode = computed(() => apiLanguageCode.value);
 </script>
-\n*** End Patch

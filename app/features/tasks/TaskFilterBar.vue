@@ -76,7 +76,7 @@
       <UButton
         :variant="secondaryView === 'locked' ? 'solid' : 'outline'"
         :color="secondaryView === 'locked' ? 'primary' : 'neutral'"
-        :disabled="userStore.getTaskUserView === 'all'"
+        :disabled="preferencesStore.getTaskUserView === 'all'"
         size="sm"
         @click="setSecondaryView('locked')"
       >
@@ -87,7 +87,7 @@
       <UButton
         :variant="secondaryView === 'completed' ? 'solid' : 'outline'"
         :color="secondaryView === 'completed' ? 'primary' : 'neutral'"
-        :disabled="userStore.getTaskUserView === 'all'"
+        :disabled="preferencesStore.getTaskUserView === 'all'"
         size="sm"
         @click="setSecondaryView('completed')"
       >
@@ -116,30 +116,30 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { useUserStore } from "@/stores/user";
+import { usePreferencesStore } from "@/stores/preferences";
 import { useMetadataStore } from "@/stores/metadata";
 
 const { t } = useI18n({ useScope: "global" });
-const userStore = useUserStore();
+const preferencesStore = usePreferencesStore();
 const metadataStore = useMetadataStore();
 const maps = computed(() => metadataStore.maps);
 const traders = computed(() => metadataStore.traders);
 
 // Primary view (all / maps / traders)
-const primaryView = computed(() => userStore.getTaskPrimaryView);
+const primaryView = computed(() => preferencesStore.getTaskPrimaryView);
 
 const setPrimaryView = (view: string) => {
-  userStore.setTaskPrimaryView(view);
+  preferencesStore.setTaskPrimaryView(view);
 
   // When switching to maps, ensure a map is selected
   if (
     view === "maps" &&
     maps.value.length > 0 &&
-    userStore.getTaskMapView === "all"
+    preferencesStore.getTaskMapView === "all"
   ) {
     const firstMap = maps.value[0];
     if (firstMap?.id) {
-      userStore.setTaskMapView(firstMap.id);
+      preferencesStore.setTaskMapView(firstMap.id);
     }
   }
 
@@ -147,20 +147,20 @@ const setPrimaryView = (view: string) => {
   if (
     view === "traders" &&
     traders.value.length > 0 &&
-    userStore.getTaskTraderView === "all"
+    preferencesStore.getTaskTraderView === "all"
   ) {
     const firstTrader = traders.value[0];
     if (firstTrader?.id) {
-      userStore.setTaskTraderView(firstTrader.id);
+      preferencesStore.setTaskTraderView(firstTrader.id);
     }
   }
 };
 
 // Secondary view (available / locked / completed)
-const secondaryView = computed(() => userStore.getTaskSecondaryView);
+const secondaryView = computed(() => preferencesStore.getTaskSecondaryView);
 
 const setSecondaryView = (view: string) => {
-  userStore.setTaskSecondaryView(view);
+  preferencesStore.setTaskSecondaryView(view);
 };
 
 // Map selection
@@ -172,7 +172,7 @@ const mapOptions = computed(() => {
 });
 
 const selectedMapObject = computed(() => {
-  const currentMapId = userStore.getTaskMapView;
+  const currentMapId = preferencesStore.getTaskMapView;
   return (
     mapOptions.value.find((option) => option.value === currentMapId) ||
     mapOptions.value[0]
@@ -181,7 +181,7 @@ const selectedMapObject = computed(() => {
 
 const onMapSelect = (selected: { label: string; value: string }) => {
   if (selected?.value) {
-    userStore.setTaskMapView(selected.value);
+    preferencesStore.setTaskMapView(selected.value);
   }
 };
 
@@ -194,7 +194,7 @@ const traderOptions = computed(() => {
 });
 
 const selectedTraderObject = computed(() => {
-  const currentTraderId = userStore.getTaskTraderView;
+  const currentTraderId = preferencesStore.getTaskTraderView;
   return (
     traderOptions.value.find((option) => option.value === currentTraderId) ||
     traderOptions.value[0]
@@ -203,7 +203,7 @@ const selectedTraderObject = computed(() => {
 
 const onTraderSelect = (selected: { label: string; value: string }) => {
   if (selected?.value) {
-    userStore.setTaskTraderView(selected.value);
+    preferencesStore.setTaskTraderView(selected.value);
   }
 };
 
@@ -220,7 +220,7 @@ const userViewOptions = computed(() => [
 ]);
 
 const userViewObject = computed(() => {
-  const currentUserView = userStore.getTaskUserView;
+  const currentUserView = preferencesStore.getTaskUserView;
   return (
     userViewOptions.value.find((option) => option.value === currentUserView) ||
     userViewOptions.value[0]
@@ -229,15 +229,15 @@ const userViewObject = computed(() => {
 
 const onUserViewSelect = (selected: { label: string; value: string }) => {
   if (selected?.value) {
-    userStore.setTaskUserView(selected.value);
+    preferencesStore.setTaskUserView(selected.value);
 
     // When switching to "all" users view, force secondary view to "available"
     // since the filtering logic only supports "available" for team view
     if (
       selected.value === "all" &&
-      userStore.getTaskSecondaryView !== "available"
+      preferencesStore.getTaskSecondaryView !== "available"
     ) {
-      userStore.setTaskSecondaryView("available");
+      preferencesStore.setTaskSecondaryView("available");
     }
   }
 };

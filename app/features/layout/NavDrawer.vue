@@ -15,6 +15,7 @@
         <DrawerAccount :is-collapsed="false" />
         <div class="h-px bg-white/10 my-1" />
         <DrawerLevel :is-collapsed="false" />
+        <DrawerCharacter :is-collapsed="false" />
         <div class="h-px bg-white/10 my-1" />
         <DrawerLinks :is-collapsed="false" />
         <div class="h-px bg-white/10 my-1" />
@@ -36,6 +37,7 @@
       <DrawerAccount :is-collapsed="isRailActive" />
       <div class="h-px bg-white/10 mx-3 my-1" />
       <DrawerLevel :is-collapsed="isRailActive" />
+      <DrawerCharacter :is-collapsed="isRailActive" />
       <div class="h-px bg-white/10 mx-3 my-1" />
       <DrawerLinks :is-collapsed="isRailActive" />
       <div class="h-px bg-white/10 mx-3 my-1" />
@@ -75,5 +77,8 @@ const DrawerLevel = defineAsyncComponent(() =>
 );
 const DrawerExternalLinks = defineAsyncComponent(() =>
   import("@/features/drawer/DrawerExternalLinks.vue")
+);
+const DrawerCharacter = defineAsyncComponent(() =>
+  import("@/features/drawer/DrawerCharacter.vue")
 );
 </script>

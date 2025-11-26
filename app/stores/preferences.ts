@@ -4,7 +4,7 @@ import { pinia as pluginPinia } from "@/plugins/pinia.client";
 import { useNuxtApp } from "#imports";
 import { useSupabaseSync } from "@/composables/supabase/useSupabaseSync";
 // Define the state structure
-interface UserState {
+interface PreferencesState {
   streamerMode: boolean;
   teamHide: Record<string, boolean>;
   taskTeamHideAll: boolean;
@@ -32,7 +32,7 @@ interface UserState {
   };
 }
 // Export the default state with type annotation
-export const defaultState: UserState = {
+export const defaultState: PreferencesState = {
   streamerMode: false,
   teamHide: {},
   taskTeamHideAll: false,
@@ -67,29 +67,29 @@ const initialSavingState = {
   itemsNeededHideNonFIR: false,
 };
 // Define getter types
-type UserGetters = {
-  getStreamerMode: (state: UserState) => boolean;
-  teamIsHidden: (state: UserState) => (teamId: string) => boolean;
-  taskTeamAllHidden: (state: UserState) => boolean;
-  itemsTeamAllHidden: (state: UserState) => boolean;
-  itemsTeamNonFIRHidden: (state: UserState) => boolean;
-  itemsTeamHideoutHidden: (state: UserState) => boolean;
-  mapTeamAllHidden: (state: UserState) => boolean;
-  getTaskPrimaryView: (state: UserState) => string;
-  getTaskMapView: (state: UserState) => string;
-  getTaskTraderView: (state: UserState) => string;
-  getTaskSecondaryView: (state: UserState) => string;
-  getTaskUserView: (state: UserState) => string;
-  getNeededTypeView: (state: UserState) => string;
-  itemsNeededHideNonFIR: (state: UserState) => boolean;
-  getHideGlobalTasks: (state: UserState) => boolean;
-  getHideNonKappaTasks: (state: UserState) => boolean;
-  getNeededItemsStyle: (state: UserState) => string;
-  getHideoutPrimaryView: (state: UserState) => string;
-  getLocaleOverride: (state: UserState) => string | null;
+type PreferencesGetters = {
+  getStreamerMode: (state: PreferencesState) => boolean;
+  teamIsHidden: (state: PreferencesState) => (teamId: string) => boolean;
+  taskTeamAllHidden: (state: PreferencesState) => boolean;
+  itemsTeamAllHidden: (state: PreferencesState) => boolean;
+  itemsTeamNonFIRHidden: (state: PreferencesState) => boolean;
+  itemsTeamHideoutHidden: (state: PreferencesState) => boolean;
+  mapTeamAllHidden: (state: PreferencesState) => boolean;
+  getTaskPrimaryView: (state: PreferencesState) => string;
+  getTaskMapView: (state: PreferencesState) => string;
+  getTaskTraderView: (state: PreferencesState) => string;
+  getTaskSecondaryView: (state: PreferencesState) => string;
+  getTaskUserView: (state: PreferencesState) => string;
+  getNeededTypeView: (state: PreferencesState) => string;
+  itemsNeededHideNonFIR: (state: PreferencesState) => boolean;
+  getHideGlobalTasks: (state: PreferencesState) => boolean;
+  getHideNonKappaTasks: (state: PreferencesState) => boolean;
+  getNeededItemsStyle: (state: PreferencesState) => string;
+  getHideoutPrimaryView: (state: PreferencesState) => string;
+  getLocaleOverride: (state: PreferencesState) => string | null;
 };
 // Define action types
-type UserActions = {
+type PreferencesActions = {
   setStreamerMode(mode: boolean): void;
   toggleHidden(teamId: string): void;
   setQuestTeamHideAll(hide: boolean): void;
@@ -111,14 +111,14 @@ type UserActions = {
   setLocaleOverride(locale: string | null): void;
 };
 // Define the store type
-type UserStoreDefinition = StoreDefinition<
-  "swapUser",
-  UserState,
-  UserGetters,
-  UserActions
+type PreferencesStoreDefinition = StoreDefinition<
+  "preferences",
+  PreferencesState,
+  PreferencesGetters,
+  PreferencesActions
 >;
-export const useUserStore: UserStoreDefinition = defineStore("swapUser", {
-  state: (): UserState => {
+export const usePreferencesStore: PreferencesStoreDefinition = defineStore("preferences", {
+  state: (): PreferencesState => {
     const state = JSON.parse(JSON.stringify(defaultState));
     // Always reset saving state on store creation
     state.saving = { ...initialSavingState };
@@ -261,7 +261,7 @@ export const useUserStore: UserStoreDefinition = defineStore("swapUser", {
   },
   // Enable automatic localStorage persistence
   persist: {
-    key: "user", // LocalStorage key for user preference data
+    key: "preferences", // LocalStorage key for user preference data
     storage: typeof window !== "undefined" ? localStorage : undefined,
     // Use serializer instead of paths for selective persistence
     serializer: {
@@ -291,7 +291,7 @@ export const useUserStore: UserStoreDefinition = defineStore("swapUser", {
       "localeOverride",
     ],
   },
-}) as UserStoreDefinition;
+}) as PreferencesStoreDefinition;
 // Watch for Supabase user state changing
 if (import.meta.client) {
   setTimeout(() => {
@@ -307,7 +307,7 @@ if (import.meta.client) {
             try {
               const resolvedPinia = pluginPinia ?? nuxtApp.$pinia;
               if (!resolvedPinia) return;
-              const userStore = useUserStore(resolvedPinia);
+              const preferencesStore = usePreferencesStore(resolvedPinia);
 
               if (newValue && $supabase.user.id) {
                 // Load user preferences from Supabase
@@ -318,14 +318,14 @@ if (import.meta.client) {
                   .single();
 
                 if (data && !error) {
-                  console.log("[UserStore] Loading preferences from Supabase:", data);
+                  console.log("[PreferencesStore] Loading preferences from Supabase:", data);
                   // Update store with server data
                   Object.keys(data).forEach((key) => {
                     if (key !== "user_id" && key !== "created_at" && key !== "updated_at") {
                       const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-                      if (camelKey in userStore.$state) {
+                      if (camelKey in preferencesStore.$state) {
                         // Fix type issue by casting through unknown first
-                        (userStore.$state as any)[camelKey] = data[key];
+                        (preferencesStore.$state as any)[camelKey] = data[key];
                       }
                     }
                   });
@@ -333,42 +333,42 @@ if (import.meta.client) {
 
                 // Set up sync to Supabase
                 useSupabaseSync({
-                  store: userStore,
+                  store: preferencesStore,
                   table: "user_preferences",
                   debounceMs: 500,
                   transform: (state: unknown) => {
-                    const userState = state as UserState;
-                    console.log("[UserStore] Transform called - preparing preferences for sync");
+                    const preferencesState = state as PreferencesState;
+                    console.log("[PreferencesStore] Transform called - preparing preferences for sync");
 
                     // Convert camelCase to snake_case for Supabase
                     return {
                       user_id: $supabase.user.id,
-                      streamer_mode: userState.streamerMode,
-                      team_hide: userState.teamHide,
-                      task_team_hide_all: userState.taskTeamHideAll,
-                      items_team_hide_all: userState.itemsTeamHideAll,
-                      items_team_hide_non_fir: userState.itemsTeamHideNonFIR,
-                      items_team_hide_hideout: userState.itemsTeamHideHideout,
-                      map_team_hide_all: userState.mapTeamHideAll,
-                      task_primary_view: userState.taskPrimaryView,
-                      task_map_view: userState.taskMapView,
-                      task_trader_view: userState.taskTraderView,
-                      task_secondary_view: userState.taskSecondaryView,
-                      task_user_view: userState.taskUserView,
-                      needed_type_view: userState.neededTypeView,
-                      items_hide_non_fir: userState.itemsHideNonFIR,
-                      hide_global_tasks: userState.hideGlobalTasks,
-                      hide_non_kappa_tasks: userState.hideNonKappaTasks,
-                      neededitems_style: userState.neededitemsStyle,
-                      hideout_primary_view: userState.hideoutPrimaryView,
-                      locale_override: userState.localeOverride,
+                      streamer_mode: preferencesState.streamerMode,
+                      team_hide: preferencesState.teamHide,
+                      task_team_hide_all: preferencesState.taskTeamHideAll,
+                      items_team_hide_all: preferencesState.itemsTeamHideAll,
+                      items_team_hide_non_fir: preferencesState.itemsTeamHideNonFIR,
+                      items_team_hide_hideout: preferencesState.itemsTeamHideHideout,
+                      map_team_hide_all: preferencesState.mapTeamHideAll,
+                      task_primary_view: preferencesState.taskPrimaryView,
+                      task_map_view: preferencesState.taskMapView,
+                      task_trader_view: preferencesState.taskTraderView,
+                      task_secondary_view: preferencesState.taskSecondaryView,
+                      task_user_view: preferencesState.taskUserView,
+                      needed_type_view: preferencesState.neededTypeView,
+                      items_hide_non_fir: preferencesState.itemsHideNonFIR,
+                      hide_global_tasks: preferencesState.hideGlobalTasks,
+                      hide_non_kappa_tasks: preferencesState.hideNonKappaTasks,
+                      neededitems_style: preferencesState.neededitemsStyle,
+                      hideout_primary_view: preferencesState.hideoutPrimaryView,
+                      locale_override: preferencesState.localeOverride,
                     };
                   },
                 });
               }
             } catch (_error) {
               console.error(
-                "Error in userStore watch for user.loggedIn:",
+                "Error in preferencesStore watch for user.loggedIn:",
                 _error
               );
             }
@@ -377,7 +377,7 @@ if (import.meta.client) {
         );
       }
     } catch (error) {
-      console.error("Error setting up user store watchers:", error);
+      console.error("Error setting up preferences store watchers:", error);
     }
   }, 100);
 }

@@ -12,13 +12,6 @@ import {
   LOCALE_TO_API_MAPPING,
 } from "@/utils/constants";
 
-// Re-export the shared query composables for convenience
-// These use IndexedDB caching for client-side persistence
-export {
-  useSharedTarkovDataQuery,
-  useSharedTarkovHideoutQuery,
-} from "./useSharedTarkovQuery";
-
 // Singleton state
 const availableLanguages = ref<string[]>([...API_SUPPORTED_LANGUAGES]);
 const staticMapData = ref<StaticMapData | null>(null);
@@ -64,44 +57,4 @@ export function useTarkovApi() {
     staticMapData,
     loadStaticMaps,
   };
-}
-
-/**
- * @deprecated Use useSharedTarkovDataQuery() from useSharedTarkovQuery.ts instead
- * This composable uses IndexedDB caching for client-side persistence
- *
- * Legacy composable for Tarkov main data queries (tasks, maps, traders, player levels)
- */
-export function useTarkovDataQuery(
-  gameMode: ComputedRef<string> = computed(() => GAME_MODES.PVP)
-) {
-  console.warn(
-    "[useTarkovDataQuery] This composable is deprecated. " +
-      "Use useSharedTarkovDataQuery() from useSharedTarkovQuery.ts instead, " +
-      "which provides IndexedDB caching for faster page loads."
-  );
-
-  // Import and return the shared query
-  const { useSharedTarkovDataQuery } = require("./useSharedTarkovQuery");
-  return useSharedTarkovDataQuery();
-}
-
-/**
- * @deprecated Use useSharedTarkovHideoutQuery() from useSharedTarkovQuery.ts instead
- * This composable uses IndexedDB caching for client-side persistence
- *
- * Legacy composable for Tarkov hideout data queries
- */
-export function useTarkovHideoutQuery(
-  gameMode: ComputedRef<string> = computed(() => GAME_MODES.PVP)
-) {
-  console.warn(
-    "[useTarkovHideoutQuery] This composable is deprecated. " +
-      "Use useSharedTarkovHideoutQuery() from useSharedTarkovQuery.ts instead, " +
-      "which provides IndexedDB caching for faster page loads."
-  );
-
-  // Import and return the shared query
-  const { useSharedTarkovHideoutQuery } = require("./useSharedTarkovQuery");
-  return useSharedTarkovHideoutQuery();
 }

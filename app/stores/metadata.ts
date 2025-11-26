@@ -18,21 +18,13 @@ import {
   CACHE_CONFIG,
   type CacheType,
 } from "@/utils/tarkovCache";
-import {
-  createGraph,
-  getPredecessors,
-  getSuccessors,
-  getParents,
-  getChildren,
-  safeAddNode,
-  safeAddEdge,
-} from "@/utils/graphHelpers";
+import { createGraph } from "@/utils/graphHelpers";
+import { useGraphBuilder } from "@/composables/useGraphBuilder";
 import type {
   TarkovDataQueryResult,
   TarkovHideoutQueryResult,
   Task,
   TaskObjective,
-  TaskRequirement,
   NeededItemTaskObjective,
   ObjectiveMapInfo,
   ObjectiveGPSInfo,
@@ -429,7 +421,7 @@ export const useMetadataStore = defineStore("metadata", {
     },
 
     /**
-     * Process tasks data and build derived structures
+     * Process tasks data and build derived structures using the graph builder composable
      */
     processTasksData(data: TarkovDataQueryResult) {
       this.tasks = data.tasks || [];
@@ -438,272 +430,37 @@ export const useMetadataStore = defineStore("metadata", {
       this.playerLevels = data.playerLevels || [];
 
       if (this.tasks.length > 0) {
-        const newGraph = this.buildTaskGraph(this.tasks);
-        const processedData = this.processTaskRelationships(this.tasks);
-        const enhancedTasks = this.enhanceTasksWithRelationships(
-          this.tasks,
-          newGraph
-        );
+        const graphBuilder = useGraphBuilder();
+        const processedData = graphBuilder.processTaskData(this.tasks);
 
-        this.tasks = enhancedTasks;
-        this.taskGraph = newGraph;
-        this.mapTasks = processedData.tempMapTasks;
-        this.objectiveMaps = processedData.tempObjectiveMaps;
-        this.objectiveGPS = processedData.tempObjectiveGPS;
-        this.alternativeTasks = processedData.tempAlternativeTasks;
-        this.neededItemTaskObjectives = processedData.tempNeededObjectives;
+        this.tasks = processedData.tasks;
+        this.taskGraph = processedData.taskGraph;
+        this.mapTasks = processedData.mapTasks;
+        this.objectiveMaps = processedData.objectiveMaps;
+        this.objectiveGPS = processedData.objectiveGPS;
+        this.alternativeTasks = processedData.alternativeTasks;
+        this.neededItemTaskObjectives = processedData.neededItemTaskObjectives;
       } else {
         this.resetTasksData();
       }
     },
 
     /**
-     * Process hideout data and build derived structures
+     * Process hideout data and build derived structures using the graph builder composable
      */
     processHideoutData(data: TarkovHideoutQueryResult) {
       this.hideoutStations = data.hideoutStations || [];
 
       if (this.hideoutStations.length > 0) {
-        const newGraph = this.buildHideoutGraph(this.hideoutStations);
-        const newModules = this.createHideoutModules(
-          this.hideoutStations,
-          newGraph
-        );
-        const newNeededItems = this.extractItemRequirements(newModules);
+        const graphBuilder = useGraphBuilder();
+        const processedData = graphBuilder.processHideoutData(this.hideoutStations);
 
-        this.hideoutModules = newModules;
-        this.hideoutGraph = newGraph;
-        this.neededItemHideoutModules = newNeededItems;
+        this.hideoutModules = processedData.hideoutModules;
+        this.hideoutGraph = processedData.hideoutGraph;
+        this.neededItemHideoutModules = processedData.neededItemHideoutModules;
       } else {
         this.resetHideoutData();
       }
-    },
-
-    /**
-     * Builds the task graph from task requirements
-     */
-    buildTaskGraph(taskList: Task[]): AbstractGraph {
-      const newGraph = createGraph();
-      const activeRequirements: { task: Task; requirement: TaskRequirement }[] =
-        [];
-
-      // Add all tasks as nodes and process non-active requirements
-      taskList.forEach((task) => {
-        safeAddNode(newGraph, task.id);
-        task.taskRequirements?.forEach((requirement) => {
-          if (requirement?.task?.id) {
-            if (requirement.status?.includes("active")) {
-              activeRequirements.push({ task, requirement });
-            } else {
-              // Ensure the required task exists before adding edge
-              if (taskList.some((t) => t.id === requirement.task.id)) {
-                safeAddNode(newGraph, requirement.task.id);
-                safeAddEdge(newGraph, requirement.task.id, task.id);
-              }
-            }
-          }
-        });
-      });
-
-      // Handle active requirements by linking predecessors
-      activeRequirements.forEach(({ task, requirement }) => {
-        const requiredTaskNodeId = requirement.task.id;
-        if (newGraph.hasNode(requiredTaskNodeId)) {
-          const predecessors = getParents(newGraph, requiredTaskNodeId);
-          predecessors.forEach((predecessorId) => {
-            safeAddEdge(newGraph, predecessorId, task.id);
-          });
-        }
-      });
-
-      return newGraph;
-    },
-
-    /**
-     * Processes tasks to extract map, GPS, and item information
-     */
-    processTaskRelationships(taskList: Task[]) {
-      const tempMapTasks: { [mapId: string]: string[] } = {};
-      const tempObjectiveMaps: { [taskId: string]: ObjectiveMapInfo[] } = {};
-      const tempObjectiveGPS: { [taskId: string]: ObjectiveGPSInfo[] } = {};
-      const tempAlternativeTasks: { [taskId: string]: string[] } = {};
-      const tempNeededObjectives: NeededItemTaskObjective[] = [];
-
-      taskList.forEach((task) => {
-        // Process finish rewards for alternative tasks
-        if (Array.isArray(task.finishRewards)) {
-          task.finishRewards.forEach((reward) => {
-            if (
-              reward?.__typename === "QuestStatusReward" &&
-              reward.status === "Fail" &&
-              reward.quest?.id
-            ) {
-              if (!tempAlternativeTasks[reward.quest.id]) {
-                tempAlternativeTasks[reward.quest.id] = [];
-              }
-              tempAlternativeTasks[reward.quest.id]!.push(task.id);
-            }
-          });
-        }
-
-        // Process objectives
-        task.objectives?.forEach((objective) => {
-          // Map and location data
-          if (objective?.location?.id) {
-            const mapId = objective.location.id;
-            if (!tempMapTasks[mapId]) {
-              tempMapTasks[mapId] = [];
-            }
-            if (!tempMapTasks[mapId].includes(task.id)) {
-              tempMapTasks[mapId].push(task.id);
-            }
-            if (!tempObjectiveMaps[task.id]) {
-              tempObjectiveMaps[task.id] = [];
-            }
-            tempObjectiveMaps[task.id]!.push({
-              objectiveID: String(objective.id),
-              mapID: String(mapId),
-            });
-
-            // GPS coordinates
-            if (objective.x !== undefined && objective.y !== undefined) {
-              if (!tempObjectiveGPS[task.id]) {
-                tempObjectiveGPS[task.id] = [];
-              }
-              tempObjectiveGPS[task.id]!.push({
-                objectiveID: objective.id,
-                x: objective.x,
-                y: objective.y,
-              });
-            }
-          }
-
-          // Item requirements
-          // Exclude "findItem" objectives as they are passive checks that auto-complete
-          // when the player acquires the items for the corresponding "giveItem" objective
-          if (
-            (objective?.item?.id || objective?.markerItem?.id) &&
-            objective.type !== "findItem"
-          ) {
-            tempNeededObjectives.push({
-              id: objective.id,
-              needType: "taskObjective",
-              taskId: task.id,
-              type: objective.type,
-              item: objective.item!,
-              markerItem: objective.markerItem,
-              count: objective.count ?? 1,
-              foundInRaid: objective.foundInRaid ?? false,
-            });
-          }
-        });
-      });
-
-      return {
-        tempMapTasks,
-        tempObjectiveMaps,
-        tempObjectiveGPS,
-        tempAlternativeTasks,
-        tempNeededObjectives,
-      };
-    },
-
-    /**
-     * Enhances tasks with graph relationship data
-     */
-    enhanceTasksWithRelationships(
-      taskList: Task[],
-      graph: AbstractGraph
-    ): Task[] {
-      return taskList.map((task) => ({
-        ...task,
-        traderIcon: task.trader?.imageLink,
-        predecessors: getPredecessors(graph, task.id),
-        successors: getSuccessors(graph, task.id),
-        parents: getParents(graph, task.id),
-        children: getChildren(graph, task.id),
-      }));
-    },
-
-    /**
-     * Builds the hideout dependency graph from station level requirements
-     */
-    buildHideoutGraph(stations: HideoutStation[]): AbstractGraph {
-      const newGraph = createGraph();
-      stations.forEach((station) => {
-        station.levels.forEach((level) => {
-          safeAddNode(newGraph, level.id);
-          level.stationLevelRequirements?.forEach((requirement) => {
-            if (requirement?.station?.id) {
-              // Find the required level's ID
-              const requiredStation = stations.find(
-                (s) => s.id === requirement.station.id
-              );
-              const requiredLevel = requiredStation?.levels.find(
-                (l) => l.level === requirement.level
-              );
-              if (requiredLevel?.id) {
-                safeAddNode(newGraph, requiredLevel.id);
-                safeAddEdge(newGraph, requiredLevel.id, level.id);
-              } else {
-                console.warn(
-                  `Could not find required level ID for station ${requirement.station.id} ` +
-                    `level ${requirement.level} needed by ${level.id}`
-                );
-              }
-            }
-          });
-        });
-      });
-      return newGraph;
-    },
-
-    /**
-     * Converts hideout levels to modules with relationship data
-     */
-    createHideoutModules(
-      stations: HideoutStation[],
-      graph: AbstractGraph
-    ): HideoutModule[] {
-      const modules: HideoutModule[] = [];
-      stations.forEach((station) => {
-        station.levels.forEach((level) => {
-          const moduleData: HideoutModule = {
-            ...level,
-            stationId: station.id,
-            predecessors: getPredecessors(graph, level.id),
-            successors: getSuccessors(graph, level.id),
-            parents: getParents(graph, level.id),
-            children: getChildren(graph, level.id),
-          };
-          modules.push(moduleData);
-        });
-      });
-      return modules;
-    },
-
-    /**
-     * Extracts item requirements from hideout modules
-     */
-    extractItemRequirements(
-      modules: HideoutModule[]
-    ): NeededItemHideoutModule[] {
-      const neededItems: NeededItemHideoutModule[] = [];
-      modules.forEach((module) => {
-        module.itemRequirements?.forEach((req) => {
-          if (req?.item?.id) {
-            neededItems.push({
-              id: req.id,
-              needType: "hideoutModule",
-              hideoutModule: { ...module },
-              item: req.item,
-              count: req.count,
-              foundInRaid: req.foundInRaid,
-            });
-          }
-        });
-      });
-      return neededItems;
     },
 
     /**

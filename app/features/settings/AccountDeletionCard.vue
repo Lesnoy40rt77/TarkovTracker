@@ -1,6 +1,6 @@
 <template>
   <div class="account-deletion-card" :class="$attrs.class">
-    <fitted-card
+    <GenericCard
       icon="mdi-account-cog"
       icon-color="red-500"
       highlight-color="red"
@@ -171,7 +171,7 @@
           </div>
         </div>
       </template>
-    </fitted-card>
+    </GenericCard>
   </div>
   <UModal v-model="showConfirmationDialog" prevent-close>
     <UCard>
@@ -280,7 +280,7 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useTeamStoreWithSupabase } from "@/stores/useTeamStore";
-import FittedCard from "@/components/ui/FittedCard.vue";
+import GenericCard from "@/components/ui/GenericCard.vue";
 defineOptions({
   inheritAttrs: false,
 });

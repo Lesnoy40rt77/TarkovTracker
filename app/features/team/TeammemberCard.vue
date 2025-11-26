@@ -30,7 +30,7 @@
     <div class="flex justify-between items-center">
       <div>
         <i18n-t
-          v-if="!userStore.teamIsHidden(props.teammember)"
+          v-if="!preferencesStore.teamIsHidden(props.teammember)"
           keypath="page.team.card.manageteam.membercard.taskscomplete"
           scope="global"
         >
@@ -49,23 +49,23 @@
       <div class="flex gap-1">
         <UButton
           :disabled="
-            props.teammember == $supabase.user.id || userStore.taskTeamAllHidden
+            props.teammember == $supabase.user.id || preferencesStore.taskTeamAllHidden
           "
           variant="outline"
           :icon="
             props.teammember != $supabase.user.id &&
-            userStore.teamIsHidden(props.teammember)
+            preferencesStore.teamIsHidden(props.teammember)
               ? 'i-mdi-eye-off'
               : 'i-mdi-eye'
           "
           :color="
             props.teammember != $supabase.user.id &&
-            userStore.teamIsHidden(props.teammember)
+            preferencesStore.teamIsHidden(props.teammember)
               ? 'red'
               : 'green'
           "
           size="xs"
-          @click="userStore.toggleHidden(props.teammember)"
+          @click="preferencesStore.toggleHidden(props.teammember)"
         />
         <!-- Button to delete the token -->
         <UButton
@@ -86,7 +86,7 @@
 // Team member management moved to Cloudflare Workers - TODO: Implement replacement
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useUserStore } from "@/stores/user";
+import { usePreferencesStore } from "@/stores/preferences";
 import { useProgressStore } from "@/stores/progress";
 import { useMetadataStore } from "@/stores/metadata";
 const { $supabase } = useNuxtApp();
@@ -111,7 +111,7 @@ const teamStoreId = computed(() => {
   }
 });
 const progressStore = useProgressStore();
-const userStore = useUserStore();
+const preferencesStore = usePreferencesStore();
 const metadataStore = useMetadataStore();
 const tasks = computed(() => metadataStore.tasks);
 const playerLevels = computed(() => metadataStore.playerLevels);
