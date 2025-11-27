@@ -24,10 +24,11 @@ interface ProgressData {
 export const useEdgeFunctions = () => {
   const { $supabase } = useNuxtApp();
   const runtimeConfig = useRuntimeConfig();
-  const gatewayUrl =
+  const rawGatewayUrl =
     runtimeConfig?.public?.teamGatewayUrl ||
     runtimeConfig?.public?.team_gateway_url || // safety for snake_case envs
     "";
+  const gatewayUrl = rawGatewayUrl.replace(/\/+$/, ""); // trim trailing slashes to avoid //team paths
 
   const getAuthToken = async () => {
     const { data, error } = await $supabase.client.auth.getSession();
@@ -110,7 +111,11 @@ export const useEdgeFunctions = () => {
     password: string,
     maxMembers = 5
   ): Promise<CreateTeamResponse> => {
-    return await preferGateway<CreateTeamResponse>("create", { name, password, maxMembers });
+    return await preferGateway<CreateTeamResponse>("create", {
+      name,
+      join_code: password,
+      maxMembers,
+    });
   };
 
   /**
@@ -119,7 +124,7 @@ export const useEdgeFunctions = () => {
    * @param password The team password
    */
   const joinTeam = async (teamId: string, password: string): Promise<JoinTeamResponse> => {
-    return await preferGateway<JoinTeamResponse>("join", { teamId, password });
+    return await preferGateway<JoinTeamResponse>("join", { teamId, join_code: password });
   };
 
   /**

@@ -116,8 +116,9 @@ async function handleAction(request: Request, env: Env, action: TeamAction) {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    // Normalize trailing slash to avoid route misses (e.g., /team/create/ -> /team/create)
-    const path = url.pathname.replace(/\/+$/, "") || "/";
+    // Normalize path: collapse duplicate slashes, strip trailing slash (except root)
+    const normalized = "/" + url.pathname.split("/").filter(Boolean).join("/");
+    const path = normalized === "//" || normalized === "/" ? "/" : normalized;
 
     if (path === "/health") {
       return new Response("ok", { status: 200, headers: corsHeaders(env.ALLOWED_ORIGIN) });
