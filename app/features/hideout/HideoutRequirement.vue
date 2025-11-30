@@ -21,8 +21,14 @@
     </div>
     <!-- Item Name and Count -->
     <div class="min-w-0 flex-1">
-      <div class="truncate text-sm font-medium text-white">
-        {{ requirement.item.name }}
+      <div class="flex items-center gap-1 truncate text-sm font-medium text-white">
+        <span class="truncate">{{ requirement.item.name }}</span>
+        <UIcon
+          v-if="isFoundInRaid"
+          name="i-mdi-checkbox-marked-circle-outline"
+          class="h-4 w-4 shrink-0"
+          :title="'Found in Raid required'"
+        />
       </div>
       <div class="mt-0.5 text-xs text-gray-400">
         Required: {{ requirement.count.toLocaleString() }}
@@ -107,12 +113,26 @@
         wikiLink?: string | null;
       };
       count: number;
+      attributes?: Array<{
+        type: string;
+        name: string;
+        value: string;
+      }>;
     };
     stationId: string;
     level: number;
   }
   const props = defineProps<Props>();
   const tarkovStore = useTarkovStore();
+
+  // Check if item requires Found in Raid status
+  const isFoundInRaid = computed(() => {
+    if (!props.requirement.attributes) return false;
+    const firAttribute = props.requirement.attributes.find(
+      (attr) => attr.type === 'foundInRaid' || attr.name === 'foundInRaid'
+    );
+    return firAttribute?.value === 'true';
+  });
   // Manual entry state
   const isEditing = ref(false);
   const editValue = ref(0);

@@ -11,24 +11,29 @@ const TARKOV_HIDEOUT_QUERY = `
         level
         description
         constructionTime
-        itemRequirements {
-          id
-          item {
+          itemRequirements {
             id
-            shortName
-            name
-            link
-            wikiLink
-            image512pxLink
-            gridImageLink
-            baseImageLink
-            iconLink
-            image8xLink
-            backgroundColor
+            item {
+              id
+              shortName
+              name
+              link
+              wikiLink
+              image512pxLink
+              gridImageLink
+              baseImageLink
+              iconLink
+              image8xLink
+              backgroundColor
+            }
+            count
+            quantity
+            attributes {
+              type
+              name
+              value
+            }
           }
-          count
-          quantity
-        }
         stationLevelRequirements {
           id
           station {

@@ -38,6 +38,11 @@ export interface ItemRequirement {
   count: number;
   quantity: number;
   foundInRaid?: boolean;
+  attributes?: Array<{
+    type: string;
+    name: string;
+    value: string;
+  }>;
 }
 export interface StationLevelRequirement {
   id: string;

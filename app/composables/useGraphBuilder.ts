@@ -209,13 +209,24 @@ export function useGraphBuilder() {
     modules.forEach((module) => {
       module.itemRequirements?.forEach((req) => {
         if (req?.item?.id) {
+          // Parse FIR status from attributes field
+          let foundInRaid = false;
+          if (req.attributes && Array.isArray(req.attributes)) {
+            const firAttribute = req.attributes.find(
+              (attr) => attr.type === 'foundInRaid' || attr.name === 'foundInRaid'
+            );
+            if (firAttribute) {
+              foundInRaid = firAttribute.value === 'true';
+            }
+          }
+
           neededItems.push({
             id: req.id,
             needType: 'hideoutModule',
             hideoutModule: { ...module },
             item: req.item,
             count: req.count,
-            foundInRaid: req.foundInRaid,
+            foundInRaid,
           });
         }
       });
