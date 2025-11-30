@@ -407,7 +407,6 @@
     const table = tableClient();
     if (!canSubmit.value || !$supabase.user.id || !table) return;
     creating.value = true;
-
     const createTokenDirect = async (rawToken: string) => {
       const hashedToken = await hashToken(rawToken);
       const insertPayload: Record<string, unknown> = {
@@ -425,7 +424,6 @@
           data: { token_id: string } | null;
           error: { code?: string } | null;
         }>;
-
       let insertResult = await attemptInsert();
       if (insertResult.error?.code === '42703' && supportsRawTokens.value) {
         supportsRawTokens.value = false;
@@ -435,10 +433,8 @@
       if (insertResult.error) throw insertResult.error;
       return insertResult.data?.token_id || null;
     };
-
     try {
       const rawToken = generateToken();
-
       // Prefer gateway (Cloudflare Worker) for rate limiting & auth hardening
       try {
         const response = await edgeFunctions.createToken({
@@ -449,7 +445,6 @@
         });
         const tokenId = (response as { tokenId?: string })?.tokenId || null;
         const tokenValue = (response as { tokenValue?: string })?.tokenValue || rawToken;
-
         generatedToken.value = tokenValue;
         toast.add({
           title: t('page.settings.card.apitokens.create_token_success'),
@@ -467,7 +462,6 @@
       } catch (gatewayError) {
         console.warn('[ApiTokens] Gateway create failed, falling back to direct insert', gatewayError);
       }
-
       const newTokenId = await createTokenDirect(rawToken);
       generatedToken.value = rawToken;
       toast.add({

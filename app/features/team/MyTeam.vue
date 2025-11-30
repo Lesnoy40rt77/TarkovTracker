@@ -112,13 +112,14 @@
   </GenericCard>
 </template>
 <script setup lang="ts">
-  import { computed, nextTick, ref, watch, type WatchStopHandle } from 'vue';
+  import { computed, nextTick, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import GenericCard from '@/components/ui/GenericCard.vue';
   import { useEdgeFunctions } from '@/composables/api/useEdgeFunctions';
   import { useSystemStoreWithSupabase } from '@/stores/useSystemStore';
   import { useTarkovStore } from '@/stores/useTarkov';
   import { useTeamStoreWithSupabase } from '@/stores/useTeamStore';
+  import type { SystemState } from '@/types/tarkov';
   import type { CreateTeamResponse, LeaveTeamResponse } from '@/types/team';
   import { LIMITS } from '@/utils/constants';
   const { t } = useI18n({ useScope: 'global' });
@@ -212,33 +213,6 @@
         throw new Error(`Unsupported team function: ${functionName}`);
     }
   };
-  const waitForStoreUpdate = (
-    storeFn: () => unknown,
-    condition: (value: unknown) => boolean,
-    timeout = 15000
-  ): Promise<unknown> => {
-    return new Promise((resolve, reject) => {
-      let unwatch: WatchStopHandle | null = null;
-      const timeoutId = setTimeout(() => {
-        if (unwatch) {
-          unwatch();
-        }
-        clearTimeout(timeoutId);
-        reject(new Error('Store update timeout'));
-      }, timeout);
-      unwatch = watch(
-        storeFn,
-        (newValue) => {
-          if (condition(newValue)) {
-            clearTimeout(timeoutId);
-            unwatch?.();
-            resolve(newValue);
-          }
-        },
-        { immediate: true, deep: true }
-      );
-    });
-  };
   const showNotification = (message: string, color: 'primary' | 'error' = 'primary') => {
     toast.add({ title: message, color: color === 'error' ? 'error' : 'primary' });
   };
@@ -264,26 +238,20 @@
       if (!result?.team) {
         throw new Error(t('page.team.card.myteam.create_team_error_ui_update'));
       }
-      await waitForStoreUpdate(
-        () => systemStore.$state.team,
-        (teamId) => teamId != null
-      );
-      await waitForStoreUpdate(
-        () => teamStore.$state,
-        (state) => {
-          if (!state || typeof state !== 'object') return false;
-          const teamState = state as {
-            owner?: string;
-            owner_id?: string;
-            password?: string;
-            join_code?: string;
-          };
-          const hasOwner =
-            teamState.owner === $supabase.user.id || teamState.owner_id === $supabase.user.id;
-          const hasPassword = Boolean(teamState.password || teamState.join_code);
-          return hasOwner && hasPassword;
-        }
-      );
+      // Manually update systemStore with the new team ID
+      systemStore.$patch({ team: result.team.id } as Partial<SystemState>);
+      // Wait a brief moment for database to settle, then verify
+      await new Promise(resolve => setTimeout(resolve, 500));
+      // Verify the team was created by checking the database directly
+      const { data: verification } = await $supabase.client
+        .from('team_memberships')
+        .select('team_id')
+        .eq('user_id', $supabase.user.id)
+        .eq('team_id', result.team.id)
+        .maybeSingle();
+      if (!verification) {
+        throw new Error(t('page.team.card.myteam.create_team_error_ui_update'));
+      }
       await nextTick();
       if (localUserTeam.value) {
         if (isTeamOwner.value) {
@@ -315,16 +283,14 @@
     try {
       validateAuth();
       const result = (await callTeamFunction('leaveTeam')) as LeaveTeamResponse;
-      // Wait for store to update before checking team state
-      await waitForStoreUpdate(
-        () => systemStore.$state.team,
-        (teamId) => teamId == null
-      );
-      await nextTick();
-      // If the function succeeded, check that the store actually updated
-      if (!result.success && systemStore.$state.team) {
+      if (!result.success) {
         throw new Error(t('page.team.card.myteam.leave_team_error'));
       }
+      // Manually update systemStore to clear team ID
+      systemStore.$patch({ team: undefined } as Partial<SystemState>);
+      // Wait a brief moment for database to settle
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await nextTick();
       const displayName = tarkovStore.getDisplayName();
       if (displayName && displayName.startsWith('User ')) {
         // Reset to a generic display name when leaving team

@@ -135,11 +135,139 @@ async function handleAction(request: Request, env: Env, action: TeamAction) {
     // keep empty
   }
 
-  const resp = await proxyToSupabase(env, action, authHeader, body);
-  // Apply CORS to upstream response
-  const outHeaders = new Headers(resp.headers);
-  Object.entries(headers).forEach(([k, v]) => outHeaders.set(k, v));
-  return new Response(await resp.text(), { status: resp.status, headers: outHeaders });
+  // Try proxy to Supabase Function first
+  let resp: Response;
+  try {
+    resp = await proxyToSupabase(env, action, authHeader, body);
+    if (resp.status < 500 || action !== "team-leave") {
+      const outHeaders = new Headers(resp.headers);
+      Object.entries(headers).forEach(([k, v]) => outHeaders.set(k, v));
+      return new Response(await resp.text(), { status: resp.status, headers: outHeaders });
+    }
+  } catch (error) {
+    if (action !== "team-leave") {
+      return new Response("Internal Server Error", { status: 500, headers });
+    }
+    // fall through for leave fallback
+  }
+
+  // Fallback path for team-leave: perform the operation directly with service role to avoid edge-function reachability issues
+  if (action === "team-leave") {
+    const { teamId } = body as { teamId?: string };
+    if (!teamId) {
+      return jsonResponse({ error: "teamId required" }, 400, origin, reqOrigin);
+    }
+    let userId = "";
+    try {
+      const user = await fetchUser(env, authHeader!);
+      userId = user.id;
+    } catch (error) {
+      if (error instanceof Response) return error;
+      return new Response("Unauthorized", { status: 401, headers });
+    }
+
+    const api = (path: string, init?: RequestInit) =>
+      fetch(`${env.SUPABASE_URL}/rest/v1/${path}`, {
+        ...init,
+        headers: {
+          Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+          apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+          "Content-Type": "application/json",
+          ...(init?.headers as Record<string, string> | undefined),
+        },
+      });
+
+    // Fetch membership
+    const membershipRes = await api(
+      `team_memberships?team_id=eq.${teamId}&user_id=eq.${userId}&select=role,user_id&limit=1`
+    );
+    if (!membershipRes.ok) {
+      const txt = await membershipRes.text();
+      return jsonResponse({ error: "Failed to load membership", details: txt }, 500, origin, reqOrigin);
+    }
+    const membership = (await membershipRes.json())?.[0] as { role?: string } | undefined;
+    if (!membership) {
+      return jsonResponse({ error: "You are not a member of this team" }, 404, origin, reqOrigin);
+    }
+
+    // If owner, ensure no other members then delete team
+    if (membership.role === "owner") {
+      const othersRes = await api(
+        `team_memberships?team_id=eq.${teamId}&user_id=neq.${userId}&select=user_id&limit=1`
+      );
+      if (!othersRes.ok) {
+        const txt = await othersRes.text();
+        return jsonResponse({ error: "Failed to check team members", details: txt }, 500, origin, reqOrigin);
+      }
+      const others = await othersRes.json();
+      if (Array.isArray(others) && others.length > 0) {
+        return jsonResponse(
+          { error: "Team owner cannot leave while other members exist" },
+          400,
+          origin,
+          reqOrigin
+        );
+      }
+      // 1. Clear user_system first (to avoid FK constraint)
+      await api(`user_system`, {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: userId,
+          team_id: null,
+          updated_at: new Date().toISOString(),
+        }),
+        headers: { Prefer: "resolution=merge-duplicates" },
+      });
+      // 2. Delete all memberships (including owner's)
+      const delMemberships = await api(`team_memberships?team_id=eq.${teamId}`, { method: "DELETE" });
+      if (!delMemberships.ok) {
+        const txt = await delMemberships.text();
+        return jsonResponse({ error: "Failed to delete memberships", details: txt }, delMemberships.status, origin, reqOrigin);
+      }
+      // 3. Delete the team
+      const delTeam = await api(`teams?id=eq.${teamId}`, { method: "DELETE" });
+      if (!delTeam.ok) {
+        const txt = await delTeam.text();
+        return jsonResponse({ error: "Failed to delete team", details: txt }, delTeam.status, origin, reqOrigin);
+      }
+    } else {
+      // Regular member: delete membership
+      const delMem = await api(
+        `team_memberships?team_id=eq.${teamId}&user_id=eq.${userId}`,
+        { method: "DELETE" }
+      );
+      if (!delMem.ok) {
+        const txt = await delMem.text();
+        return jsonResponse({ error: "Failed to leave team", details: txt }, delMem.status, origin, reqOrigin);
+      }
+      // Update user_system
+      await api(`user_system`, {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: userId,
+          team_id: null,
+          updated_at: new Date().toISOString(),
+        }),
+        headers: { Prefer: "resolution=merge-duplicates" },
+      });
+    }
+
+    // Log event (best-effort)
+    await api(`team_events`, {
+      method: "POST",
+      body: JSON.stringify({
+        team_id: teamId,
+        event_type: "member_left",
+        target_user: userId,
+        initiated_by: userId,
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    return jsonResponse({ success: true }, 200, origin, reqOrigin);
+  }
+
+  return new Response("Internal Server Error", { status: 500, headers });
 }
 
 async function fetchUser(env: Env, authHeader: string) {

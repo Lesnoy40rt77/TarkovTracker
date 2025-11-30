@@ -1,16 +1,16 @@
 import {
   authenticateUser,
-  handleCorsPrefligh,
+  handleCorsPreflight,
   validateMethod,
   validateRequiredFields,
   createErrorResponse,
   createSuccessResponse
 } from "../_shared/auth.ts"
-import { serve } from "std/http/server"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 const LEAVE_COOLDOWN_MINUTES = 5
 serve(async (req) => {
   // Handle CORS preflight requests
-  const corsResponse = handleCorsPrefligh(req)
+  const corsResponse = handleCorsPreflight(req)
   if (corsResponse) return corsResponse
   try {
     // Validate HTTP method
@@ -56,7 +56,33 @@ serve(async (req) => {
           req
         )
       }
-      // If no other members, delete the entire team
+      // If no other members, disband the team by:
+      // 1. Clear user_system team_id first (to avoid FK constraint)
+      const { error: systemError } = await supabase
+        .from("user_system")
+        .upsert({
+          user_id: user.id,
+          team_id: null,
+          updated_at: new Date().toISOString()
+        })
+      if (systemError) {
+        console.error("user_system upsert failed:", systemError)
+        // If the table is missing in an environment, don't block disbanding the team
+        if (systemError.code !== "42P01") {
+          return createErrorResponse("Failed to update user system state", 500, req)
+        }
+        console.warn("user_system table missing, continuing without system state update")
+      }
+      // 2. Delete all memberships (including owner's)
+      const { error: membershipDeleteError } = await supabase
+        .from("team_memberships")
+        .delete()
+        .eq("team_id", teamId)
+      if (membershipDeleteError) {
+        console.error("Membership deletion failed:", membershipDeleteError)
+        return createErrorResponse("Failed to delete team memberships", 500, req)
+      }
+      // 3. Finally delete the team
       const { error: teamDeleteError } = await supabase
         .from("teams")
         .delete()

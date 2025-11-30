@@ -1,7 +1,7 @@
-import { authenticateUser, handleCorsPrefligh, validateMethod, createErrorResponse, createSuccessResponse } from "shared/auth"
-import { serve } from "std/http/server"
+import { authenticateUser, handleCorsPreflight, validateMethod, createErrorResponse, createSuccessResponse } from "../_shared/auth.ts"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 serve(async (req) => {
-  const corsResponse = handleCorsPrefligh(req)
+  const corsResponse = handleCorsPreflight(req)
   if (corsResponse) return corsResponse
   try {
     const methodError = validateMethod(req, ["POST"]) // invoked via POST

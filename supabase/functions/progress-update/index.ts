@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import {
     authenticateUser,
-    handleCorsPrefligh,
+    handleCorsPreflight,
     validateMethod,
     createErrorResponse,
     createSuccessResponse
@@ -32,7 +32,7 @@ interface UserProgress {
 }
 serve(async (req) => {
   // Handle CORS preflight requests
-  const corsResponse = handleCorsPrefligh(req)
+  const corsResponse = handleCorsPreflight(req)
   if (corsResponse) return corsResponse
   try {
     // Validate HTTP method

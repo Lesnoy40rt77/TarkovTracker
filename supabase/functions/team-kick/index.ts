@@ -1,9 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { createClient } from "npm:@supabase/supabase-js@2"
 import { corsHeadersFor } from "../_shared/cors.ts"
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!
-const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+const supabaseUrl =
+  Deno.env.get("SB_URL") ||
+  Deno.env.get("SUPABASE_URL") ||
+  (() => {
+    throw new Error("Missing SB_URL/SUPABASE_URL env")
+  })()
+const supabaseServiceKey =
+  Deno.env.get("SB_SERVICE_ROLE_KEY") ||
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
+  (() => {
+    throw new Error("Missing SB_SERVICE_ROLE_KEY/SUPABASE_SERVICE_ROLE_KEY env")
+  })()
 
 serve(async (req) => {
   // Handle CORS preflight requests

@@ -28,7 +28,7 @@ declare module "https://esm.sh/@supabase/supabase-js@2" {
 }
 declare module "shared/auth" {
   export function authenticateUser(req: Request): Promise<any>
-  export function handleCorsPrefligh(req: Request): Response | null
+  export function handleCorsPreflight(req: Request): Response | null
   export function validateMethod(req: Request, allowed: string[]): Response | null
   export function createErrorResponse(error: string | Error, status?: number, req?: Request): Response
   export function createSuccessResponse(data: unknown, status?: number, req?: Request): Response

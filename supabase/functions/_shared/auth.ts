@@ -1,8 +1,21 @@
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from "npm:@supabase/supabase-js@2"
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2"
 import { corsHeadersFor } from "./cors.ts"
-import type { SupabaseClient } from "@supabase/supabase-js"
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!
-const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+
+// Supabase prohibits secrets starting with SUPABASE_, so support non-reserved names first.
+const supabaseUrl =
+  Deno.env.get("SB_URL") ||
+  Deno.env.get("SUPABASE_URL") ||
+  (() => {
+    throw new Error("Missing SB_URL/SUPABASE_URL env")
+  })()
+
+const supabaseServiceKey =
+  Deno.env.get("SB_SERVICE_ROLE_KEY") ||
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
+  (() => {
+    throw new Error("Missing SB_SERVICE_ROLE_KEY/SUPABASE_SERVICE_ROLE_KEY env")
+  })()
 /**
  * Response type for authentication errors
  */
@@ -95,7 +108,7 @@ export function createSuccessResponse(data: unknown, status = 200, req?: Request
  * @param req - The incoming HTTP request
  * @returns Response if OPTIONS request, null otherwise
  */
-export function handleCorsPrefligh(req: Request): Response | null {
+export function handleCorsPreflight(req: Request): Response | null {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeadersFor(req) })
   }
