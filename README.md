@@ -90,4 +90,4 @@ For detailed development guidelines, architecture information, and migration pro
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the GNU v3 License.
