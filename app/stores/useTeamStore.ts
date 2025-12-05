@@ -438,7 +438,12 @@ export function useTeammateStores() {
         // Update the teammate store with the task change
         const modeKey = data.gameMode === 'pve' ? 'pve' : 'pvp';
         const currentModeData = storeInstance.$state[modeKey] || {};
-        const currentCompletions = (currentModeData as { taskCompletions?: Record<string, { complete?: boolean; failed?: boolean }> }).taskCompletions || {};
+        const currentCompletions =
+          (
+            currentModeData as {
+              taskCompletions?: Record<string, { complete?: boolean; failed?: boolean }>;
+            }
+          ).taskCompletions || {};
         storeInstance.$patch({
           [modeKey]: {
             ...currentModeData,

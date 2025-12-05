@@ -13,7 +13,7 @@ import { logger } from '@/utils/logger';
 // Create a type that extends UserState with Pinia store methods
 type TarkovStoreInstance = UserState & {
   $state: UserState;
-  $patch(partial: Partial<UserState>): void;
+  $patch(partialOrMutator: Partial<UserState> | ((state: UserState) => void)): void;
 };
 // Create typed getters object with the additional store-specific getters
 const tarkovGetters = {
@@ -84,7 +84,14 @@ const tarkovActions = {
         pve_data: freshDefaultState.pve,
       });
       localStorage.clear();
-      this.$patch(JSON.parse(JSON.stringify(defaultState)));
+      // Use $patch with a function to fully replace all nested objects (not deep merge)
+      const freshState = JSON.parse(JSON.stringify(defaultState));
+      this.$patch((state) => {
+        state.currentGameMode = freshState.currentGameMode;
+        state.gameEdition = freshState.gameEdition;
+        state.pvp = freshState.pvp;
+        state.pve = freshState.pve;
+      });
     } catch (error) {
       logger.error('Error resetting online profile:', error);
     }
@@ -121,7 +128,10 @@ const tarkovActions = {
       // Clear localStorage and update store
       logger.debug('[TarkovStore] Clearing localStorage and updating store');
       localStorage.removeItem('progress');
-      this.$patch({ pvp: freshPvPData });
+      // Use $patch with a function to fully replace the pvp object (not deep merge)
+      this.$patch((state) => {
+        state.pvp = freshPvPData;
+      });
       // Small delay to ensure all operations complete
       await new Promise((resolve) => setTimeout(resolve, 100));
       // Resume sync
@@ -160,7 +170,10 @@ const tarkovActions = {
       // Clear localStorage and update store
       logger.debug('[TarkovStore] Clearing localStorage and updating store');
       localStorage.removeItem('progress');
-      this.$patch({ pve: freshPvEData });
+      // Use $patch with a function to fully replace the pve object (not deep merge)
+      this.$patch((state) => {
+        state.pve = freshPvEData;
+      });
       // Small delay to ensure all operations complete
       await new Promise((resolve) => setTimeout(resolve, 100));
       // Resume sync
@@ -203,7 +216,13 @@ const tarkovActions = {
       // Clear localStorage and reset entire store
       logger.debug('[TarkovStore] Clearing localStorage and resetting store');
       localStorage.clear();
-      this.$patch(freshDefaultState);
+      // Use $patch with a function to fully replace all nested objects (not deep merge)
+      this.$patch((state) => {
+        state.currentGameMode = freshDefaultState.currentGameMode;
+        state.gameEdition = freshDefaultState.gameEdition;
+        state.pvp = freshDefaultState.pvp;
+        state.pve = freshDefaultState.pve;
+      });
       // Small delay to ensure all operations complete
       await new Promise((resolve) => setTimeout(resolve, 100));
       // Resume sync
