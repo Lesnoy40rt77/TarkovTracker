@@ -185,6 +185,19 @@ export function useTeamStoreWithSupabase(): TeamStoreInstance {
           } as Record<string, MemberProfile>;
         });
       })
+      .on('broadcast', { event: 'task-update' }, (payload) => {
+        const data = (payload?.payload || {}) as {
+          userId?: string;
+          gameMode?: 'pvp' | 'pve';
+          taskId?: string;
+          complete?: boolean;
+          failed?: boolean;
+        };
+        if (!data?.userId || !data?.taskId || data.userId === $supabase.user?.id) return;
+        // Emit event for teammate stores to pick up
+        logger.debug('[TeamStore] Received task-update broadcast:', data);
+        window.dispatchEvent(new CustomEvent('teammate-task-update', { detail: data }));
+      })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           void refreshMembers();
@@ -255,6 +268,46 @@ export function useTeamStoreWithSupabase(): TeamStoreInstance {
           },
         } as Record<string, MemberProfile>;
       });
+    },
+    { deep: true }
+  );
+  // Track previous task completions to detect changes
+  let prevTaskCompletions: Record<string, { complete?: boolean; failed?: boolean }> = {};
+  // Watch for task completion changes and broadcast immediately
+  watch(
+    () => {
+      const mode =
+        (tarkovStore.$state.currentGameMode as 'pvp' | 'pve' | undefined) || GAME_MODES.PVP;
+      const modeState = (tarkovStore.$state as unknown as Record<string, unknown>)[mode] as {
+        taskCompletions?: Record<string, { complete?: boolean; failed?: boolean }>;
+      } | null;
+      return { mode, taskCompletions: modeState?.taskCompletions || {} };
+    },
+    (newVal) => {
+      const currentTeamId = getTeamIdFromSystemStore(systemStore);
+      if (!currentTeamId || !teamChannel.value || !$supabase.user?.id) {
+        prevTaskCompletions = { ...newVal.taskCompletions };
+        return;
+      }
+      // Find changed tasks
+      for (const [taskId, completion] of Object.entries(newVal.taskCompletions)) {
+        const prev = prevTaskCompletions[taskId];
+        if (!prev || prev.complete !== completion?.complete || prev.failed !== completion?.failed) {
+          // Broadcast the change immediately
+          void teamChannel.value.send({
+            type: 'broadcast',
+            event: 'task-update',
+            payload: {
+              userId: $supabase.user.id,
+              gameMode: newVal.mode,
+              taskId,
+              complete: completion?.complete ?? false,
+              failed: completion?.failed ?? false,
+            },
+          });
+        }
+      }
+      prevTaskCompletions = { ...newVal.taskCompletions };
     },
     { deep: true }
   );
@@ -372,6 +425,38 @@ export function useTeammateStores() {
         onData: handleTeammateData,
       });
       teammateUnsubscribes.value[teammateId] = cleanup;
+      // Listen for task-update broadcasts for this teammate
+      const handleTaskUpdate = (event: Event) => {
+        const data = (event as CustomEvent).detail as {
+          userId: string;
+          gameMode: 'pvp' | 'pve';
+          taskId: string;
+          complete: boolean;
+          failed: boolean;
+        };
+        if (data.userId !== teammateId) return;
+        // Update the teammate store with the task change
+        const modeKey = data.gameMode === 'pve' ? 'pve' : 'pvp';
+        const currentModeData = storeInstance.$state[modeKey] || {};
+        const currentCompletions = (currentModeData as { taskCompletions?: Record<string, { complete?: boolean; failed?: boolean }> }).taskCompletions || {};
+        storeInstance.$patch({
+          [modeKey]: {
+            ...currentModeData,
+            taskCompletions: {
+              ...currentCompletions,
+              [data.taskId]: { complete: data.complete, failed: data.failed },
+            },
+          },
+        });
+        logger.debug(`[TeammateStore] Applied task-update for ${teammateId}:`, data);
+      };
+      window.addEventListener('teammate-task-update', handleTaskUpdate);
+      // Update cleanup to also remove the event listener
+      const originalCleanup = teammateUnsubscribes.value[teammateId];
+      teammateUnsubscribes.value[teammateId] = () => {
+        window.removeEventListener('teammate-task-update', handleTaskUpdate);
+        originalCleanup?.();
+      };
     } catch (error) {
       logger.error(`Error creating store for teammate ${teammateId}:`, error);
     }
