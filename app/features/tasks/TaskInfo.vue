@@ -36,6 +36,7 @@
                   :key="parent.id"
                   :to="`/tasks?task=${parent.id}`"
                   class="text-primary-400 hover:text-primary-300"
+                  @contextmenu="(e: MouseEvent) => handleTaskContextMenu(e, parent)"
                 >
                   {{ parent.name }}
                 </router-link>
@@ -65,6 +66,7 @@
                   :key="child.id"
                   :to="`/tasks?task=${child.id}`"
                   class="text-primary-400 hover:text-primary-300"
+                  @contextmenu="(e: MouseEvent) => handleTaskContextMenu(e, child)"
                 >
                   {{ child.name }}
                 </router-link>
@@ -113,11 +115,36 @@
     <template v-else>
       <task-link :task="task" class="flex justify-center" />
     </template>
+    <!-- Task Link Context Menu -->
+    <ContextMenu ref="taskLinkContextMenu">
+      <template #default="{ close }">
+        <ContextMenuItem
+          icon="i-mdi-open-in-new"
+          label="View Task"
+          @click="
+            navigateToTask();
+            close();
+          "
+        />
+        <ContextMenuItem
+          v-if="selectedTask?.wikiLink"
+          icon="i-mdi-wikipedia"
+          label="View Task on Wiki"
+          @click="
+            openTaskWiki();
+            close();
+          "
+        />
+      </template>
+    </ContextMenu>
   </div>
 </template>
 <script setup lang="ts">
-  import { computed } from 'vue';
+  import { computed, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
+  import { useRouter } from 'vue-router';
+  import ContextMenu from '@/components/ui/ContextMenu.vue';
+  import ContextMenuItem from '@/components/ui/ContextMenuItem.vue';
   import { useMetadataStore } from '@/stores/useMetadata';
   import { usePreferencesStore } from '@/stores/usePreferences';
   import type { Task } from '@/types/tarkov';
@@ -150,4 +177,22 @@
       .map((id) => metadataStore.tasks.find((t) => t.id === id))
       .filter((t): t is Task => t !== undefined);
   });
+  // Context menu state
+  const router = useRouter();
+  const taskLinkContextMenu = ref();
+  const selectedTask = ref<Task | null>(null);
+  const handleTaskContextMenu = (event: MouseEvent, task: Task) => {
+    selectedTask.value = task;
+    taskLinkContextMenu.value?.open(event);
+  };
+  const navigateToTask = () => {
+    if (selectedTask.value) {
+      router.push(`/tasks?task=${selectedTask.value.id}`);
+    }
+  };
+  const openTaskWiki = () => {
+    if (selectedTask.value?.wikiLink) {
+      window.open(selectedTask.value.wikiLink, '_blank');
+    }
+  };
 </script>
