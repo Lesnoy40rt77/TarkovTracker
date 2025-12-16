@@ -52,7 +52,7 @@
                   size="xs"
                   variant="ghost"
                   color="secondary"
-                  @click="taskStatusUpdated = false"
+                  @click="closeNotification"
                 >
                   {{ t('page.tasks.filters.close') }}
                 </UButton>
@@ -110,6 +110,7 @@
     action: string;
   } | null>(null);
   const showUndoButton = ref(false);
+  const notificationTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
   const mergedMaps = computed(() => {
     return (maps.value || []).map((map) => ({
       id: map.id,
@@ -337,9 +338,26 @@
     });
   };
   const updateTaskStatus = (statusKey: string, taskName: string, showUndo = false) => {
+    // Clear any existing timeout
+    if (notificationTimeout.value !== null) {
+      clearTimeout(notificationTimeout.value);
+      notificationTimeout.value = null;
+    }
     taskStatus.value = t(statusKey, { name: taskName });
     taskStatusUpdated.value = true;
     showUndoButton.value = showUndo;
+    // Auto-close after 5 seconds (matching toast default timeout)
+    notificationTimeout.value = setTimeout(() => {
+      taskStatusUpdated.value = false;
+      notificationTimeout.value = null;
+    }, 5000);
+  };
+  const closeNotification = () => {
+    if (notificationTimeout.value !== null) {
+      clearTimeout(notificationTimeout.value);
+      notificationTimeout.value = null;
+    }
+    taskStatusUpdated.value = false;
   };
   const onTaskAction = (event: {
     taskId: string;
