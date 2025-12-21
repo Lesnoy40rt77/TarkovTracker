@@ -48,46 +48,126 @@
         objectives: TaskObjectiveType[];
       };
   const rows = computed<Row[]>(() => {
-    const itemGroupTypes = new Set(['giveItem']);
-    const groups = new Map<
-      string,
-      { objectives: TaskObjectiveType[]; title: string; iconName: string }
-    >();
-    const firstIndexByKey = new Map<string, number>();
-    props.objectives.forEach((objective, index) => {
-      const type = objective.type ?? '';
-      if (!itemGroupTypes.has(type)) return;
-      const foundInRaid = objective.foundInRaid === true;
-      const key = `${type}:${foundInRaid ? 1 : 0}`;
-      if (!groups.has(key)) {
-        groups.set(key, {
-          objectives: [],
+    // Types that should be grouped together with item display
+    const itemGroupTypes = new Set(['giveItem', 'findItem', 'findQuestItem', 'giveQuestItem']);
+    const findTypes = new Set(['findItem', 'findQuestItem']);
+    const giveTypes = new Set(['giveItem', 'giveQuestItem']);
+    // Helper to get the item ID from an objective (handles item, markerItem, and questItem)
+    const getItemId = (objective: TaskObjectiveType): string | undefined => {
+      return objective.item?.id || objective.markerItem?.id || objective.questItem?.id;
+    };
+    // Helper to get group title based on category
+    const getGroupTitle = (
+      category: 'both' | 'findOnly' | 'giveOnly',
+      foundInRaid: boolean
+    ): { title: string; iconName: string } => {
+      if (category === 'both') {
+        return {
+          title: foundInRaid
+            ? t('page.tasks.questcard.findAndHandOverFir', 'Find and Hand over found in raid')
+            : t('page.tasks.questcard.findAndHandOver', 'Find and Hand over'),
+          iconName: 'mdi-package-variant-closed',
+        };
+      }
+      if (category === 'giveOnly') {
+        return {
           title: foundInRaid
             ? t('page.tasks.questcard.handOverFir', 'Hand over found in raid')
             : t('page.tasks.questcard.handOver', 'Hand over'),
           iconName: 'mdi-package-variant-closed',
-        });
-        firstIndexByKey.set(key, index);
+        };
       }
-      groups.get(key)!.objectives.push(objective);
+      // findOnly
+      return {
+        title: foundInRaid
+          ? t('page.tasks.questcard.findFir', 'Find in raid')
+          : t('page.tasks.questcard.find', 'Find'),
+        iconName: 'mdi-magnify',
+      };
+    };
+    // First pass: analyze each item to determine what objective types it has
+    // Key: itemId:foundInRaid, Value: { types, objectives }
+    const itemAnalysis = new Map<
+      string,
+      { types: Set<string>; objectives: TaskObjectiveType[]; foundInRaid: boolean }
+    >();
+    props.objectives.forEach((objective) => {
+      const type = objective.type ?? '';
+      if (!itemGroupTypes.has(type)) return;
+      const itemId = getItemId(objective);
+      if (!itemId) return;
+      const foundInRaid = objective.foundInRaid === true;
+      const key = `${itemId}:${foundInRaid ? 1 : 0}`;
+      if (!itemAnalysis.has(key)) {
+        itemAnalysis.set(key, {
+          types: new Set(),
+          objectives: [],
+          foundInRaid,
+        });
+      }
+      const analysis = itemAnalysis.get(key)!;
+      analysis.types.add(type);
+      analysis.objectives.push(objective);
     });
+    // Second pass: categorize items and build groups
+    // Key: category:foundInRaid, Value: { objectives, category, foundInRaid }
+    type Category = 'both' | 'findOnly' | 'giveOnly';
+    const categoryGroups = new Map<
+      string,
+      { objectives: TaskObjectiveType[]; category: Category; foundInRaid: boolean }
+    >();
+    const firstIndexByGroup = new Map<string, number>();
+    // Track which objectives belong to which group
+    const objectiveToGroup = new Map<string, string>();
+    itemAnalysis.forEach((analysis, _itemKey) => {
+      const hasFind = [...analysis.types].some((t) => findTypes.has(t));
+      const hasGive = [...analysis.types].some((t) => giveTypes.has(t));
+      let category: Category;
+      if (hasFind && hasGive) {
+        category = 'both';
+      } else if (hasGive) {
+        category = 'giveOnly';
+      } else {
+        category = 'findOnly';
+      }
+      const groupKey = `${category}:${analysis.foundInRaid ? 1 : 0}`;
+      if (!categoryGroups.has(groupKey)) {
+        categoryGroups.set(groupKey, {
+          objectives: [],
+          category,
+          foundInRaid: analysis.foundInRaid,
+        });
+      }
+      const group = categoryGroups.get(groupKey)!;
+      analysis.objectives.forEach((obj) => {
+        group.objectives.push(obj);
+        objectiveToGroup.set(obj.id, groupKey);
+      });
+    });
+    // Find first index for each group
+    props.objectives.forEach((objective, index) => {
+      const groupKey = objectiveToGroup.get(objective.id);
+      if (groupKey && !firstIndexByGroup.has(groupKey)) {
+        firstIndexByGroup.set(groupKey, index);
+      }
+    });
+    // Third pass: build output, inserting groups at first occurrence
     const out: Row[] = [];
     const inserted = new Set<string>();
     props.objectives.forEach((objective, index) => {
-      const type = objective.type ?? '';
-      const foundInRaid = objective.foundInRaid === true;
-      const key = `${type}:${foundInRaid ? 1 : 0}`;
-      if (itemGroupTypes.has(type)) {
-        if (!inserted.has(key) && firstIndexByKey.get(key) === index) {
-          const group = groups.get(key)!;
+      const groupKey = objectiveToGroup.get(objective.id);
+      if (groupKey) {
+        if (!inserted.has(groupKey) && firstIndexByGroup.get(groupKey) === index) {
+          const group = categoryGroups.get(groupKey)!;
+          const config = getGroupTitle(group.category, group.foundInRaid);
           out.push({
             kind: 'itemGroup',
-            key: `group:${key}`,
-            title: group.title,
-            iconName: group.iconName,
+            key: `group:${groupKey}`,
+            title: config.title,
+            iconName: config.iconName,
             objectives: group.objectives,
           });
-          inserted.add(key);
+          inserted.add(groupKey);
         }
         return;
       }

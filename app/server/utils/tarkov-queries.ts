@@ -12,6 +12,16 @@ export const TARKOV_DATA_QUERY = `
     image8xLink
     backgroundColor
   }
+  fragment QuestItemData on QuestItem {
+    id
+    shortName
+    name
+    image512pxLink
+    gridImageLink
+    baseImageLink
+    iconLink
+    image8xLink
+  }
   fragment CategoryData on ItemCategory {
     id
     name
@@ -176,8 +186,7 @@ export const TARKOV_DATA_QUERY = `
             ...TaskZoneData
           }
           questItem {
-            id
-            name
+            ...QuestItemData
           }
           count
         }

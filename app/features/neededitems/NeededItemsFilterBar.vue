@@ -40,10 +40,21 @@
             $t('page.neededitems.searchplaceholder', 'Search items, tasks, or hideout stations...')
           "
           icon="i-mdi-magnify"
-          clearable
+          :ui="{ trailing: 'pe-1' }"
           class="w-full"
           @update:model-value="$emit('update:search', $event)"
-        />
+        >
+          <template v-if="search?.length" #trailing>
+            <UButton
+              color="neutral"
+              variant="link"
+              size="sm"
+              icon="i-mdi-close-circle"
+              aria-label="Clear search"
+              @click="$emit('update:search', '')"
+            />
+          </template>
+        </UInput>
       </div>
       <!-- Section 2: Filters (Popover) -->
       <div class="flex items-center rounded-lg bg-[hsl(240,5%,5%)] px-4 py-3">

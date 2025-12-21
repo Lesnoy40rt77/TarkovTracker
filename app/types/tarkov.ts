@@ -127,8 +127,12 @@ export interface TaskObjective {
   description?: string;
   location?: { id: string; name?: string };
   maps?: { id: string; name?: string }[];
+  /** The primary item this objective refers to */
   item?: TarkovItem;
+  /** Optional item used only for map/UI markers or visual overrides */
   markerItem?: TarkovItem;
+  /** Item that counts for quest completion/requirements */
+  questItem?: TarkovItem;
   count?: number;
   type?: string;
   foundInRaid?: boolean;

@@ -8,9 +8,12 @@
     </div>
     <div class="flex flex-wrap gap-2 pl-6">
       <div
-        v-for="row in objectiveRows"
-        :key="row.objective.id"
-        class="flex max-w-full items-center gap-2 rounded-md border border-white/10 bg-white/5 px-2 py-1"
+        v-for="row in consolidatedRows"
+        :key="row.itemKey"
+        class="flex max-w-full items-center gap-2 rounded-md border px-2 py-1 transition-colors"
+        :class="
+          row.allComplete ? 'border-success-500/50 bg-success-500/10' : 'border-white/10 bg-white/5'
+        "
       >
         <img
           v-if="row.meta.itemIcon"
@@ -20,9 +23,9 @@
         />
         <span
           class="max-w-[12rem] truncate text-xs font-medium text-gray-100"
-          :title="row.meta.itemName || row.objective.description"
+          :title="row.meta.itemName"
         >
-          {{ row.meta.itemName || row.objective.description }}
+          {{ row.meta.itemName }}
         </span>
         <span
           v-if="row.meta.foundInRaid"
@@ -30,38 +33,39 @@
         >
           FiR
         </span>
+        <!-- Single set of controls per item - updates all related objectives together -->
         <ObjectiveCountControls
           v-if="row.meta.neededCount > 1"
-          :current-count="row.meta.currentCount"
+          :current-count="row.currentCount"
           :needed-count="row.meta.neededCount"
-          @decrease="decreaseCount(row.objective.id)"
-          @increase="increaseCount(row.objective.id)"
-          @toggle="toggleCount(row.objective.id)"
+          @decrease="decreaseCountForRow(row)"
+          @increase="increaseCountForRow(row)"
+          @toggle="toggleCountForRow(row)"
         />
         <button
           v-else
           type="button"
           class="focus-visible:ring-primary-500 focus-visible:ring-offset-surface-900 flex h-7 w-7 items-center justify-center rounded-md border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           :aria-label="
-            isObjectiveComplete(row.objective.id)
+            row.allComplete
               ? t('page.tasks.questcard.uncomplete', 'Uncomplete')
               : t('page.tasks.questcard.complete', 'Complete')
           "
-          :aria-pressed="isObjectiveComplete(row.objective.id)"
+          :aria-pressed="row.allComplete"
           :class="
-            isObjectiveComplete(row.objective.id)
+            row.allComplete
               ? 'bg-success-600 border-success-500 hover:bg-success-500 text-white'
               : 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10'
           "
           :title="
-            isObjectiveComplete(row.objective.id)
+            row.allComplete
               ? t('page.tasks.questcard.uncomplete', 'Uncomplete')
               : t('page.tasks.questcard.complete', 'Complete')
           "
-          @click="toggleCount(row.objective.id)"
+          @click="toggleCountForRow(row)"
         >
           <UIcon
-            :name="isObjectiveComplete(row.objective.id) ? 'i-mdi-check' : 'i-mdi-circle-outline'"
+            :name="row.allComplete ? 'i-mdi-check' : 'i-mdi-circle-outline'"
             aria-hidden="true"
             class="h-4 w-4"
           />
@@ -96,6 +100,14 @@
     objective: TaskObjective;
     meta: ObjectiveMeta;
   };
+  // Consolidated row groups objectives by item ID
+  type ConsolidatedRow = {
+    itemKey: string;
+    meta: ObjectiveMeta;
+    objectives: ObjectiveRow[];
+    allComplete: boolean;
+    currentCount: number;
+  };
   const fullObjectives = computed(() => metadataStore.objectives);
   const objectiveMetaById = computed<Record<string, ObjectiveMeta>>(() => {
     const map: Record<string, ObjectiveMeta> = {};
@@ -105,7 +117,14 @@
         | undefined;
       const neededCount = (full?.count ?? objective.count ?? 1) as number;
       const currentCount = tarkovStore.getObjectiveCount(objective.id);
-      const item = full?.item;
+      // Use item, markerItem, or questItem (quest items use questItem)
+      const item =
+        full?.item ||
+        full?.markerItem ||
+        full?.questItem ||
+        objective.item ||
+        objective.markerItem ||
+        objective.questItem;
       map[objective.id] = {
         neededCount,
         currentCount,
@@ -132,45 +151,117 @@
       return { objective, meta: objectiveMetaById.value[objective.id] ?? fallback };
     });
   });
+  // Consolidate objectives by item ID - show one card per unique item
+  const consolidatedRows = computed<ConsolidatedRow[]>(() => {
+    const itemMap = new Map<string, ConsolidatedRow>();
+    objectiveRows.value.forEach((row) => {
+      // Use item, markerItem, or questItem ID (quest items use questItem)
+      const itemId =
+        row.objective.item?.id || row.objective.markerItem?.id || row.objective.questItem?.id;
+      const foundInRaid = row.meta.foundInRaid;
+      // Use item ID + foundInRaid as key, fallback to objective ID if no item
+      const key = itemId ? `${itemId}:${foundInRaid ? 1 : 0}` : row.objective.id;
+      if (!itemMap.has(key)) {
+        itemMap.set(key, {
+          itemKey: key,
+          meta: { ...row.meta }, // Initial meta, will be aggregated below
+          objectives: [],
+          allComplete: true,
+          currentCount: 0,
+        });
+      }
+      const consolidated = itemMap.get(key)!;
+      consolidated.objectives.push(row);
+    });
+    // Second pass to aggregate values
+    return Array.from(itemMap.values()).map((consolidated) => {
+      let totalCurrent = 0;
+      let totalNeeded = 0;
+      let allComplete = true;
+      const firstRow = consolidated.objectives[0];
+      if (!firstRow) return consolidated;
+      const firstNeeded = firstRow.meta.neededCount;
+      let allSameNeeded = true;
+      consolidated.objectives.forEach((row) => {
+        totalCurrent += row.meta.currentCount;
+        totalNeeded += row.meta.neededCount;
+        if (row.meta.neededCount !== firstNeeded) {
+          allSameNeeded = false;
+        }
+        if (!isObjectiveComplete(row.objective.id)) {
+          allComplete = false;
+        }
+      });
+      if (!allSameNeeded) {
+        console.warn(
+          `[TaskObjectiveItemGroup] Mixed neededCount in group ${consolidated.itemKey}, summing. Counts:`,
+          consolidated.objectives.map((o) => o.meta.neededCount)
+        );
+      }
+      return {
+        ...consolidated,
+        allComplete,
+        currentCount: totalCurrent,
+        meta: {
+          ...firstRow.meta,
+          neededCount: totalNeeded,
+          currentCount: totalCurrent,
+        },
+      };
+    });
+  });
   const isObjectiveComplete = (objectiveId: string) => {
     return tarkovStore.isTaskObjectiveComplete(objectiveId);
   };
-  const decreaseCount = (objectiveId: string) => {
-    const meta = objectiveMetaById.value[objectiveId];
-    if (!meta) return;
-    const currentCount = tarkovStore.getObjectiveCount(objectiveId);
-    if (currentCount <= 0) return;
-    const newCount = currentCount - 1;
-    tarkovStore.setObjectiveCount(objectiveId, newCount);
-    if (newCount < meta.neededCount && tarkovStore.isTaskObjectiveComplete(objectiveId)) {
-      tarkovStore.setTaskObjectiveUncomplete(objectiveId);
-    }
-  };
-  const increaseCount = (objectiveId: string) => {
-    const meta = objectiveMetaById.value[objectiveId];
-    if (!meta) return;
-    const currentCount = tarkovStore.getObjectiveCount(objectiveId);
-    if (currentCount >= meta.neededCount) return;
-    const newCount = currentCount + 1;
-    tarkovStore.setObjectiveCount(objectiveId, newCount);
-    if (newCount >= meta.neededCount && !tarkovStore.isTaskObjectiveComplete(objectiveId)) {
-      tarkovStore.setTaskObjectiveComplete(objectiveId);
-    }
-  };
-  const toggleCount = (objectiveId: string) => {
-    const meta = objectiveMetaById.value[objectiveId];
-    if (!meta) return;
-    const currentCount = tarkovStore.getObjectiveCount(objectiveId);
-    if (currentCount >= meta.neededCount) {
-      tarkovStore.setObjectiveCount(objectiveId, Math.max(0, meta.neededCount - 1));
-      if (tarkovStore.isTaskObjectiveComplete(objectiveId)) {
-        tarkovStore.setTaskObjectiveUncomplete(objectiveId);
+  // Update all objectives in a row together
+  const decreaseCountForRow = (row: ConsolidatedRow) => {
+    if (row.currentCount <= 0) return;
+    // Find the last objective with progress and decrement it
+    for (let i = row.objectives.length - 1; i >= 0; i--) {
+      const obj = row.objectives[i];
+      if (!obj) continue;
+      if (obj.meta.currentCount > 0) {
+        const newCount = obj.meta.currentCount - 1;
+        tarkovStore.setObjectiveCount(obj.objective.id, newCount);
+        if (newCount < obj.meta.neededCount && isObjectiveComplete(obj.objective.id)) {
+          tarkovStore.setTaskObjectiveUncomplete(obj.objective.id);
+        }
+        break;
       }
-      return;
     }
-    tarkovStore.setObjectiveCount(objectiveId, meta.neededCount);
-    if (!tarkovStore.isTaskObjectiveComplete(objectiveId)) {
-      tarkovStore.setTaskObjectiveComplete(objectiveId);
+  };
+  const increaseCountForRow = (row: ConsolidatedRow) => {
+    if (row.currentCount >= row.meta.neededCount) return;
+    // Find the first objective that isn't complete and increment it
+    for (const obj of row.objectives) {
+      if (obj.meta.currentCount < obj.meta.neededCount) {
+        const newCount = obj.meta.currentCount + 1;
+        tarkovStore.setObjectiveCount(obj.objective.id, newCount);
+        if (newCount >= obj.meta.neededCount && !isObjectiveComplete(obj.objective.id)) {
+          tarkovStore.setTaskObjectiveComplete(obj.objective.id);
+        }
+        break;
+      }
+    }
+  };
+  const toggleCountForRow = (row: ConsolidatedRow) => {
+    const isAllComplete = row.allComplete;
+    if (isAllComplete) {
+      // Set all to 0
+      row.objectives.forEach((obj) => {
+        tarkovStore.setObjectiveCount(obj.objective.id, 0);
+        if (isObjectiveComplete(obj.objective.id)) {
+          tarkovStore.setTaskObjectiveUncomplete(obj.objective.id);
+        }
+      });
+    } else {
+      // Set all to their needed count
+      row.objectives.forEach((obj) => {
+        tarkovStore.setObjectiveCount(obj.objective.id, obj.meta.neededCount);
+        if (!isObjectiveComplete(obj.objective.id)) {
+          tarkovStore.setTaskObjectiveComplete(obj.objective.id);
+        }
+      });
     }
   };
 </script>

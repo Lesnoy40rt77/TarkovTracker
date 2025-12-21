@@ -92,15 +92,20 @@
             </UBadge>
           </UTooltip>
           <UBadge
-            v-if="task?.map?.name"
             size="xs"
             color="neutral"
             variant="soft"
             class="inline-flex max-w-[10rem] items-center gap-1 text-[11px]"
-            :title="task.map.name"
+            :title="task?.map?.name || t('page.tasks.questcard.anyMap', 'Any')"
           >
-            <UIcon name="i-mdi-map-marker" aria-hidden="true" class="h-3 w-3" />
-            <span class="truncate">{{ task.map.name }}</span>
+            <UIcon
+              :name="task?.map?.name ? 'i-mdi-map-marker' : 'i-mdi-earth'"
+              aria-hidden="true"
+              class="h-3 w-3"
+            />
+            <span class="truncate">
+              {{ task?.map?.name || t('page.tasks.questcard.anyMap', 'Any') }}
+            </span>
           </UBadge>
           <UBadge
             v-if="objectiveProgress.total > 0"
@@ -138,7 +143,53 @@
               {{ t('page.tasks.questcard.lightkeeper', 'Lightkeeper') }}
             </UBadge>
           </UTooltip>
-          <!-- Menu button moved to header -->
+          <!-- Action buttons in header for consistent positioning -->
+          <template v-if="isOurFaction">
+            <UButton
+              v-if="isLocked"
+              :size="actionButtonSize"
+              color="primary"
+              variant="soft"
+              class="shrink-0"
+              @click.stop="markTaskAvailable()"
+            >
+              {{ t('page.tasks.questcard.availablebutton', 'Mark Available') }}
+            </UButton>
+            <UButton
+              v-if="isComplete"
+              :size="actionButtonSize"
+              color="primary"
+              variant="soft"
+              class="shrink-0"
+              @click.stop="markTaskUncomplete()"
+            >
+              {{ t('page.tasks.questcard.uncompletebutton', 'Mark Uncompleted') }}
+            </UButton>
+            <template v-if="!isComplete && !isLocked">
+              <!-- XP display left of Complete button -->
+              <div
+                v-if="preferencesStore.getShowExperienceRewards && task.experience"
+                class="flex items-center gap-1 text-xs text-gray-400"
+              >
+                <UIcon
+                  name="i-mdi-star"
+                  aria-hidden="true"
+                  class="h-4 w-4 shrink-0 text-yellow-500"
+                />
+                <span>{{ task.experience.toLocaleString() }} XP</span>
+              </div>
+              <UButton
+                :size="actionButtonSize"
+                color="success"
+                :ui="completeButtonUi"
+                class="shrink-0"
+                @click.stop="markTaskComplete()"
+              >
+                {{ t('page.tasks.questcard.completebutton', 'Complete').toUpperCase() }}
+              </UButton>
+            </template>
+          </template>
+          <!-- Menu button -->
           <UButton
             v-if="isOurFaction"
             size="xs"
@@ -215,9 +266,9 @@
           </span>
         </UTooltip>
       </div>
-      <!--5) Rewards Summary Section with Complete Button -->
+      <!--5) Rewards Summary Section -->
       <div
-        v-if="hasRewardsSummary || isOurFaction"
+        v-if="hasRewardsSummary || hasExpandableDetails"
         class="rounded-md border-t border-white/5 pt-2 transition-colors"
         :class="{
           'cursor-pointer hover:bg-white/5': hasExpandableDetails,
@@ -225,7 +276,11 @@
         @click="onRewardsAreaClick"
       >
         <div class="flex flex-wrap items-center gap-2 text-xs text-gray-400">
-          <!-- Rewards on the left -->
+          <!-- Rewards title -->
+          <span class="font-medium text-gray-500">
+            <UIcon name="i-mdi-gift" aria-hidden="true" class="mr-1 inline h-3.5 w-3.5" />
+            {{ t('page.tasks.questcard.rewards', 'Rewards') }}:
+          </span>
           <!-- Trader Standing Rewards -->
           <template
             v-for="standing in traderStandingRewards"
@@ -259,6 +314,44 @@
             />
             <span class="text-amber-300">{{ traderUnlockReward.name }}</span>
           </span>
+          <!-- Item Rewards Summary -->
+          <UTooltip v-if="itemRewards.length > 0" :text="itemRewardsSummaryTooltip">
+            <span
+              class="inline-flex cursor-help items-center gap-1.5 rounded bg-emerald-500/10 px-2 py-0.5"
+            >
+              <UIcon
+                name="i-mdi-package-variant"
+                aria-hidden="true"
+                class="h-4 w-4 text-emerald-400"
+              />
+              <span class="text-emerald-300">
+                {{
+                  t(
+                    'page.tasks.questcard.itemsCount',
+                    { count: itemRewards.length },
+                    `${itemRewards.length} item(s)`
+                  )
+                }}
+              </span>
+            </span>
+          </UTooltip>
+          <!-- Offer Unlock Summary -->
+          <UTooltip v-if="offerUnlockRewards.length > 0" :text="offerUnlockSummaryTooltip">
+            <span
+              class="inline-flex cursor-help items-center gap-1.5 rounded bg-cyan-500/10 px-2 py-0.5"
+            >
+              <UIcon name="i-mdi-cart-check" aria-hidden="true" class="h-4 w-4 text-cyan-400" />
+              <span class="text-cyan-300">
+                {{
+                  t(
+                    'page.tasks.questcard.unlocksCount',
+                    { count: offerUnlockRewards.length },
+                    `${offerUnlockRewards.length} unlock(s)`
+                  )
+                }}
+              </span>
+            </span>
+          </UTooltip>
           <!-- Dropdown toggle -->
           <UButton
             v-if="hasExpandableDetails"
@@ -278,64 +371,6 @@
               class="h-5 w-5 text-gray-500"
             />
           </UButton>
-          <!-- Spacer to push action buttons to the right -->
-          <div class="flex-1" />
-          <!-- Action buttons inline -->
-          <template v-if="!isOurFaction">
-            <span class="text-xs text-gray-400">
-              {{
-                t(
-                  'page.tasks.questcard.differentfaction',
-                  'This quest is not available to your faction'
-                )
-              }}
-            </span>
-          </template>
-          <template v-else>
-            <UButton
-              v-if="isLocked"
-              :size="actionButtonSize"
-              color="primary"
-              variant="soft"
-              class="shrink-0"
-              @click.stop="markTaskAvailable()"
-            >
-              {{ t('page.tasks.questcard.availablebutton', 'Mark Available') }}
-            </UButton>
-            <UButton
-              v-if="isComplete"
-              :size="actionButtonSize"
-              color="primary"
-              variant="soft"
-              class="shrink-0"
-              @click.stop="markTaskUncomplete()"
-            >
-              {{ t('page.tasks.questcard.uncompletebutton', 'Mark Uncompleted') }}
-            </UButton>
-            <template v-if="!isComplete && !isLocked">
-              <!-- XP display left of Complete button -->
-              <div
-                v-if="preferencesStore.getShowExperienceRewards && task.experience"
-                class="flex items-center gap-1 text-xs text-gray-400"
-              >
-                <UIcon
-                  name="i-mdi-star"
-                  aria-hidden="true"
-                  class="h-4 w-4 shrink-0 text-yellow-500"
-                />
-                <span>{{ task.experience.toLocaleString() }} XP</span>
-              </div>
-              <UButton
-                :size="actionButtonSize"
-                color="success"
-                :ui="completeButtonUi"
-                class="shrink-0"
-                @click.stop="markTaskComplete()"
-              >
-                {{ t('page.tasks.questcard.completebutton', 'Complete').toUpperCase() }}
-              </UButton>
-            </template>
-          </template>
         </div>
         <!-- Detailed Rewards and Next Quests (Collapsible) -->
         <div
@@ -375,9 +410,9 @@
                 </div>
                 <div class="flex flex-wrap gap-2">
                   <a
-                    v-for="reward in itemRewards"
-                    :key="`item-${reward.item.id}`"
-                    :href="`https://tarkov.dev/item/${reward.item.id}`"
+                    v-for="(reward, index) in itemRewards"
+                    :key="`item-${reward.item?.id || index}`"
+                    :href="`https://tarkov.dev/item/${reward.item?.id || ''}`"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="group focus-visible:ring-primary-500 focus-visible:ring-offset-surface-900 relative flex flex-col items-center gap-1 rounded-lg bg-white/5 p-2 transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
@@ -386,13 +421,13 @@
                         'page.tasks.questcard.openItemOnTarkovDev',
                         {
                           name:
-                            reward.item.shortName ||
-                            reward.item.name ||
+                            reward.item?.shortName ||
+                            reward.item?.name ||
                             t('page.tasks.questcard.item', 'Item'),
                         },
                         `Open ${
-                          reward.item.shortName ||
-                          reward.item.name ||
+                          reward.item?.shortName ||
+                          reward.item?.name ||
                           t('page.tasks.questcard.item', 'Item')
                         } on tarkov.dev`
                       )
@@ -401,11 +436,11 @@
                     @click.stop
                   >
                     <img
-                      v-if="reward.item.iconLink"
-                      :src="reward.item.iconLink"
+                      v-if="reward.item?.iconLink"
+                      :src="reward.item?.iconLink"
                       :alt="
-                        reward.item.name ||
-                        reward.item.shortName ||
+                        reward.item?.name ||
+                        reward.item?.shortName ||
                         t('page.tasks.questcard.item', 'Item')
                       "
                       class="h-16 w-16 object-contain"
@@ -413,9 +448,9 @@
                     <div class="flex flex-col items-center gap-0.5">
                       <span
                         class="max-w-[72px] truncate text-center text-xs text-gray-300"
-                        :title="reward.item.shortName || reward.item.name"
+                        :title="reward.item?.shortName || reward.item?.name || ''"
                       >
-                        {{ reward.item.shortName || reward.item.name }}
+                        {{ reward.item?.shortName || reward.item?.name || '' }}
                       </span>
                       <span v-if="reward.count > 1" class="text-xs font-medium text-gray-400">
                         x{{ formatNumber(reward.count) }}
@@ -433,7 +468,7 @@
                   <a
                     v-for="offer in offerUnlockRewards"
                     :key="`offer-${offer.id}`"
-                    :href="`https://tarkov.dev/item/${offer.item.id}`"
+                    :href="`https://tarkov.dev/item/${offer.item?.id || ''}`"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="group focus-visible:ring-primary-500 focus-visible:ring-offset-surface-900 relative flex flex-col items-center gap-1 rounded-lg bg-white/5 p-2 transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
@@ -442,13 +477,13 @@
                         'page.tasks.questcard.openItemOnTarkovDev',
                         {
                           name:
-                            offer.item.shortName ||
-                            offer.item.name ||
+                            offer.item?.shortName ||
+                            offer.item?.name ||
                             t('page.tasks.questcard.item', 'Item'),
                         },
                         `Open ${
-                          offer.item.shortName ||
-                          offer.item.name ||
+                          offer.item?.shortName ||
+                          offer.item?.name ||
                           t('page.tasks.questcard.item', 'Item')
                         } on tarkov.dev`
                       )
@@ -458,10 +493,10 @@
                   >
                     <img
                       v-if="offer.item?.iconLink"
-                      :src="offer.item.iconLink"
+                      :src="offer.item?.iconLink"
                       :alt="
-                        offer.item.name ||
-                        offer.item.shortName ||
+                        offer.item?.name ||
+                        offer.item?.shortName ||
                         t('page.tasks.questcard.item', 'Item')
                       "
                       class="h-16 w-16 object-contain"
@@ -469,9 +504,9 @@
                     <div class="flex flex-col items-center gap-0.5">
                       <span
                         class="max-w-[72px] truncate text-center text-xs text-gray-300"
-                        :title="offer.item.shortName || offer.item.name"
+                        :title="offer.item?.shortName || offer.item?.name || ''"
                       >
-                        {{ offer.item?.shortName || offer.item?.name }}
+                        {{ offer.item?.shortName || offer.item?.name || '' }}
                       </span>
                       <span class="text-xs text-gray-500">
                         {{ offer.trader.name }} LL{{ offer.level }}
@@ -675,6 +710,36 @@
       ? t('page.tasks.questcard.hideDetails', 'Hide details')
       : t('page.tasks.questcard.showDetails', 'Show details');
   });
+  const itemRewardsSummaryTooltip = computed(() => {
+    const items = itemRewards.value;
+    if (items.length === 0) return '';
+    const names = items
+      .slice(0, 5)
+      .map((r) => {
+        const name = r.item?.shortName || r.item?.name || '';
+        return r.count > 1 ? `${name} x${r.count}` : name;
+      })
+      .join(', ');
+    if (items.length > 5) {
+      return `${names}, +${items.length - 5} more`;
+    }
+    return names;
+  });
+  const offerUnlockSummaryTooltip = computed(() => {
+    const offers = offerUnlockRewards.value;
+    if (offers.length === 0) return '';
+    const names = offers
+      .slice(0, 5)
+      .map((o) => {
+        const name = o.item?.shortName || o.item?.name || '';
+        return `${name} (${o.trader.name} LL${o.level})`;
+      })
+      .join(', ');
+    if (offers.length > 5) {
+      return `${names}, +${offers.length - 5} more`;
+    }
+    return names;
+  });
   const toggleDetailedRewards = () => {
     if (!hasExpandableDetails.value) return;
     showDetailedRewards.value = !showDetailedRewards.value;
@@ -877,6 +942,19 @@
   };
   const markTaskAvailable = () => {
     const taskName = props.task.name ?? t('page.tasks.questcard.task', 'Task');
+    // Mark tasks from taskRequirements as complete (this is what unlockedTasks checks)
+    // This handles cases where taskRequirements have status: ['active'] which causes
+    // the graph to link to parents instead of the actual required task
+    props.task.taskRequirements?.forEach((req) => {
+      if (req.task?.id) {
+        tarkovStore.setTaskComplete(req.task.id);
+        const reqTask = tasks.value.find((task) => task.id === req.task.id);
+        if (reqTask?.objectives) {
+          handleTaskObjectives(reqTask.objectives, 'setTaskObjectiveComplete');
+        }
+      }
+    });
+    // Also mark predecessors for the full dependency chain
     props.task.predecessors?.forEach((predecessorId) => {
       tarkovStore.setTaskComplete(predecessorId);
       const predecessorTask = tasks.value.find((task) => task.id === predecessorId);

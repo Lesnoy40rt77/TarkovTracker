@@ -51,10 +51,21 @@
           :placeholder="t('page.tasks.search.placeholder', 'Search tasks...')"
           :aria-label="t('page.tasks.search.ariaLabel', 'Search tasks')"
           icon="i-mdi-magnify"
-          clearable
+          :ui="{ trailing: 'pe-1' }"
           class="w-full"
           @update:model-value="$emit('update:searchQuery', $event)"
-        />
+        >
+          <template v-if="searchQuery?.length" #trailing>
+            <UButton
+              color="neutral"
+              variant="link"
+              size="sm"
+              icon="i-mdi-close-circle"
+              aria-label="Clear search"
+              @click="$emit('update:searchQuery', '')"
+            />
+          </template>
+        </UInput>
       </div>
       <!-- Section 1: Status filters (ALL / AVAILABLE / LOCKED / COMPLETED) - scrollable on mobile -->
       <div

@@ -100,7 +100,9 @@ export function useSkillCalculation() {
   const setTotalSkillLevel = (skillName: string, totalLevel: number) => {
     // Validation: Ensure totalLevel is a finite number and >= 0
     if (typeof totalLevel !== 'number' || !Number.isFinite(totalLevel) || totalLevel < 0) {
-      logger.warn(`[useSkillCalculation] Invalid totalLevel "${totalLevel}" for skill "${skillName}"`);
+      logger.warn(
+        `[useSkillCalculation] Invalid totalLevel "${totalLevel}" for skill "${skillName}"`
+      );
       return;
     }
     // Coerce to integer as skill levels in Tarkov are whole numbers (0-51)
