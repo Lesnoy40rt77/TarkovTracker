@@ -353,6 +353,24 @@
         },
       },
     },
+    credits: {
+      title: 'Подяки',
+      sections: {
+        original_creator: 'Початковий автор проєкту:',
+        staff: 'Команда TarkovTracker.org:',
+        support_members: 'Учасники підтримки:',
+        beta_testers: 'Nuxt - Тестери закритої бети:',
+      },
+      labels: {
+        creators: 'Автори',
+        staff: 'Основна команда',
+        support: 'Підтримка',
+        testers: 'Бета-тестери',
+      },
+      notes: {
+        alphabetical: 'У алфавітному порядку; порядок не відображає внесок.',
+      },
+    },
     login: {
       title: 'Увійти',
       subtitle: 'Увійдіть, щоб отримати доступ до свого облікового запису',
@@ -420,6 +438,7 @@
     support_tagline: 'Допоможіть зберегти TarkovTracker безкоштовним та актуальним',
     terms_of_service: 'Умови використання',
     privacy_policy: 'Політика конфіденційності',
+    credits: 'Подяки',
     game_attribution: 'Ігровий контент та матеріали є торговими марками та захищені авторським правом Battlestate Games та її ліцензіарів. Усі права захищені.',
     support: 'Підтримка',
     contributors: 'Учасники',
@@ -447,6 +466,7 @@
     tarkovguru: 'Tarkov Guru',
     tarkovchanges: 'Tarkov Changes',
     tarkovmonitor: 'Tarkov Monitor',
+    credits: 'Подяки',
     settings: 'Налаштування',
   },
   settings: {

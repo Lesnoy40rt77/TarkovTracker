@@ -10,34 +10,60 @@
           <div class="text-[0.6875rem] font-semibold tracking-[0.08em] text-white/55 uppercase">
             {{ t('footer.community_label') }}
           </div>
-          <div class="flex items-center justify-center gap-2.5 lg:justify-start">
+          <div class="flex flex-col items-center gap-2.5 lg:items-start">
             <a
               href="https://discord.gg/M8nBgA2sT6"
               target="_blank"
               rel="noopener noreferrer"
-              class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#5865f2]/15 text-[#5865f2] transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#4752c4] hover:text-white hover:shadow-[0_4px_12px_rgba(88,101,242,0.4)]"
-              :title="t('footer.call_to_action.discord')"
+              class="group flex items-center gap-2.5 transition-all duration-150 hover:-translate-y-0.5"
+              :title="
+                t('footer.call_to_action.discord_phrase', {
+                  discord: t('footer.call_to_action.discord'),
+                })
+              "
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="currentColor"
+              <span
+                class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#5865f2]/15 text-[#5865f2] transition-all duration-150 group-hover:bg-[#4752c4] group-hover:text-white group-hover:shadow-[0_4px_12px_rgba(88,101,242,0.4)]"
               >
-                <path
-                  d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.24 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08-.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09-.01.11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.01c1.72-.53 3.45-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-8.46-3.1-11.95c-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.83 2.12-1.89 2.12z"
-                />
-              </svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.24 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08-.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09-.01.11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.01c1.72-.53 3.45-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-8.46-3.1-11.95c-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.83 2.12-1.89 2.12z"
+                  />
+                </svg>
+              </span>
+              <span
+                class="text-primary-400 decoration-primary-400/40 text-sm font-semibold underline underline-offset-2 transition-colors duration-150 group-hover:text-primary-300 group-hover:decoration-primary-300"
+              >
+                {{ t('footer.call_to_action.discord') }}
+              </span>
             </a>
             <a
               href="https://github.com/tarkovtracker-org/TarkovTrackerNuxt"
               target="_blank"
               rel="noopener noreferrer"
-              class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-[#f0f6fc] transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#c9d1d9] hover:text-[#0d1117] hover:shadow-[0_4px_12px_rgba(255,255,255,0.2)]"
-              :title="t('footer.call_to_action.github')"
+              class="group flex items-center gap-2.5 transition-all duration-150 hover:-translate-y-0.5"
+              :title="
+                t('footer.call_to_action.github_phrase', {
+                  github: t('footer.call_to_action.github'),
+                })
+              "
             >
-              <UIcon name="i-mdi-github" class="h-5 w-5" />
+              <span
+                class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-[#f0f6fc] transition-all duration-150 group-hover:bg-[#c9d1d9] group-hover:text-[#0d1117] group-hover:shadow-[0_4px_12px_rgba(255,255,255,0.2)]"
+              >
+                <UIcon name="i-mdi-github" class="h-5 w-5" />
+              </span>
+              <span
+                class="text-primary-400 decoration-primary-400/40 text-sm font-semibold underline underline-offset-2 transition-colors duration-150 group-hover:text-primary-300 group-hover:decoration-primary-300"
+              >
+                {{ t('footer.call_to_action.github') }}
+              </span>
             </a>
           </div>
         </div>
@@ -70,17 +96,16 @@
           <div class="text-[0.6875rem] font-semibold tracking-[0.08em] text-white/55 uppercase">
             {{ t('footer.legal_label') }}
           </div>
-          <div class="flex items-center justify-center gap-2 lg:justify-end">
+          <div class="flex flex-col items-center gap-2 lg:items-end">
             <router-link
               to="/terms-of-service"
-              class="text-primary-400 decoration-primary-400/40 hover:text-primary-300 hover:decoration-primary-300 text-sm underline underline-offset-2 transition-colors duration-150"
+              class="text-primary-400 decoration-primary-400/40 text-sm font-semibold underline underline-offset-2 transition-colors duration-150 hover:text-primary-300 hover:decoration-primary-300"
             >
               {{ t('footer.terms_of_service') }}
             </router-link>
-            <span class="text-sm text-white/40">·</span>
             <router-link
               to="/privacy"
-              class="text-primary-400 decoration-primary-400/40 hover:text-primary-300 hover:decoration-primary-300 text-sm underline underline-offset-2 transition-colors duration-150"
+              class="text-primary-400 decoration-primary-400/40 text-sm font-semibold underline underline-offset-2 transition-colors duration-150 hover:text-primary-300 hover:decoration-primary-300"
             >
               {{ t('footer.privacy_policy') }}
             </router-link>
@@ -91,9 +116,16 @@
       <div class="my-4 h-px bg-linear-to-r from-transparent via-white/10 to-transparent" />
       <!-- Bottom Row: Copyright & Attribution -->
       <div class="flex flex-col items-center gap-1.5 text-center">
-        <p class="m-0 text-sm font-semibold text-[#bfbfbf]">
-          TarkovTracker &copy; 2020–{{ new Date().getFullYear() }}
-        </p>
+        <div class="flex items-center justify-center gap-2 text-sm font-semibold text-[#bfbfbf]">
+          <span>TarkovTracker &copy; 2020–{{ new Date().getFullYear() }}</span>
+          <span class="text-sm text-white/40">·</span>
+          <router-link
+            to="/credits"
+            class="text-primary-400 decoration-primary-400/40 hover:text-primary-300 hover:decoration-primary-300 underline underline-offset-2 transition-colors duration-150"
+          >
+            {{ t('footer.credits') }}
+          </router-link>
+        </div>
         <p class="m-0 text-xs leading-snug text-white/45">
           {{ t('footer.game_attribution') }}
         </p>

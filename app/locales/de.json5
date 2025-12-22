@@ -342,6 +342,24 @@
         },
       },
     },
+    credits: {
+      title: 'Danksagungen',
+      sections: {
+        original_creator: 'Ursprünglicher Ersteller des Projekts:',
+        staff: 'Team von TarkovTracker.org:',
+        support_members: 'Support-Mitglieder:',
+        beta_testers: 'Nuxt - Geschlossene Beta-Tester:',
+      },
+      labels: {
+        creators: 'Ersteller',
+        staff: 'Kernteam',
+        support: 'Support',
+        testers: 'Beta-Tester',
+      },
+      notes: {
+        alphabetical: 'Alphabetisch aufgeführt; die Reihenfolge spiegelt keinen Beitrag wider.',
+      },
+    },
     login: {
       title: 'Anmelden',
       subtitle: 'Melde dich an, um auf dein Konto zuzugreifen',
@@ -409,6 +427,7 @@
     support_tagline: 'Hilf TarkovTracker kostenlos & aktuell zu halten',
     terms_of_service: 'Nutzungsbedingungen',
     privacy_policy: 'Datenschutzrichtlinie',
+    credits: 'Danksagungen',
     game_attribution: 'Spielinhalte und Materialien sind Marken und Urheberrechte von Battlestate Games und seinen Lizenzgebern. Alle Rechte vorbehalten.',
     support: 'Unterstützung',
     contributors: 'Mitwirkende',
@@ -436,6 +455,7 @@
     tarkovguru: 'Tarkov Guru',
     tarkovchanges: 'Tarkov Changes',
     tarkovmonitor: 'Tarkov Monitor',
+    credits: 'Danksagungen',
     settings: 'Einstellungen',
   },
   settings: {

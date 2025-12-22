@@ -135,6 +135,9 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@nuxt/image',
   ].filter(Boolean) as string[],
+  image: {
+    domains: ['avatars.githubusercontent.com', 'github.com'],
+  },
   ui: {
     theme: {
       colors: [
