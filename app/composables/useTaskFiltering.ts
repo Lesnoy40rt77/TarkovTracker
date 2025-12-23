@@ -206,16 +206,21 @@ export function useTaskFiltering() {
     const showNonSpecial = preferencesStore.getShowNonSpecialTasks;
     // EOD filter stored for future use when EOD task data is available
     const _showEod = preferencesStore.getShowEodTasks;
+    const lightkeeperTraderId = metadataStore.getTraderByName('lightkeeper')?.id;
     return taskList.filter((task) => {
       // Skip excluded tasks (Scav Karma)
       if (EXCLUDED_SCAV_KARMA_TASKS.includes(task.id)) return false;
       const isKappaRequired = task.kappaRequired === true;
       const isLightkeeperRequired = task.lightkeeperRequired === true;
-      const isNonSpecial = !isKappaRequired && !isLightkeeperRequired;
+      const isLightkeeperTraderTask =
+        lightkeeperTraderId !== undefined
+          ? task.trader?.id === lightkeeperTraderId
+          : task.trader?.name?.toLowerCase() === 'lightkeeper';
+      const isNonSpecial = !isKappaRequired && !isLightkeeperRequired && !isLightkeeperTraderTask;
       // OR logic: show if task matches ANY enabled filter
       // A task can be both Kappa and Lightkeeper required - show if either filter is on
       if (isKappaRequired && showKappa) return true;
-      if (isLightkeeperRequired && showLightkeeper) return true;
+      if ((isLightkeeperRequired || isLightkeeperTraderTask) && showLightkeeper) return true;
       if (isNonSpecial && showNonSpecial) return true;
       // Task doesn't match any enabled filter
       return false;

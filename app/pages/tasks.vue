@@ -124,6 +124,7 @@
       mergedIds: (map as unknown as { mergedIds?: string[] }).mergedIds || [map.id],
     }));
   });
+  const lightkeeperTraderId = computed(() => metadataStore.getTraderByName('lightkeeper')?.id);
   const refreshVisibleTasks = () => {
     updateVisibleTasks(
       getTaskPrimaryView.value,
@@ -266,9 +267,16 @@
     // Enable the appropriate type filter based on task properties
     const isKappaRequired = taskInMetadata.kappaRequired === true;
     const isLightkeeperRequired = taskInMetadata.lightkeeperRequired === true;
-    const isNonSpecial = !isKappaRequired && !isLightkeeperRequired;
+    const isLightkeeperTraderTask =
+      lightkeeperTraderId.value !== undefined
+        ? taskInMetadata.trader?.id === lightkeeperTraderId.value
+        : taskInMetadata.trader?.name?.toLowerCase() === 'lightkeeper';
+    const isNonSpecial = !isKappaRequired && !isLightkeeperRequired && !isLightkeeperTraderTask;
     // Ensure the task's type filter is enabled so task will appear
-    if (isLightkeeperRequired && !preferencesStore.getShowLightkeeperTasks) {
+    if (
+      (isLightkeeperRequired || isLightkeeperTraderTask) &&
+      !preferencesStore.getShowLightkeeperTasks
+    ) {
       preferencesStore.setShowLightkeeperTasks(true);
     }
     if (isKappaRequired && preferencesStore.getHideNonKappaTasks) {
