@@ -2,6 +2,7 @@
   "name": "tarkovtracker-nuxt",
   "type": "module",
   "private": true,
+  "packageManager": "npm@11.6.2",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -39,6 +40,10 @@
     "vue": "^3.5.26",
     "vue-i18n": "^11.2.7",
     "vue-router": "^4.6.4"
+  },
+  "engines": {
+    "node": ">=24.12.0",
+    "npm": ">=11.6.2"
   },
   "__pinnedNotes": {
     "@vueuse/core": "Previously pinned to 13.9.0 due to Nuxt/@nuxt/ui/reka-ui compatibility; updated to ^14.1.0 after upgrading Nuxt/@nuxt/ui."
