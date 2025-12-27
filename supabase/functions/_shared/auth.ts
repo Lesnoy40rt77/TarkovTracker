@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeadersFor } from './cors.ts';
 
 // Supabase prohibits secrets starting with SUPABASE_, so support non-reserved names first.
