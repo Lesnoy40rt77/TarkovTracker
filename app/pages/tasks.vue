@@ -184,6 +184,8 @@
       const objectiveMaps = metadataStore.objectiveMaps?.[task.id] ?? [];
       const objectiveGps = metadataStore.objectiveGPS?.[task.id] ?? [];
       task.objectives.forEach((obj) => {
+        // Skip objectives that are already marked as complete
+        if (tarkovStore.isTaskObjectiveComplete(obj.id)) return;
         const zones: MapObjectiveZone[] = [];
         const possibleLocations: MapObjectiveLocation[] = [];
         const objectiveWithLocations = obj as TaskObjective & {
