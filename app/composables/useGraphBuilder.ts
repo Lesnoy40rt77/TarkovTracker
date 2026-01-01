@@ -97,6 +97,7 @@ export function useGraphBuilder() {
     const tempObjectiveGPS: { [taskId: string]: ObjectiveGPSInfo[] } = {};
     const tempAlternativeTasks: { [taskId: string]: string[] } = {};
     const tempNeededObjectives: NeededItemTaskObjective[] = [];
+    const taskById = new Map(taskList.map((task) => [task.id, task]));
     const addAlternative = (sourceId: string | undefined, alternativeId: string) => {
       if (!sourceId || sourceId === alternativeId) return;
       if (!tempAlternativeTasks[sourceId]) {
@@ -105,6 +106,14 @@ export function useGraphBuilder() {
       if (!tempAlternativeTasks[sourceId]!.includes(alternativeId)) {
         tempAlternativeTasks[sourceId]!.push(alternativeId);
       }
+    };
+    const hasFailConditionForTask = (task: Task | undefined, targetTaskId: string) => {
+      if (!task?.failConditions?.length) return false;
+      return normalizeTaskObjectives<TaskObjective>(task.failConditions).some(
+        (objective) =>
+          objective?.task?.id === targetTaskId &&
+          hasStatus(objective.status, ['complete', 'completed'])
+      );
     };
     taskList.forEach((task) => {
       // Process taskRequirements to find alternative tasks
@@ -116,6 +125,12 @@ export function useGraphBuilder() {
           // So completing the required task would make this task impossible
           // The required task has THIS task as an alternative (one-directional)
           addAlternative(requirement.task.id, task.id);
+        } else if (requirement?.task?.id && isActiveOnly(requirement.status)) {
+          const requiredTask = taskById.get(requirement.task.id);
+          // If the required task fails when this task completes, treat them as mutual alternatives.
+          if (hasFailConditionForTask(requiredTask, task.id)) {
+            addAlternative(requirement.task.id, task.id);
+          }
         }
       });
       // Process objectives

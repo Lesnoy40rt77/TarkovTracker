@@ -48,6 +48,16 @@ export function useTaskActions(
       tarkovStore.setTaskObjectiveUncomplete(objective.id);
     });
   };
+  const clearTaskObjectives = (objectives: TaskObjective[]) => {
+    objectives.forEach((objective) => {
+      if (!objective?.id) return;
+      tarkovStore.setTaskObjectiveUncomplete(objective.id);
+      const currentCount = tarkovStore.getObjectiveCount(objective.id);
+      if ((objective.count ?? 0) > 0 || currentCount > 0) {
+        tarkovStore.setObjectiveCount(objective.id, 0);
+      }
+    });
+  };
   const normalizeStatuses = (statuses?: string[]) =>
     (statuses ?? []).map((status) => status.toLowerCase());
   const hasAnyStatus = (statuses: string[], values: string[]) =>
@@ -74,7 +84,7 @@ export function useTaskActions(
     tarkovStore.setTaskFailed(taskId);
     const requiredTask = tasksMap.value.get(taskId);
     if (requiredTask?.objectives) {
-      handleTaskObjectives(requiredTask.objectives, 'setTaskObjectiveComplete');
+      clearTaskObjectives(requiredTask.objectives);
     }
   };
   const handleAlternatives = (
@@ -87,7 +97,11 @@ export function useTaskActions(
       tarkovStore[taskAction](alternativeTaskId);
       const alternativeTask = tasksMap.value.get(alternativeTaskId);
       if (alternativeTask?.objectives) {
-        handleTaskObjectives(alternativeTask.objectives, objectiveAction);
+        if (taskAction === 'setTaskFailed') {
+          clearTaskObjectives(alternativeTask.objectives);
+        } else {
+          handleTaskObjectives(alternativeTask.objectives, objectiveAction);
+        }
       }
     });
   };
@@ -204,7 +218,7 @@ export function useTaskActions(
     }
     tarkovStore.setTaskFailed(currentTask.id);
     if (currentTask.objectives) {
-      handleTaskObjectives(currentTask.objectives, 'setTaskObjectiveComplete');
+      clearTaskObjectives(currentTask.objectives);
     }
     if (isUndo) {
       emitAction({

@@ -167,6 +167,7 @@
   import { useMetadataStore } from '@/stores/useMetadata';
   import { usePreferencesStore } from '@/stores/usePreferences';
   import { useTarkovStore } from '@/stores/useTarkov';
+  import { MANUAL_FAIL_TASK_IDS } from '@/utils/constants';
   const { t } = useI18n({ useScope: 'global' });
   const preferencesStore = usePreferencesStore();
   const metadataStore = useMetadataStore();
@@ -340,15 +341,37 @@
     const normalized = (status ?? []).map((entry) => entry.toLowerCase());
     return statuses.some((value) => normalized.includes(value));
   };
-  const shouldTaskBeFailed = (task: {
-    failConditions?: Array<{ task?: { id?: string }; status?: string[] }>;
-  }) => {
+  const buildAlternativeSources = () => {
+    const sourcesByTask = new Map<string, string[]>();
+    metadataStore.tasks.forEach((task) => {
+      (task.alternatives ?? []).forEach((alternativeId) => {
+        const sources = sourcesByTask.get(alternativeId) ?? [];
+        if (!sources.includes(task.id)) {
+          sources.push(task.id);
+          sourcesByTask.set(alternativeId, sources);
+        }
+      });
+    });
+    return sourcesByTask;
+  };
+  const shouldTaskBeFailed = (
+    task: {
+      id: string;
+      failConditions?: Array<{ task?: { id?: string }; status?: string[] }>;
+    },
+    alternativeSources: Map<string, string[]>
+  ) => {
+    if (MANUAL_FAIL_TASK_IDS.includes(task.id)) return true;
     const failConditions = task.failConditions ?? [];
-    return failConditions.some((objective) => {
+    const failedByCondition = failConditions.some((objective) => {
       if (!objective?.task?.id) return false;
       if (!hasStatus(objective.status, ['complete', 'completed'])) return false;
       return isTaskSuccessful(objective.task.id);
     });
+    if (failedByCondition) return true;
+    const sources = alternativeSources.get(task.id);
+    if (!sources?.length) return false;
+    return sources.some((sourceId) => isTaskSuccessful(sourceId));
   };
   const repairFailedTasks = () => {
     if (failedTasksCount.value === 0) return;
@@ -359,10 +382,11 @@
       )
     );
     if (!confirmed) return;
+    const alternativeSources = buildAlternativeSources();
     let repaired = 0;
     metadataStore.tasks.forEach((task) => {
       if (!tarkovStore.isTaskFailed(task.id)) return;
-      if (shouldTaskBeFailed(task)) return;
+      if (shouldTaskBeFailed(task, alternativeSources)) return;
       tarkovStore.setTaskUncompleted(task.id);
       task.objectives?.forEach((objective) => {
         if (objective?.id) {

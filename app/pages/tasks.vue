@@ -481,6 +481,16 @@
       }
     });
   };
+  const clearTaskObjectives = (objectives: TaskObjective[]) => {
+    objectives.forEach((objective) => {
+      if (!objective?.id) return;
+      tarkovStore.setTaskObjectiveUncomplete(objective.id);
+      const currentCount = tarkovStore.getObjectiveCount(objective.id);
+      if ((objective.count ?? 0) > 0 || currentCount > 0) {
+        tarkovStore.setObjectiveCount(objective.id, 0);
+      }
+    });
+  };
   const handleAlternatives = (
     alternatives: string[] | undefined,
     taskAction: 'setTaskComplete' | 'setTaskUncompleted' | 'setTaskFailed',
@@ -497,7 +507,11 @@
       }
       const alternativeTask = tasks.value.find((task) => task.id === a);
       if (alternativeTask?.objectives) {
-        handleTaskObjectives(alternativeTask.objectives, objectiveAction);
+        if (taskAction === 'setTaskFailed') {
+          clearTaskObjectives(alternativeTask.objectives);
+        } else {
+          handleTaskObjectives(alternativeTask.objectives, objectiveAction);
+        }
       }
     });
   };
@@ -584,7 +598,7 @@
       tarkovStore.setTaskFailed(taskId);
       const taskToUndo = tasks.value.find((task) => task.id === taskId);
       if (taskToUndo?.objectives) {
-        handleTaskObjectives(taskToUndo.objectives, 'setTaskObjectiveComplete');
+        clearTaskObjectives(taskToUndo.objectives);
       }
       updateTaskStatus('page.tasks.questcard.undoresetfailed', taskName);
     } else if (action === 'fail') {

@@ -93,7 +93,12 @@
               )
             "
           >
-            <UBadge size="xs" color="neutral" variant="soft" class="cursor-help text-[11px]">
+            <UBadge
+              size="xs"
+              :color="meetsLevelRequirement ? 'success' : 'error'"
+              variant="soft"
+              class="cursor-help text-[11px]"
+            >
               {{ t('page.tasks.questcard.levelBadge', { count: task.minPlayerLevel }) }}
             </UBadge>
           </AppTooltip>
@@ -200,12 +205,32 @@
                   : t('page.tasks.questcard.uncompletebutton', 'Mark Uncompleted')
               }}
             </UButton>
+            <div v-if="showHotWheelsFail" class="flex shrink-0 flex-col gap-1">
+              <UButton
+                :size="actionButtonSize"
+                color="success"
+                :ui="completeButtonUi"
+                class="cursor-pointer"
+                @click.stop="markTaskComplete()"
+              >
+                {{ t('page.tasks.questcard.completebutton', 'Complete').toUpperCase() }}
+              </UButton>
+              <UButton
+                :size="actionButtonSize"
+                color="error"
+                variant="soft"
+                class="cursor-pointer"
+                @click.stop="markTaskFailed()"
+              >
+                {{ t('page.tasks.questcard.failbutton', 'Fail') }}
+              </UButton>
+            </div>
             <UButton
-              v-if="!isComplete && !isLocked"
+              v-else-if="!isComplete && !isLocked"
               :size="actionButtonSize"
               color="success"
               :ui="completeButtonUi"
-              class="shrink-0"
+              class="shrink-0 cursor-pointer"
               @click.stop="markTaskComplete()"
             >
               {{ t('page.tasks.questcard.completebutton', 'Complete').toUpperCase() }}
@@ -399,6 +424,7 @@
   import { useProgressStore } from '@/stores/useProgress';
   import { useTarkovStore } from '@/stores/useTarkov';
   import type { Task } from '@/types/tarkov';
+  import { HOT_WHEELS_TASK_ID } from '@/utils/constants';
   import { useLocaleNumberFormatter } from '@/utils/formatters';
   type ContextMenuRef = { open: (event: MouseEvent) => void };
   const QuestKeys = defineAsyncComponent(() => import('@/features/tasks/QuestKeys.vue'));
@@ -451,6 +477,10 @@
     const taskFaction = props.task.factionName;
     return taskFaction === 'Any' || taskFaction === tarkovStore.getPMCFaction();
   });
+  const meetsLevelRequirement = computed(() => {
+    const minLevel = props.task.minPlayerLevel ?? 0;
+    return minLevel <= 0 || tarkovStore.playerLevel() >= minLevel;
+  });
   const taskClasses = computed(() => {
     if (isComplete.value && !isFailed.value) return 'border-success-500/25 bg-success-500/10';
     if (isFailed.value) return 'border-error-500/25 bg-error-500/10'; // Red for failed
@@ -495,15 +525,22 @@
   });
   const failureSources = computed(() => {
     if (!isFailed.value) return [];
-    return (props.task.failConditions ?? [])
+    const sources = new Map<string, { id: string; name: string }>();
+    (props.task.failConditions ?? [])
       .filter(
         (objective) => objective?.task?.id && hasStatus(objective.status, ['complete', 'completed'])
       )
       .filter((objective) => isTaskSuccessful(objective.task!.id))
-      .map((objective) => ({
-        id: objective.task!.id,
-        name: objective.task!.name ?? objective.task!.id,
-      }));
+      .forEach((objective) => {
+        const id = objective.task!.id;
+        sources.set(id, { id, name: objective.task!.name ?? id });
+      });
+    tasks.value.forEach((task) => {
+      if (!task.alternatives?.includes(props.task.id)) return;
+      if (!isTaskSuccessful(task.id)) return;
+      sources.set(task.id, { id: task.id, name: task.name ?? task.id });
+    });
+    return Array.from(sources.values());
   });
   const pendingParentTasks = computed(() => {
     return parentTasks.value.filter((parent) => !isTaskSuccessful(parent.id));
@@ -530,6 +567,10 @@
     base: 'bg-success-500 hover:bg-success-600 active:bg-success-700 text-white border border-success-700',
   };
   const actionButtonSize = computed(() => (xs.value ? 'xs' : 'sm'));
+  const isHotWheelsTask = computed(() => props.task.id === HOT_WHEELS_TASK_ID);
+  const showHotWheelsFail = computed(
+    () => isHotWheelsTask.value && !isComplete.value && !isLocked.value
+  );
   const mapObjectiveTypes = [
     'mark',
     'zone',

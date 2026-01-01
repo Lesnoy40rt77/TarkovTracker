@@ -15,7 +15,7 @@
           row.allComplete
             ? 'border-success-500/50 bg-success-500/10'
             : 'border-white/10 bg-white/5',
-          isParentTaskComplete ? 'opacity-70' : '',
+          isParentTaskLocked ? 'opacity-70' : '',
         ]"
       >
         <img
@@ -40,7 +40,7 @@
           v-if="row.meta.neededCount > 1"
           :current-count="row.currentCount"
           :needed-count="row.meta.neededCount"
-          :disabled="isParentTaskComplete"
+          :disabled="isParentTaskLocked"
           @decrease="decreaseCountForRow(row)"
           @increase="increaseCountForRow(row)"
           @toggle="toggleCountForRow(row)"
@@ -56,7 +56,7 @@
               : t('page.tasks.questcard.complete', 'Complete')
           "
           :aria-pressed="row.allComplete"
-          :disabled="isParentTaskComplete"
+          :disabled="isParentTaskLocked"
           :class="
             row.allComplete
               ? 'bg-success-600 border-success-500 hover:bg-success-500 text-white disabled:opacity-60'
@@ -249,9 +249,15 @@
       (taskId) => tarkovStore.isTaskComplete(taskId) && !tarkovStore.isTaskFailed(taskId)
     );
   });
+  const isParentTaskFailed = computed(() => {
+    return parentTaskIds.value.some((taskId) => tarkovStore.isTaskFailed(taskId));
+  });
+  const isParentTaskLocked = computed(() => {
+    return isParentTaskComplete.value || isParentTaskFailed.value;
+  });
   // Update all objectives in a row together
   const decreaseCountForRow = (row: ConsolidatedRow) => {
-    if (isParentTaskComplete.value) return;
+    if (isParentTaskLocked.value) return;
     if (row.currentCount <= 0) return;
     // Find the last objective with progress and decrement it
     for (let i = row.objectives.length - 1; i >= 0; i--) {
@@ -268,7 +274,7 @@
     }
   };
   const increaseCountForRow = (row: ConsolidatedRow) => {
-    if (isParentTaskComplete.value) return;
+    if (isParentTaskLocked.value) return;
     if (row.currentCount >= row.meta.neededCount) return;
     // Find the first objective that isn't complete and increment it
     for (const obj of row.objectives) {
@@ -283,7 +289,7 @@
     }
   };
   const toggleCountForRow = (row: ConsolidatedRow) => {
-    if (isParentTaskComplete.value) return;
+    if (isParentTaskLocked.value) return;
     const isAllComplete = row.allComplete;
     if (isAllComplete) {
       // Set all to 0
@@ -308,7 +314,7 @@
    * Distributes the count across objectives in the row
    */
   const setCountForRow = (row: ConsolidatedRow, newCount: number) => {
-    if (isParentTaskComplete.value) return;
+    if (isParentTaskLocked.value) return;
     const totalNeeded = row.meta.neededCount;
     const clampedCount = Math.max(0, Math.min(totalNeeded, newCount));
     // Distribute the count across objectives

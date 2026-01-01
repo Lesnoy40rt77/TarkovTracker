@@ -3,7 +3,7 @@
     class="group focus-within:ring-primary-500 focus-within:ring-offset-surface-900 flex w-full items-start gap-4 rounded-md px-2 py-2 transition-colors focus-within:ring-2 focus-within:ring-offset-2"
     :class="[
       isComplete ? 'bg-success-500/10' : 'hover:bg-white/5',
-      isParentTaskComplete ? 'cursor-not-allowed opacity-80' : 'cursor-pointer',
+      isParentTaskLocked ? 'cursor-not-allowed opacity-80' : 'cursor-pointer',
     ]"
     @click="handleRowClick"
     @mouseenter="objectiveMouseEnter()"
@@ -35,7 +35,7 @@
           v-if="neededCount > 1"
           :current-count="currentObjectiveCount"
           :needed-count="neededCount"
-          :disabled="isParentTaskComplete"
+          :disabled="isParentTaskLocked"
           @decrease="decreaseCount"
           @increase="increaseCount"
           @toggle="toggleCount"
@@ -54,7 +54,7 @@
             class="focus-visible:ring-primary-500 focus-visible:ring-offset-surface-900 flex h-7 w-7 items-center justify-center rounded-md border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
             :aria-label="toggleObjectiveLabel"
             :aria-pressed="isComplete"
-            :disabled="isParentTaskComplete"
+            :disabled="isParentTaskLocked"
             :class="
               isComplete
                 ? 'bg-success-600 border-success-500 hover:bg-success-500 text-white disabled:opacity-60'
@@ -122,6 +122,14 @@
     if (!taskId) return false;
     return tarkovStore.isTaskComplete(taskId) && !tarkovStore.isTaskFailed(taskId);
   });
+  const isParentTaskFailed = computed(() => {
+    const taskId = parentTaskId.value;
+    if (!taskId) return false;
+    return tarkovStore.isTaskFailed(taskId);
+  });
+  const isParentTaskLocked = computed(() => {
+    return isParentTaskComplete.value || isParentTaskFailed.value;
+  });
   const userNeeds = computed(() => {
     const needingUsers: string[] = [];
     if (fullObjective.value == undefined) {
@@ -149,7 +157,7 @@
   });
   const isHovered = ref(false);
   const objectiveMouseEnter = () => {
-    if (isParentTaskComplete.value) return;
+    if (isParentTaskLocked.value) return;
     isHovered.value = true;
   };
   const objectiveMouseLeave = () => {
@@ -189,7 +197,7 @@
   });
   const neededCount = computed(() => fullObjective.value?.count ?? props.objective.count ?? 1);
   const handleRowClick = () => {
-    if (isParentTaskComplete.value) return;
+    if (isParentTaskLocked.value) return;
     if (neededCount.value > 1) {
       toggleCount();
       return;
@@ -197,7 +205,7 @@
     toggleObjectiveCompletion();
   };
   const toggleObjectiveCompletion = () => {
-    if (isParentTaskComplete.value) return;
+    if (isParentTaskLocked.value) return;
     if (isComplete.value) {
       const currentCount = currentObjectiveCount.value;
       const requiredCount = neededCount.value;
@@ -220,7 +228,7 @@
     }
   });
   const decreaseCount = () => {
-    if (isParentTaskComplete.value) return;
+    if (isParentTaskLocked.value) return;
     const currentCount = currentObjectiveCount.value;
     if (currentCount > 0) {
       const newCount = currentCount - 1;
@@ -233,7 +241,7 @@
     }
   };
   const increaseCount = () => {
-    if (isParentTaskComplete.value) return;
+    if (isParentTaskLocked.value) return;
     const currentCount = currentObjectiveCount.value;
     const requiredCount = neededCount.value;
     if (currentCount < requiredCount) {
@@ -245,7 +253,7 @@
     }
   };
   const toggleCount = () => {
-    if (isParentTaskComplete.value) return;
+    if (isParentTaskLocked.value) return;
     const currentCount = currentObjectiveCount.value;
     const requiredCount = neededCount.value;
     if (currentCount >= requiredCount) {
@@ -264,7 +272,7 @@
    * Set count to a specific value (from direct input)
    */
   const setCount = (newCount: number) => {
-    if (isParentTaskComplete.value) return;
+    if (isParentTaskLocked.value) return;
     const requiredCount = neededCount.value;
     // Value is already clamped by the component, but ensure it's valid
     const clampedCount = Math.max(0, Math.min(requiredCount, newCount));

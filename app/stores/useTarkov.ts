@@ -268,19 +268,58 @@ const tarkovActions = {
     // Create a map for O(1) task lookup
     const tasksMap = new Map<string, Task>();
     tasks.forEach((task) => tasksMap.set(task.id, task));
+    const clearFailedTaskObjectives = (
+      gameModeData: UserProgressData,
+      tasksLookup: Map<string, Task>
+    ) => {
+      if (!gameModeData.taskObjectives) return 0;
+      let clearedTasks = 0;
+      const completions = gameModeData.taskCompletions ?? {};
+      for (const [taskId, completion] of Object.entries(completions)) {
+        if (!completion?.failed) continue;
+        const task = tasksLookup.get(taskId);
+        if (!task?.objectives?.length) continue;
+        let cleared = false;
+        for (const obj of task.objectives) {
+          if (!obj?.id) continue;
+          const existing = gameModeData.taskObjectives[obj.id];
+          if (!existing) continue;
+          if (existing.complete || (existing.count ?? 0) > 0) {
+            existing.complete = false;
+            if (existing.count !== undefined || (obj.count ?? 0) > 0) {
+              existing.count = 0;
+            }
+            cleared = true;
+          }
+        }
+        if (cleared) {
+          clearedTasks += 1;
+        }
+      }
+      return clearedTasks;
+    };
     let pvpRepaired = 0;
     let pveRepaired = 0;
+    let pvpCleared = 0;
+    let pveCleared = 0;
     // Repair PvP data
     if (this.pvp?.taskCompletions) {
       pvpRepaired = this.repairGameModeFailedTasks(this.pvp, tasksMap);
+      pvpCleared = clearFailedTaskObjectives(this.pvp, tasksMap);
     }
     // Repair PvE data
     if (this.pve?.taskCompletions) {
       pveRepaired = this.repairGameModeFailedTasks(this.pve, tasksMap);
+      pveCleared = clearFailedTaskObjectives(this.pve, tasksMap);
     }
     if (pvpRepaired > 0 || pveRepaired > 0) {
       logger.debug(
         `[TarkovStore] Repaired failed task states - PvP: ${pvpRepaired}, PvE: ${pveRepaired}`
+      );
+    }
+    if (pvpCleared > 0 || pveCleared > 0) {
+      logger.debug(
+        `[TarkovStore] Cleared objectives for failed tasks - PvP: ${pvpCleared}, PvE: ${pveCleared}`
       );
     }
     return { pvpRepaired, pveRepaired };
@@ -327,7 +366,7 @@ const tarkovActions = {
       gameModeData.taskObjectives = {};
     }
     for (const [taskId, completion] of Object.entries(completions)) {
-      if (!completion?.complete) continue;
+      if (!completion?.complete || completion?.failed) continue;
       const task = tasksMap.get(taskId);
       if (!task?.objectives?.length) continue;
       for (const objective of task.objectives) {
@@ -475,7 +514,7 @@ const tarkovActions = {
     completions[taskId]!.complete = true;
     completions[taskId]!.failed = true;
     completions[taskId]!.timestamp = completions[taskId]!.timestamp ?? Date.now();
-    // Also mark the task's objectives as complete
+    // Clear the task's objectives when failed
     const task = tasksMap.get(taskId);
     if (task?.objectives) {
       if (!gameModeData.taskObjectives) {
@@ -483,10 +522,12 @@ const tarkovActions = {
       }
       for (const obj of task.objectives) {
         if (!obj?.id) continue;
-        if (!gameModeData.taskObjectives[obj.id]) {
-          gameModeData.taskObjectives[obj.id] = {};
+        const existing = gameModeData.taskObjectives[obj.id] ?? {};
+        existing.complete = false;
+        if (existing.count !== undefined || (obj.count ?? 0) > 0) {
+          existing.count = 0;
         }
-        gameModeData.taskObjectives[obj.id]!.complete = true;
+        gameModeData.taskObjectives[obj.id] = existing;
       }
     }
     return 1;
