@@ -17,7 +17,7 @@
       <!-- Editable count display -->
       <div
         v-if="!isEditing"
-        class="flex h-7 min-w-14 cursor-pointer items-center justify-center px-2 text-[11px] font-semibold text-gray-100 tabular-nums hover:bg-white/10"
+        class="flex h-7 min-w-14 items-center justify-center px-2 text-[11px] font-semibold text-gray-100 tabular-nums hover:bg-white/10"
         :title="t('page.tasks.questcard.clickToEdit', 'Click to edit')"
         @click="startEditing"
       >

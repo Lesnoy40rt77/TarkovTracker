@@ -3,7 +3,7 @@
     <NuxtLink
       v-if="props.to && !props.href"
       :to="props.to"
-      class="group flex cursor-pointer items-center rounded-md px-3 py-2.5 text-base font-medium transition-colors duration-150"
+      class="group flex items-center rounded-md px-3 py-2.5 text-base font-medium transition-colors duration-150"
       :class="[
         isActive
           ? 'bg-surface-700 border-primary-500 border-l-2 text-white'
@@ -40,7 +40,7 @@
       :href="props.href"
       target="_blank"
       rel="noopener noreferrer"
-      class="group flex cursor-pointer items-center rounded-md px-3 py-2.5 text-sm font-medium transition-colors duration-150"
+      class="group flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-colors duration-150"
       :class="[
         'border-l-2 border-transparent text-[rgba(248,248,248,0.65)] hover:bg-white/5 hover:text-white',
         props.isCollapsed ? 'justify-center' : '',
@@ -77,8 +77,9 @@
     </a>
     <div
       v-else
-      class="group flex cursor-pointer items-center rounded-md border-l-4 border-transparent px-3 py-2.5 text-base font-medium text-gray-400 transition-colors duration-200 hover:bg-white/5 hover:text-white"
+      class="group flex cursor-not-allowed items-center rounded-md border-l-4 border-transparent px-3 py-2.5 text-base font-medium text-gray-400 opacity-60 transition-colors duration-200"
       :class="[props.isCollapsed ? 'justify-center' : '']"
+      aria-disabled="true"
     >
       <!-- Icon / Avatar -->
       <div

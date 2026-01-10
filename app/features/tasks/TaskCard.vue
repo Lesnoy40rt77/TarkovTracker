@@ -224,7 +224,6 @@
                 :size="actionButtonSize"
                 color="success"
                 :ui="completeButtonUi"
-                class="cursor-pointer"
                 @click.stop="markTaskComplete()"
               >
                 {{ t('page.tasks.questcard.completebutton', 'Complete').toUpperCase() }}
@@ -233,7 +232,6 @@
                 :size="actionButtonSize"
                 color="error"
                 variant="soft"
-                class="cursor-pointer"
                 @click.stop="markTaskFailed()"
               >
                 {{ t('page.tasks.questcard.failbutton', 'Fail') }}
@@ -244,7 +242,7 @@
               :size="actionButtonSize"
               color="success"
               :ui="completeButtonUi"
-              class="shrink-0 cursor-pointer"
+              class="shrink-0"
               @click.stop="markTaskComplete()"
             >
               {{ t('page.tasks.questcard.completebutton', 'Complete').toUpperCase() }}

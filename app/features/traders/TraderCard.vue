@@ -4,7 +4,7 @@
       <AppTooltip :text="t('page.dashboard.traders.viewTasks', { name: trader.name })">
         <button
           type="button"
-          class="focus-visible:ring-brand-500 flex w-full cursor-pointer items-center gap-3 pb-2 text-xl transition-opacity hover:opacity-80 focus:opacity-80 focus:outline-none focus-visible:ring-2"
+          class="focus-visible:ring-brand-500 flex w-full items-center gap-3 pb-2 text-xl transition-opacity hover:opacity-80 focus:opacity-80 focus:outline-none focus-visible:ring-2"
           @click="navigateToTraderTasks"
         >
           <span

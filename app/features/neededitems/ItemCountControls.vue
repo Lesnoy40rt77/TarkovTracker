@@ -31,7 +31,7 @@
         <template v-else>
           <AppTooltip text="Click to enter value">
             <button
-              class="hover:bg-surface-600 h-full w-full cursor-pointer px-0.5 text-[10px] font-semibold text-white transition-colors sm:text-xs lg:px-2 lg:text-sm"
+              class="hover:bg-surface-600 h-full w-full px-0.5 text-[10px] font-semibold text-white transition-colors sm:text-xs lg:px-2 lg:text-sm"
               aria-label="Click to enter value"
               @click="startEditing"
             >

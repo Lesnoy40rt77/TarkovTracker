@@ -65,7 +65,7 @@
           value-key="value"
           :popper="{ placement: 'bottom-end', strategy: 'fixed' }"
           :ui="{
-            base: 'bg-surface-900/90 border border-white/15 ring-1 ring-white/10 rounded-md px-2 py-1.5',
+            base: 'bg-surface-900/90 border border-white/15 ring-1 ring-white/10 rounded-md px-2 py-1.5 cursor-pointer',
           }"
           :ui-menu="{
             container: 'z-[9999]',

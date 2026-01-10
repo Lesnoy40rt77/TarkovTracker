@@ -71,7 +71,7 @@
                   :class="
                     useAutomaticLevel
                       ? 'mx-auto w-11 text-[2rem] leading-[0.85]'
-                      : 'hover:text-primary mx-auto w-11 cursor-pointer text-[2rem] leading-[0.85] transition-colors'
+                      : 'hover:text-primary mx-auto w-11 text-[2rem] leading-[0.85] transition-colors'
                   "
                   :tabindex="useAutomaticLevel ? '-1' : '0'"
                   :role="useAutomaticLevel ? undefined : 'button'"
@@ -122,7 +122,7 @@
               "
             >
               <button
-                class="flex h-6 w-6 cursor-pointer items-center justify-center p-0 text-white/70 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                class="flex h-6 w-6 items-center justify-center p-0 text-white/70 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                 :disabled="useAutomaticLevel || displayedLevel >= maxPlayerLevel"
                 @click="incrementLevel"
               >
@@ -140,7 +140,7 @@
               "
             >
               <button
-                class="flex h-6 w-6 cursor-pointer items-center justify-center p-0 text-white/70 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                class="flex h-6 w-6 items-center justify-center p-0 text-white/70 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                 :disabled="useAutomaticLevel || displayedLevel <= minPlayerLevel"
                 @click="decrementLevel"
               >
@@ -151,7 +151,7 @@
         </div>
         <!-- XP Progress Display -->
         <div
-          class="hover:border-primary/30 mt-1.5 cursor-pointer rounded border border-white/5 bg-white/2 px-2 py-1 transition-all hover:bg-white/4"
+          class="hover:border-primary/30 mt-1.5 rounded border border-white/5 bg-white/2 px-2 py-1 transition-all hover:bg-white/4"
           @click="navigateToSettings"
         >
           <div class="mb-0.5 flex items-center justify-between text-[0.6rem]">

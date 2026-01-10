@@ -101,7 +101,7 @@
                 :aria-label="`View ${foundItem.name} on tarkov.dev`"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="bg-surface-950 hover:ring-primary-500/50 hover:bg-surface-900 group flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-3 ring-1 ring-white/10 transition-all sm:gap-4 sm:px-5 sm:py-4 lg:gap-5 lg:px-6 lg:py-5"
+                class="bg-surface-950 hover:ring-primary-500/50 hover:bg-surface-900 group flex w-full items-center gap-3 rounded-lg px-3 py-3 ring-1 ring-white/10 transition-all sm:gap-4 sm:px-5 sm:py-4 lg:gap-5 lg:px-6 lg:py-5"
               >
                 <!-- Item Image -->
                 <div

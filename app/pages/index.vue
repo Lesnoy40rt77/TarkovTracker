@@ -171,7 +171,7 @@
           <div
             role="button"
             tabindex="0"
-            class="bg-surface-900 border-surface-700/30 hover:border-primary-700/30 focus-visible:border-primary-500 focus-visible:ring-primary-500/50 cursor-pointer rounded-lg border p-3 shadow-sm transition-all outline-none hover:shadow-md focus-visible:ring-2"
+            class="bg-surface-900 border-surface-700/30 hover:border-primary-700/30 focus-visible:border-primary-500 focus-visible:ring-primary-500/50 rounded-lg border p-3 shadow-sm transition-all outline-none hover:shadow-md focus-visible:ring-2"
             :aria-label="$t('page.dashboard.traders.viewTasks', { name: trader.name })"
             @click="navigateToTraderTasks(trader.id)"
             @keydown.enter="navigateToTraderTasks(trader.id)"

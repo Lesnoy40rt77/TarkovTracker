@@ -459,7 +459,7 @@
     ring: 'ring-1 ring-white/10',
     padding: 'p-1',
     option: {
-      base: 'px-3 py-2 text-sm cursor-pointer transition-colors rounded',
+      base: 'px-3 py-2 text-sm transition-colors rounded',
       inactive: 'text-surface-200 hover:bg-surface-800 hover:text-white',
       active: 'bg-surface-800 text-white',
       selected: 'bg-primary-500/10 text-primary-100 ring-1 ring-primary-500',
