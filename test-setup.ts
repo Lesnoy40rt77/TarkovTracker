@@ -9,9 +9,6 @@ const getFetchUrl = (input: FetchInput) => {
 };
 const mockFetch = vi.fn(async (input: FetchInput, _init?: RequestInit) => {
   const url = getFetchUrl(input);
-  if (url.includes('/api/tarkov/data')) {
-    return { data: { tasks: [], maps: [], traders: [], playerLevels: [] } };
-  }
   if (url.includes('/api/tarkov/bootstrap')) {
     return { data: { playerLevels: [] } };
   }
@@ -26,6 +23,12 @@ const mockFetch = vi.fn(async (input: FetchInput, _init?: RequestInit) => {
   }
   if (url.includes('/api/tarkov/tasks-core')) {
     return { data: { tasks: [], maps: [], traders: [] } };
+  }
+  if (url.includes('/api/tarkov/tasks-objectives')) {
+    return { data: { tasks: [] } };
+  }
+  if (url.includes('/api/tarkov/tasks-rewards')) {
+    return { data: { tasks: [] } };
   }
   if (url.includes('tarkov-data-overlay') || url.includes('/overlay.json')) {
     return { editions: {} };

@@ -17,7 +17,7 @@ describe('taskSorter', () => {
       id,
       name,
       ...rest,
-    };
+    } as Task;
   };
   describe('buildImpactScores', () => {
     it('returns 0 for tasks with no successors', () => {

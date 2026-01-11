@@ -165,4 +165,12 @@ describe('useHideoutFiltering', () => {
       'station-locked',
     ]);
   });
+  it('shows all stations when view is "all"', async () => {
+    const { hideoutFiltering } = await setup('all');
+    expect(hideoutFiltering.visibleStations.value.map((station) => station.id)).toEqual([
+      'station-available',
+      'station-maxed',
+      'station-locked',
+    ]);
+  });
 });

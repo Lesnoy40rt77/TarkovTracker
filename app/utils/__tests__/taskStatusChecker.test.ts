@@ -185,6 +185,50 @@ describe('taskStatusChecker', () => {
       const result = aggregateTeamTaskStatus('task1', ['user1'], progress, getDisplayName);
       expect(result.usersWhoNeedTask).toEqual(['Player user1']);
     });
+    it('correctly identifies isFailedForAny when one user has failed', () => {
+      const progress = createProgressData({
+        unlockedTasks: { task1: { user1: true, user2: true } },
+        tasksFailed: { task1: { user2: true } },
+      });
+      const result = aggregateTeamTaskStatus('task1', ['user1', 'user2'], progress);
+      expect(result.isFailedForAny).toBe(true);
+      expect(result.usersWhoNeedTask).toEqual(['user1']);
+    });
+  });
+  describe('getTaskStatusesForTeam edge cases', () => {
+    it('returns empty array for empty team', () => {
+      const progress = createProgressData();
+      const result = getTaskStatusesForTeam('task1', [], progress);
+      expect(result).toEqual([]);
+    });
+    it('handles large team with mixed statuses', () => {
+      const userIds = Array.from({ length: 10 }, (_, i) => `user${i}`);
+      const unlockedTasks: Record<string, Record<string, boolean>> = { task1: {} };
+      const tasksCompletions: Record<string, Record<string, boolean>> = { task1: {} };
+      userIds.forEach((id, i) => {
+        if (i % 2 === 0) unlockedTasks.task1![id] = true;
+        if (i % 3 === 0) tasksCompletions.task1![id] = true;
+      });
+      const progress = createProgressData({ unlockedTasks, tasksCompletions });
+      const result = getTaskStatusesForTeam('task1', userIds, progress);
+      expect(result).toHaveLength(10);
+      // After asserting length, directly access array elements
+      expect(result[0]!.isUnlocked).toBe(true);
+      expect(result[0]!.isCompleted).toBe(true);
+      expect(result[1]!.isUnlocked).toBe(false);
+      expect(result[2]!.isUnlocked).toBe(true);
+      expect(result[2]!.isCompleted).toBe(false);
+    });
+    it('returns correct status when all members share the same status', () => {
+      const progress = createProgressData({
+        unlockedTasks: { task1: { user1: true, user2: true } },
+      });
+      const result = getTaskStatusesForTeam('task1', ['user1', 'user2'], progress);
+      expect(result).toHaveLength(2);
+      expect(result.every((s) => s.isUnlocked === true)).toBe(true);
+      expect(result.every((s) => s.isCompleted === false)).toBe(true);
+      expect(result.every((s) => s.isFailed === false)).toBe(true);
+    });
   });
   describe('TaskStatusPredicates', () => {
     it('isAvailable returns true for available status', () => {

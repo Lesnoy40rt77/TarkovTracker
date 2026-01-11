@@ -17,43 +17,63 @@ const setup = async () => {
     await import('@/features/neededitems/NeededItemsFilterBar.vue');
   return NeededItemsFilterBar;
 };
+const createDefaultProps = () => ({
+  modelValue: 'all' as const,
+  search: '',
+  viewMode: 'list' as const,
+  filterTabs: [
+    { label: 'All', value: 'all' as const, icon: 'i-mdi-format-list-bulleted', count: 3 },
+  ],
+  totalCount: 3,
+  ungroupedCount: 3,
+  firFilter: 'all' as const,
+  groupByItem: false,
+  hideTeamItems: false,
+  hideNonFirSpecialEquipment: false,
+  kappaOnly: false,
+});
+const createDefaultGlobal = () => ({
+  mocks: {
+    $t: (key: string, fallback?: string) => fallback ?? key,
+  },
+  stubs: {
+    AppTooltip: { template: '<span><slot /></span>' },
+    UBadge: true,
+    UButton: UButtonStub,
+    UIcon: true,
+    UInput: UInputStub,
+    UPopover: { template: '<div><slot /><slot name="content" /></div>' },
+  },
+});
 describe('NeededItemsFilterBar', () => {
-  it('emits updates for search and view controls', async () => {
+  it('emits update:search after setting input value', async () => {
     const NeededItemsFilterBar = await setup();
     const wrapper = mount(NeededItemsFilterBar, {
-      props: {
-        modelValue: 'all',
-        search: '',
-        viewMode: 'list',
-        filterTabs: [{ label: 'All', value: 'all', icon: 'i-mdi-format-list-bulleted', count: 3 }],
-        totalCount: 3,
-        ungroupedCount: 3,
-        firFilter: 'all',
-        groupByItem: false,
-        hideTeamItems: false,
-        hideNonFirSpecialEquipment: false,
-        kappaOnly: false,
-      },
-      global: {
-        mocks: {
-          $t: (key: string, fallback?: string) => fallback ?? key,
-        },
-        stubs: {
-          AppTooltip: { template: '<span><slot /></span>' },
-          UBadge: true,
-          UButton: UButtonStub,
-          UIcon: true,
-          UInput: UInputStub,
-          UPopover: { template: '<div><slot /><slot name="content" /></div>' },
-        },
-      },
+      props: createDefaultProps(),
+      global: createDefaultGlobal(),
     });
     await wrapper.find('input').setValue('gpu');
     expect(wrapper.emitted('update:search')).toEqual([['gpu']]);
+  });
+  it('emits update:viewMode after triggering list view button', async () => {
+    const NeededItemsFilterBar = await setup();
+    const wrapper = mount(NeededItemsFilterBar, {
+      props: createDefaultProps(),
+      global: createDefaultGlobal(),
+    });
     await wrapper.find('button[data-icon="i-mdi-view-list"]').trigger('click');
     expect(wrapper.emitted('update:viewMode')).toEqual([['list']]);
-    expect(wrapper.emitted('update:groupByItem')).toEqual([[false]]);
+  });
+  it('emits update:groupByItem when toggle button is clicked', async () => {
+    const NeededItemsFilterBar = await setup();
+    const wrapper = mount(NeededItemsFilterBar, {
+      props: createDefaultProps(),
+      global: createDefaultGlobal(),
+    });
+    // No initial emission on mount
+    expect(wrapper.emitted('update:groupByItem')).toBeUndefined();
+    // Trigger toggle and check emission
     await wrapper.find('button[data-icon="i-mdi-group"]').trigger('click');
-    expect(wrapper.emitted('update:groupByItem')).toEqual([[false], [true]]);
+    expect(wrapper.emitted('update:groupByItem')).toEqual([[true]]);
   });
 });

@@ -102,6 +102,7 @@ describe('useTaskActions', () => {
       taskRequirements: [
         {
           task: { id: 'task-req' },
+          // This requirement models a task that becomes available when another task fails
           status: ['Failed'],
         },
       ],
@@ -125,6 +126,101 @@ describe('useTaskActions', () => {
     expect(tarkovStore.setLevel).toHaveBeenCalledWith(3);
     expect(onAction).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'available', taskId: 'task-main' })
+    );
+  });
+  it('marks a task failed and invokes onAction', async () => {
+    const task: Task = {
+      id: 'task-to-fail',
+      name: 'Task to Fail',
+      objectives: [{ id: 'obj-fail', count: 2 }],
+    };
+    const { actions, onAction, tarkovStore } = await setup(task, [task], {
+      objectiveCounts: { 'obj-fail': 2 },
+    });
+    actions.markTaskFailed();
+    expect(tarkovStore.setTaskFailed).toHaveBeenCalledWith('task-to-fail');
+    expect(tarkovStore.setTaskObjectiveUncomplete).toHaveBeenCalledWith('obj-fail');
+    expect(tarkovStore.setObjectiveCount).toHaveBeenCalledWith('obj-fail', 0);
+    expect(onAction).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'fail', taskId: 'task-to-fail' })
+    );
+  });
+  it('marks a task uncompleted and resets objectives', async () => {
+    const task: Task = {
+      id: 'task-uncomplete',
+      name: 'Task to Uncomplete',
+      objectives: [{ id: 'obj-unc', count: 3 }],
+    };
+    const { actions, onAction, tarkovStore } = await setup(task, [task], {
+      objectiveCounts: { 'obj-unc': 3 },
+    });
+    actions.markTaskUncomplete();
+    expect(tarkovStore.setTaskUncompleted).toHaveBeenCalledWith('task-uncomplete');
+    expect(tarkovStore.setTaskObjectiveUncomplete).toHaveBeenCalledWith('obj-unc');
+    // markTaskUncomplete uses handleTaskObjectives which only calls setTaskObjectiveUncomplete, not setObjectiveCount
+    expect(tarkovStore.setObjectiveCount).not.toHaveBeenCalled();
+    expect(onAction).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'uncomplete', taskId: 'task-uncomplete' })
+    );
+  });
+  it('handles tasks with no objectives gracefully', async () => {
+    const task: Task = {
+      id: 'task-no-obj',
+      name: 'Task No Objectives',
+      objectives: [],
+    };
+    const { actions, onAction, tarkovStore } = await setup(task, [task], {});
+    actions.markTaskComplete();
+    expect(tarkovStore.setTaskComplete).toHaveBeenCalledWith('task-no-obj');
+    expect(tarkovStore.setTaskObjectiveComplete).not.toHaveBeenCalled();
+    expect(onAction).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'complete', taskId: 'task-no-obj' })
+    );
+  });
+  it('handles tasks with no alternatives gracefully', async () => {
+    const task: Task = {
+      id: 'task-no-alt',
+      name: 'Task No Alternatives',
+      objectives: [{ id: 'obj-no-alt', count: 1 }],
+      alternatives: undefined,
+    };
+    const { actions, onAction, tarkovStore } = await setup(task, [task], {});
+    actions.markTaskComplete();
+    expect(tarkovStore.setTaskComplete).toHaveBeenCalledWith('task-no-alt');
+    expect(tarkovStore.setTaskFailed).not.toHaveBeenCalled();
+    expect(onAction).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'complete', taskId: 'task-no-alt' })
+    );
+  });
+  it('handles tasks with null/undefined fields without exceptions (defensive runtime handling)', async () => {
+    // This test validates defensive handling of malformed/untyped external input.
+    // In practice, task data from external APIs may have missing or null fields
+    // despite TypeScript types. The unsafe assertions simulate this scenario.
+    const task: Task = {
+      id: 'task-null-fields',
+      name: 'Task with Null Fields',
+      objectives: undefined as unknown as Task['objectives'],
+      alternatives: null as unknown as Task['alternatives'],
+      predecessors: null as unknown as Task['predecessors'],
+      taskRequirements: null as unknown as Task['taskRequirements'],
+    };
+    const { actions, onAction, tarkovStore } = await setup(task, [task], {});
+    expect(() => actions.markTaskComplete()).not.toThrow();
+    expect(tarkovStore.setTaskComplete).toHaveBeenCalledWith('task-null-fields');
+    expect(onAction).toHaveBeenCalled();
+  });
+  it('handles marking available with no predecessors or requirements', async () => {
+    const task: Task = {
+      id: 'task-simple',
+      name: 'Simple Task',
+      objectives: [{ id: 'obj-simple', count: 1 }],
+    };
+    const { actions, onAction, tarkovStore } = await setup(task, [task], {});
+    actions.markTaskAvailable();
+    expect(tarkovStore.setTaskComplete).not.toHaveBeenCalled();
+    expect(tarkovStore.setTaskFailed).not.toHaveBeenCalled();
+    expect(onAction).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'available', taskId: 'task-simple' })
     );
   });
 });

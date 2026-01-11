@@ -11,28 +11,58 @@ const setup = async () => {
     await import('@/features/dashboard/DashboardProgressCard.vue');
   return DashboardProgressCard;
 };
+type ProgressCardColor = 'primary' | 'info' | 'success' | 'warning' | 'purple';
+interface MountProps {
+  icon?: string;
+  label?: string;
+  completed?: number;
+  total?: number;
+  percentage?: number;
+  color?: ProgressCardColor;
+}
+const mountWithProps = async (props: MountProps = {}) => {
+  const DashboardProgressCard = await setup();
+  const defaultProps = {
+    icon: 'i-mdi-check',
+    label: 'Tasks',
+    completed: 5,
+    total: 10,
+    percentage: 50,
+    color: 'primary',
+  } satisfies MountProps;
+  return mount(DashboardProgressCard, {
+    props: { ...defaultProps, ...props },
+    global: {
+      stubs: {
+        UIcon: true,
+      },
+    },
+  });
+};
 describe('DashboardProgressCard', () => {
   it('renders progress values and emits click', async () => {
-    const DashboardProgressCard = await setup();
-    const wrapper = mount(DashboardProgressCard, {
-      props: {
-        icon: 'i-mdi-check',
-        label: 'Tasks',
-        completed: 5,
-        total: 10,
-        percentage: 50,
-        color: 'primary',
-      },
-      global: {
-        stubs: {
-          UIcon: true,
-        },
-      },
-    });
+    const wrapper = await mountWithProps();
     expect(wrapper.text()).toContain('Tasks');
     expect(wrapper.text()).toContain('5/10');
-    expect(wrapper.find('[role="progressbar"]').attributes('aria-valuenow')).toBe('50');
+    const progressbar = wrapper.find('[role="progressbar"]');
+    expect(progressbar.attributes('aria-valuenow')).toBe('50');
+    expect(progressbar.attributes('aria-valuemin')).toBe('0');
+    expect(progressbar.attributes('aria-valuemax')).toBe('100');
     await wrapper.trigger('click');
     expect(wrapper.emitted('click')).toHaveLength(1);
+  });
+  it('renders aria-valuenow as 0 when percentage is 0', async () => {
+    const wrapper = await mountWithProps({ completed: 0, total: 10, percentage: 0 });
+    const progressbar = wrapper.find('[role="progressbar"]');
+    expect(progressbar.attributes('aria-valuenow')).toBe('0');
+    expect(progressbar.attributes('aria-valuemin')).toBe('0');
+    expect(progressbar.attributes('aria-valuemax')).toBe('100');
+  });
+  it('renders aria-valuenow as 100 when percentage is 100', async () => {
+    const wrapper = await mountWithProps({ completed: 10, total: 10, percentage: 100 });
+    const progressbar = wrapper.find('[role="progressbar"]');
+    expect(progressbar.attributes('aria-valuenow')).toBe('100');
+    expect(progressbar.attributes('aria-valuemin')).toBe('0');
+    expect(progressbar.attributes('aria-valuemax')).toBe('100');
   });
 });

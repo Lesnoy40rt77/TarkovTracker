@@ -79,49 +79,36 @@ const setup = async () => {
   const { default: TaskFilterBar } = await import('@/features/tasks/TaskFilterBar.vue');
   return { TaskFilterBar, preferencesStore };
 };
+const mountTaskFilterBar = (TaskFilterBar: Parameters<typeof mount>[0], searchQuery = '') => {
+  return mount(TaskFilterBar, {
+    props: { searchQuery },
+    global: {
+      stubs: {
+        TaskSettingsModal: true,
+        UBadge: true,
+        UButton: UButtonStub,
+        UIcon: true,
+        UInput: UInputStub,
+        USelectMenu: USelectMenuStub,
+      },
+    },
+  });
+};
 describe('TaskFilterBar', () => {
   it('emits search updates and toggles primary view', async () => {
     const { TaskFilterBar, preferencesStore } = await setup();
-    const wrapper = mount(TaskFilterBar, {
-      props: {
-        searchQuery: '',
-      },
-      global: {
-        stubs: {
-          TaskSettingsModal: true,
-          UBadge: true,
-          UButton: UButtonStub,
-          UIcon: true,
-          UInput: UInputStub,
-          USelectMenu: USelectMenuStub,
-        },
-      },
-    });
+    const wrapper = mountTaskFilterBar(TaskFilterBar);
     await wrapper.find('input').setValue('propane');
     expect(wrapper.emitted('update:searchQuery')).toEqual([['propane']]);
     const mapButton = wrapper.findAll('button').find((button) => button.text().includes('MAPS'));
-    expect(mapButton).toBeDefined();
+    expect(mapButton).toBeTruthy();
     await mapButton!.trigger('click');
     expect(preferencesStore.setTaskPrimaryView).toHaveBeenCalledWith('maps');
     expect(preferencesStore.setTaskMapView).toHaveBeenCalledWith('map-1');
   });
   it('toggles sort direction', async () => {
     const { TaskFilterBar, preferencesStore } = await setup();
-    const wrapper = mount(TaskFilterBar, {
-      props: {
-        searchQuery: '',
-      },
-      global: {
-        stubs: {
-          TaskSettingsModal: true,
-          UBadge: true,
-          UButton: UButtonStub,
-          UIcon: true,
-          UInput: UInputStub,
-          USelectMenu: USelectMenuStub,
-        },
-      },
-    });
+    const wrapper = mountTaskFilterBar(TaskFilterBar);
     await wrapper.find('button[data-icon="i-mdi-sort-ascending"]').trigger('click');
     expect(preferencesStore.setTaskSortDirection).toHaveBeenCalledWith('desc');
   });

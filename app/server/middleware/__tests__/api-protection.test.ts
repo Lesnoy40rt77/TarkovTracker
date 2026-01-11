@@ -93,7 +93,7 @@ describe('API Protection Middleware', () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'development';
       runtimeConfig.apiProtection.publicRoutes = '/api/tarkov/*';
-      mockGetRequestURL.mockReturnValue(new URL('http://localhost:3000/api/tarkov/data'));
+      mockGetRequestURL.mockReturnValue(new URL('http://localhost:3000/api/tarkov/items'));
       mockGetRequestHeader.mockImplementation((_: unknown, header: string) => {
         if (header === 'host') return 'localhost:3000';
         return undefined;

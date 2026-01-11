@@ -133,7 +133,25 @@ describe('computeInvalidProgress', () => {
     });
     // Loyalty Buyout should be invalid (requires failed, but Chemical-4 is complete)
     expect(result.invalidTasks.loyaltyBuyout).toBe(true);
+    // Loyalty Buyout's objective should also be invalid
+    expect(result.invalidObjectives.loyaltyObj).toBe(true);
     // Safe Corridor should NOT be invalid (accepts both complete and failed)
     expect(result.invalidTasks.safeCorridor).toBeFalsy();
+    // Safe Corridor's objective should also NOT be invalid
+    expect(result.invalidObjectives.safeObj).toBeFalsy();
+    // Scenario 2: Chemical-4 is failed (inverse case)
+    const result2 = computeInvalidProgress({
+      tasks,
+      taskCompletions: {
+        chemical4: { complete: false, failed: true },
+      },
+      pmcFaction: 'USEC',
+    });
+    // Both tasks should be valid when Chemical-4 is failed
+    expect(result2.invalidTasks.loyaltyBuyout).toBeFalsy();
+    expect(result2.invalidTasks.safeCorridor).toBeFalsy();
+    // Both objectives should also be valid
+    expect(result2.invalidObjectives.loyaltyObj).toBeFalsy();
+    expect(result2.invalidObjectives.safeObj).toBeFalsy();
   });
 });
