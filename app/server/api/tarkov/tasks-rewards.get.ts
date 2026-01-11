@@ -10,9 +10,12 @@ import { API_SUPPORTED_LANGUAGES } from '~/utils/constants';
 const logger = createLogger('TarkovTaskRewards');
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
-  // Validate and sanitize inputs
-  let lang = (query.lang as string)?.toLowerCase() || 'en';
-  const gameMode = validateGameMode(query.gameMode as string);
+  // Normalize query params (H3 can return string | string[])
+  // Array.isArray guarantees an array, so no optional chaining needed; use logical OR for falsy defaults
+  const extractedLang = Array.isArray(query.lang) ? query.lang[0] : query.lang;
+  const extractedGameMode = Array.isArray(query.gameMode) ? query.gameMode[0] : query.gameMode;
+  let lang = (extractedLang || 'en').toLowerCase();
+  const gameMode = validateGameMode(extractedGameMode);
   // Ensure valid language (fallback to English if unsupported)
   if (!API_SUPPORTED_LANGUAGES.includes(lang as (typeof API_SUPPORTED_LANGUAGES)[number])) {
     lang = 'en';
