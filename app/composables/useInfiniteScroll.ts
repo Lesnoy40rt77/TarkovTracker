@@ -47,7 +47,7 @@ export function useInfiniteScroll(
     autoFill = true,
     // When true, attaches a window scroll listener; opt-in for cases without IntersectionObserver.
     useScrollFallback = false,
-    scrollThrottleMs = 100,
+    scrollThrottleMs = 150,
     stickToBottom = useScrollFallback,
     stickToBottomThreshold = 200,
     autoLoadOnReady = true,
@@ -60,7 +60,6 @@ export function useInfiniteScroll(
   const canUseObserver = typeof IntersectionObserver !== 'undefined';
   let warnedObserverUnavailable = false;
   let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
-  let pendingScroll = false;
   const marginPx = parseInt(rootMargin) || 1500;
   let autoLoadCount = 0;
   let stickToBottomArmed = false;
@@ -68,6 +67,14 @@ export function useInfiniteScroll(
   let ignoreInitialIntersection = !autoLoadOnReady;
   let pendingRafId: number | null = null;
   let pendingNextTick = false;
+  // Flag to prevent callbacks from executing after stop() is called
+  let isStopped = true;
+  // Cooldown to prevent rapid consecutive checks during fast scrolling
+  let lastCheckTime = 0;
+  const checkCooldownMs = 100;
+  // Track if user is actively scrolling to disable aggressive autoFill
+  let isActivelyScrolling = false;
+  let scrollIdleTimeout: ReturnType<typeof setTimeout> | null = null;
   const updateStickiness = () => {
     if (!stickToBottom || !stickToBottomArmed || typeof window === 'undefined') return;
     const doc = document.documentElement;
@@ -75,6 +82,7 @@ export function useInfiniteScroll(
     isStuckToBottom = distanceFromBottom <= stickToBottomThreshold;
   };
   const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+    if (isStopped) return;
     const target = entries[0];
     if (target?.isIntersecting && enabled.value) {
       if (ignoreInitialIntersection) {
@@ -86,8 +94,20 @@ export function useInfiniteScroll(
     }
   };
   const checkAndLoadMore = async () => {
-    if (!enabled.value || isLoading.value || !sentinelRef.value) return;
+    if (isStopped || !enabled.value || isLoading.value || !sentinelRef.value) return;
     if (typeof window === 'undefined') return;
+    // Enforce cooldown between checks to prevent overwhelming the main thread
+    // This prevents expensive getBoundingClientRect calls from piling up
+    const now = performance.now();
+    if (now - lastCheckTime < checkCooldownMs) {
+      return;
+    }
+    lastCheckTime = now;
+    // Yield to the event loop immediately so callers (setTimeout/rAF handlers) return quickly
+    // This prevents browser "long task" violations by deferring expensive work
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    // Re-check guards after yielding - state may have changed
+    if (isStopped || !enabled.value || isLoading.value || !sentinelRef.value) return;
     const rect = sentinelRef.value.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
     const shouldLoad = rect.top < viewportHeight + marginPx || (stickToBottom && isStuckToBottom);
@@ -106,17 +126,16 @@ export function useInfiniteScroll(
         logger.error('[useInfiniteScroll] Failed to load more items:', error);
       } finally {
         isLoading.value = false;
-        // Re-check after DOM updates AND browser paint - sentinel may still
-        // be visible if user scrolled fast and more content is needed.
-        // Guard against multiple queued nextTick/rAF chains during rapid scroll.
-        if (autoFill && !pendingNextTick && pendingRafId === null) {
+        // Only use autoFill when NOT actively scrolling - scroll handler will trigger loads
+        // This prevents the recursive nextTick/rAF chain from competing with scroll events
+        if (autoFill && !isActivelyScrolling && !isStopped && !pendingNextTick && pendingRafId === null) {
           pendingNextTick = true;
           nextTick(() => {
             pendingNextTick = false;
-            if (pendingRafId !== null || !enabled.value || !sentinelRef.value) return;
+            if (isStopped || isActivelyScrolling || pendingRafId !== null || !enabled.value || !sentinelRef.value) return;
             pendingRafId = requestAnimationFrame(() => {
               pendingRafId = null;
-              if (!enabled.value || !sentinelRef.value) return;
+              if (isStopped || isActivelyScrolling || !enabled.value || !sentinelRef.value) return;
               void checkAndLoadMore();
             });
           });
@@ -129,20 +148,31 @@ export function useInfiniteScroll(
   const scheduleScrollCheck = () => {
     scrollTimeout = setTimeout(() => {
       scrollTimeout = null;
+      if (isStopped) return;
       void checkAndLoadMore();
-      if (pendingScroll) {
-        pendingScroll = false;
-        scheduleScrollCheck();
-      }
     }, scrollThrottleMs);
   };
   const handleScroll = () => {
-    if (!enabled.value) return;
+    if (isStopped || !enabled.value) return;
     stickToBottomArmed ||= stickToBottom;
     updateStickiness();
     autoLoadCount = 0;
+    // Mark as actively scrolling and reset idle timer
+    isActivelyScrolling = true;
+    if (scrollIdleTimeout) {
+      clearTimeout(scrollIdleTimeout);
+    }
+    // After scrolling stops for 200ms, allow autoFill to resume
+    scrollIdleTimeout = setTimeout(() => {
+      scrollIdleTimeout = null;
+      isActivelyScrolling = false;
+      // Trigger one final check after scrolling stops
+      if (!isStopped && enabled.value) {
+        void checkAndLoadMore();
+      }
+    }, 200);
+    // If a timeout is already scheduled, skip - it will handle the check
     if (scrollTimeout) {
-      pendingScroll = true;
       return;
     }
     scheduleScrollCheck();
@@ -170,6 +200,10 @@ export function useInfiniteScroll(
     }
   };
   const start = () => {
+    // Enable processing - must be set before any async operations
+    isStopped = false;
+    isActivelyScrolling = false;
+    lastCheckTime = 0;
     // When autoLoadOnReady is true, we run a manual checkAndLoadMore() below.
     // Set ignoreInitialIntersection=true to skip duplicate observer triggers,
     // then clear it after the manual check so subsequent intersections work.
@@ -179,6 +213,7 @@ export function useInfiniteScroll(
       window.addEventListener('scroll', handleScroll, { passive: true });
     }
     nextTick(() => {
+      if (isStopped) return;
       updateStickiness();
       if (autoLoadOnReady) {
         void checkAndLoadMore();
@@ -188,6 +223,8 @@ export function useInfiniteScroll(
     });
   };
   const stop = () => {
+    // Set stopped flag first to prevent any pending callbacks from executing
+    isStopped = true;
     observer?.disconnect();
     observer = null;
     if (shouldAttachScrollListener) {
@@ -197,25 +234,33 @@ export function useInfiniteScroll(
       clearTimeout(scrollTimeout);
       scrollTimeout = null;
     }
+    if (scrollIdleTimeout) {
+      clearTimeout(scrollIdleTimeout);
+      scrollIdleTimeout = null;
+    }
     if (pendingRafId !== null) {
       cancelAnimationFrame(pendingRafId);
       pendingRafId = null;
     }
     pendingNextTick = false;
-    pendingScroll = false;
     autoLoadCount = 0;
     stickToBottomArmed = false;
     isStuckToBottom = false;
+    isActivelyScrolling = false;
+    lastCheckTime = 0;
   };
   watch(
     sentinelRef,
     (el, oldEl) => {
-      if (el === oldEl || !observer) return;
+      if (isStopped || el === oldEl || !observer) return;
       observer.disconnect();
       if (el) {
         observer.observe(el);
         if (autoLoadOnReady) {
-          nextTick(() => void checkAndLoadMore());
+          nextTick(() => {
+            if (isStopped) return;
+            void checkAndLoadMore();
+          });
         }
       }
     },
