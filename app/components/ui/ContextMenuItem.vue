@@ -2,10 +2,11 @@
   <div
     role="menuitem"
     :class="itemClasses"
-    :aria-disabled="props.disabled"
+    :aria-disabled="props.disabled ? 'true' : 'false'"
     :tabindex="props.disabled ? -1 : 0"
     @click="handleClick"
     @keydown="handleKeydown"
+    @keyup="handleKeyup"
   >
     <img v-if="isImagePath" :src="icon" :alt="label" class="h-4 w-4 shrink-0" />
     <UIcon v-else-if="icon" :name="icon" class="h-4 w-4 shrink-0" />
@@ -47,7 +48,16 @@
   };
   const handleKeydown = (event: KeyboardEvent) => {
     if (props.disabled) return;
-    if (event.key === 'Enter' || event.key === ' ') {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      emit('click');
+    } else if (event.key === ' ') {
+      event.preventDefault();
+    }
+  };
+  const handleKeyup = (event: KeyboardEvent) => {
+    if (props.disabled) return;
+    if (event.key === ' ') {
       event.preventDefault();
       emit('click');
     }

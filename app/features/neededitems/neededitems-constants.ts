@@ -2,13 +2,13 @@
  * Constants for the needed items page
  */
 /** Number of items to load per batch in grid view */
-export const BATCH_SIZE_GRID = 20;
+export const BATCH_SIZE_GRID = 12;
 /** Number of items to load per batch in list view */
-export const BATCH_SIZE_LIST = 50;
+export const BATCH_SIZE_LIST = 30;
 /** Root margin for infinite scroll intersection observer */
 export const INFINITE_SCROLL_MARGIN = '200px';
 /** Default initial render count before responsive adjustments */
-export const DEFAULT_INITIAL_RENDER_COUNT = 15;
+export const DEFAULT_INITIAL_RENDER_COUNT = 12;
 /**
  * Screen size multipliers for initial render count.
  * These are multiplicative factors applied to a base render count.
@@ -18,7 +18,7 @@ export const DEFAULT_INITIAL_RENDER_COUNT = 15;
  *   finalCount = Math.round(viewAdjusted * SCREEN_SIZE_MULTIPLIERS.xs) // when xs screen
  *   finalCount = Math.round(viewAdjusted * SCREEN_SIZE_MULTIPLIERS.belowMd) // when belowMd screen
  *
- * Note: DEFAULT_INITIAL_RENDER_COUNT (currently 15) is the base value used in these calculations.
+ * Note: DEFAULT_INITIAL_RENDER_COUNT (currently 12) is the base value used in these calculations.
  * Only one screen size multiplier (xs or belowMd) is applied per calculation.
  */
 export const SCREEN_SIZE_MULTIPLIERS = {

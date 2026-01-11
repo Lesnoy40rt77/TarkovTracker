@@ -5,7 +5,7 @@
 export const OBJECTIVE_ICON_MAP = {
   key: 'mdi-key',
   shoot: 'mdi-target-account',
-  giveItem: 'mdi-close-circle-outline',
+  giveItem: 'mdi-hand-coin',
   findItem: 'mdi-checkbox-marked-circle-outline',
   findQuestItem: 'mdi-alert-circle-outline',
   giveQuestItem: 'mdi-alert-circle-check-outline',
