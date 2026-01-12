@@ -20,7 +20,7 @@
       title: 'Tableau de bord',
       hero: {
         overall: 'Global',
-        welcome: 'Bon retour, soldat',
+        welcome: 'Bon retour, {name}',
         subtitle: 'Suivez votre progression dans votre évasion de Tarkov',
         tasksComplete: 'Quêtes terminées',
         available: 'Disponibles',

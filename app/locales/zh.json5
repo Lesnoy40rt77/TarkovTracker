@@ -37,7 +37,7 @@
       title: '总览面板',
       hero: {
         overall: '全局概况',
-        welcome: '欢迎回来，干员',
+        welcome: '欢迎回来，{name}',
         subtitle: '追踪你在塔科夫街头的征战进度',
         tasksComplete: '已完成任务',
         available: '可接取',

@@ -57,7 +57,7 @@
           <div class="space-y-4 lg:col-span-2 lg:space-y-6">
             <div>
               <h1 class="mb-2 text-2xl font-bold text-white md:text-4xl">
-                {{ $t('page.dashboard.hero.welcome') }}
+                {{ $t('page.dashboard.hero.welcome', { name: userDisplayName }) }}
               </h1>
               <p class="text-surface-400 text-sm md:text-lg">
                 {{ $t('page.dashboard.hero.subtitle') }}
@@ -279,7 +279,17 @@
   const tarkovStore = useTarkovStore();
   const router = useRouter();
   const preferencesStore = usePreferencesStore();
+  const { $supabase } = useNuxtApp();
   const xpCalculation = useXpCalculation();
+  const userDisplayName = computed(() => {
+    if (preferencesStore.getStreamerMode) return 'Operator';
+    if (!$supabase.user?.loggedIn) return 'Operator';
+    const displayName = tarkovStore.getDisplayName();
+    if (displayName && displayName.trim() !== '') return displayName;
+    const authDisplayName = $supabase.user.displayName;
+    if (authDisplayName && authDisplayName.trim() !== '') return authDisplayName;
+    return 'Operator';
+  });
   // Holiday effects
   const holidayEffectsEnabled = computed(() => preferencesStore.getEnableHolidayEffects);
   // Navigate to tasks page filtered by trader

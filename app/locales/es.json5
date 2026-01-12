@@ -21,7 +21,7 @@
       title: 'Panel',
       hero: {
         overall: 'General',
-        welcome: 'Bienvenido de nuevo, Operador',
+        welcome: 'Bienvenido de nuevo, {name}',
         subtitle: 'Rastrea tu progreso por las calles de Tarkov',
         tasksComplete: 'Misiones completadas',
         available: 'Disponibles',

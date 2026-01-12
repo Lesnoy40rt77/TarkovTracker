@@ -37,7 +37,7 @@
       title: 'Dashboard',
       hero: {
         overall: 'Gesamt',
-        welcome: 'Willkommen zurück, Operator',
+        welcome: 'Willkommen zurück, {name}',
         subtitle: 'Verfolge deinen Fortschritt durch die Straßen von Tarkov',
         tasksComplete: 'Aufgaben abgeschlossen',
         available: 'Verfügbar',
