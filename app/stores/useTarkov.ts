@@ -6,6 +6,8 @@ import {
   defaultState,
   getters,
   migrateToGameModeStructure,
+  type ApiTaskUpdate,
+  type ApiUpdateMeta,
   type UserActions,
   type UserProgressData,
   type UserState,
@@ -1082,6 +1084,60 @@ export async function initializeTarkovSync() {
 // Realtime channel for multi-device sync
 let realtimeChannel: unknown = null;
 let lastLocalSyncTime = 0; // Track when we last synced locally to filter self-origin updates
+let lastApiUpdateIds: { pvp: string | null; pve: string | null } = { pvp: null, pve: null };
+const API_TASK_STATES = ['completed', 'failed', 'uncompleted'] as const;
+const API_UPDATE_FRESHNESS_MS = 30000;
+const isApiTaskState = (state: unknown): state is ApiTaskUpdate['state'] => {
+  return API_TASK_STATES.includes(state as ApiTaskUpdate['state']);
+};
+const normalizeApiTaskUpdates = (updates: ApiUpdateMeta['tasks']): ApiTaskUpdate[] => {
+  if (!Array.isArray(updates)) return [];
+  return updates.filter(
+    (update): update is ApiTaskUpdate =>
+      Boolean(update) && typeof update.id === 'string' && isApiTaskState(update.state)
+  );
+};
+const formatApiUpdateDescription = (
+  updates: ApiTaskUpdate[],
+  metadataStore: ReturnType<typeof useMetadataStore>
+): string => {
+  if (!updates.length) return 'Your progress was updated via API.';
+  const previewLimit = 3;
+  const label = updates.length === 1 ? 'Task updated' : 'Tasks updated';
+  const formatted = updates.slice(0, previewLimit).map((update) => {
+    const taskName = metadataStore.getTaskById(update.id)?.name ?? update.id;
+    return `${taskName} → ${update.state}`;
+  });
+  const remaining = updates.length - previewLimit;
+  const suffix = remaining > 0 ? `, +${remaining} more` : '';
+  return `${label}: ${formatted.join(', ')}${suffix}.`;
+};
+const getApiUpdateMeta = (data: UserProgressData | undefined): ApiUpdateMeta | null => {
+  const meta = data?.lastApiUpdate;
+  if (!meta || meta.source !== 'api' || typeof meta.id !== 'string' || typeof meta.at !== 'number') {
+    return null;
+  }
+  return meta;
+};
+const maybeNotifyApiUpdate = (
+  mode: 'pvp' | 'pve',
+  data: UserProgressData | undefined,
+  metadataStore: ReturnType<typeof useMetadataStore>,
+  updateTime: number
+): boolean => {
+  const meta = getApiUpdateMeta(data);
+  if (!meta || lastApiUpdateIds[mode] === meta.id) return false;
+  if (Math.abs(updateTime - meta.at) > API_UPDATE_FRESHNESS_MS) return false;
+  lastApiUpdateIds[mode] = meta.id;
+  const toast = useToast();
+  toast.add({
+    title: 'Update from API',
+    description: formatApiUpdateDescription(normalizeApiTaskUpdates(meta.tasks), metadataStore),
+    color: 'primary',
+    duration: 6000,
+  });
+  return true;
+};
 /**
  * Detect if there are actual data conflicts between local and remote state.
  * A conflict occurs when both local and remote have different values for the same field,
@@ -1163,6 +1219,7 @@ function detectDataConflicts(
 function setupRealtimeListener() {
   const { $supabase } = useNuxtApp();
   const tarkovStore = useTarkovStore();
+  const metadataStore = useMetadataStore();
   if (!$supabase.user.loggedIn || !$supabase.user.id) return;
   // Clean up existing channel if any
   if (realtimeChannel) {
@@ -1232,6 +1289,9 @@ function setupRealtimeListener() {
         const pveConflicts = detectDataConflicts(localState.pve, remoteData.pve_data);
         const hasRealConflict = pvpConflicts.hasConflict || pveConflicts.hasConflict;
         const totalConflicts = pvpConflicts.conflictCount + pveConflicts.conflictCount;
+        const apiUpdateHandled =
+          maybeNotifyApiUpdate('pvp', remoteData.pvp_data, metadataStore, updateTime) ||
+          maybeNotifyApiUpdate('pve', remoteData.pve_data, metadataStore, updateTime);
         logger.debug('[TarkovStore] Remote update detected, applying changes', {
           hasRealConflict,
           totalConflicts,
@@ -1253,7 +1313,7 @@ function setupRealtimeListener() {
         }, 1000);
         // Only notify user if there was an actual data conflict that required merging
         // Silent sync for API updates or other-device updates that don't conflict
-        if (hasRealConflict) {
+        if (hasRealConflict && !apiUpdateHandled) {
           const toast = useToast();
           toast.add({
             title: 'Progress merged',
@@ -1307,12 +1367,23 @@ function mergeProgressData(
     merged.timestamp = Math.max(localTs, remoteTs);
     return merged;
   };
+  const resolveApiUpdate = (
+    localUpdate?: ApiUpdateMeta,
+    remoteUpdate?: ApiUpdateMeta
+  ): ApiUpdateMeta | undefined => {
+    if (!localUpdate) return remoteUpdate;
+    if (!remoteUpdate) return localUpdate;
+    const localAt = typeof localUpdate.at === 'number' ? localUpdate.at : 0;
+    const remoteAt = typeof remoteUpdate.at === 'number' ? remoteUpdate.at : 0;
+    return remoteAt >= localAt ? remoteUpdate : localUpdate;
+  };
   return {
     level: Math.max(local.level || 1, remote.level || 1),
     prestigeLevel: Math.max(local.prestigeLevel || 0, remote.prestigeLevel || 0),
     displayName: remote.displayName || local.displayName,
     pmcFaction: remote.pmcFaction || local.pmcFaction,
     xpOffset: remote.xpOffset !== undefined ? remote.xpOffset : local.xpOffset,
+    lastApiUpdate: resolveApiUpdate(local.lastApiUpdate, remote.lastApiUpdate),
     // Merge task completions - preserve completed status to prevent progress regression
     taskCompletions: (() => {
       const allKeys = new Set([

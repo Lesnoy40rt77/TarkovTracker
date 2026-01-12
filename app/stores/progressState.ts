@@ -36,6 +36,16 @@ interface HideoutModule {
   complete?: boolean;
   timestamp?: number;
 }
+export interface ApiTaskUpdate {
+  id: string;
+  state: 'completed' | 'failed' | 'uncompleted';
+}
+export interface ApiUpdateMeta {
+  id: string;
+  at: number;
+  source: 'api';
+  tasks?: ApiTaskUpdate[];
+}
 export interface TraderProgress {
   level: number;
   reputation: number;
@@ -53,6 +63,7 @@ export interface UserProgressData {
   skills: { [skillName: string]: number };
   prestigeLevel: number; // 0-6, default 0
   skillOffsets: { [skillName: string]: number }; // manual adjustments per skill
+  lastApiUpdate?: ApiUpdateMeta;
 }
 export interface UserState {
   currentGameMode: GameMode;

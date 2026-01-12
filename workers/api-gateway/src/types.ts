@@ -26,6 +26,16 @@ export interface ApiToken {
 export type Permission = 'GP' | 'TP' | 'WP';
 // Task status for updates
 export type TaskState = 'completed' | 'uncompleted' | 'failed';
+export interface ApiTaskUpdate {
+  id: string;
+  state: TaskState;
+}
+export interface ApiUpdateMeta {
+  id: string;
+  at: number;
+  source: 'api';
+  tasks?: ApiTaskUpdate[];
+}
 // Request body for single task update
 export interface TaskUpdateBody {
   state: TaskState;
@@ -49,6 +59,7 @@ export interface UserProgressData {
   skills: Record<string, number>;
   prestigeLevel: number;
   skillOffsets: Record<string, number>;
+  lastApiUpdate?: ApiUpdateMeta;
 }
 export interface TaskCompletion {
   complete?: boolean;

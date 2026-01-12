@@ -10,6 +10,8 @@ import type {
   BatchTaskUpdate,
   TaskCompletion,
   TarkovTask,
+  ApiTaskUpdate,
+  ApiUpdateMeta,
 } from '../types';
 const DISPLAY_NAME_CACHE_TTL_SECONDS = 86400;
 function getMetaString(metadata: Record<string, unknown>, key: string): string | null {
@@ -96,14 +98,34 @@ async function getUserDisplayName(env: Env, userId: string): Promise<string | nu
     return null;
   }
 }
+const toTaskState = (complete: boolean, failed: boolean): TaskState => {
+  if (failed) return 'failed';
+  if (complete) return 'completed';
+  return 'uncompleted';
+};
+const buildApiUpdateMeta = (updates: ApiTaskUpdate[], timestamp: number): ApiUpdateMeta => {
+  return {
+    id: crypto.randomUUID(),
+    at: timestamp,
+    source: 'api',
+    tasks: updates,
+  };
+};
 const setTaskCompletion = (
   taskCompletions: Record<string, TaskCompletion>,
   taskId: string,
   complete: boolean,
   failed: boolean,
-  timestamp: number
+  timestamp: number,
+  updates?: Map<string, TaskState>
 ): void => {
+  const previous = taskCompletions[taskId];
+  const prevState = toTaskState(previous?.complete === true, previous?.failed === true);
+  const nextState = toTaskState(complete, failed);
   taskCompletions[taskId] = { complete, failed, timestamp };
+  if (updates && prevState !== nextState) {
+    updates.set(taskId, nextState);
+  }
 };
 const checkAllRequirementsMet = (
   dependentTask: TarkovTask,
@@ -153,7 +175,8 @@ const updateDependentTasks = (
   newState: TaskState,
   tasks: TarkovTask[],
   taskCompletions: Record<string, TaskCompletion>,
-  updateTime: number
+  updateTime: number,
+  updates?: Map<string, TaskState>
 ): void => {
   for (const dependentTask of tasks) {
     const requirements = dependentTask.taskRequirements ?? [];
@@ -176,7 +199,7 @@ const updateDependentTasks = (
       }
     }
     if (shouldUnlock || shouldLock) {
-      setTaskCompletion(taskCompletions, dependentTask.id, false, false, updateTime);
+      setTaskCompletion(taskCompletions, dependentTask.id, false, false, updateTime, updates);
     }
   }
 };
@@ -184,16 +207,17 @@ const updateAlternativeTasks = (
   changedTask: TarkovTask,
   newState: TaskState,
   taskCompletions: Record<string, TaskCompletion>,
-  updateTime: number
+  updateTime: number,
+  updates?: Map<string, TaskState>
 ): void => {
   const alternatives = changedTask.alternatives ?? [];
   if (!alternatives.length) return;
   for (const altTaskId of alternatives) {
     if (!altTaskId) continue;
     if (newState === 'completed') {
-      setTaskCompletion(taskCompletions, altTaskId, true, true, updateTime);
+      setTaskCompletion(taskCompletions, altTaskId, true, true, updateTime, updates);
     } else if (newState !== 'failed') {
-      setTaskCompletion(taskCompletions, altTaskId, false, false, updateTime);
+      setTaskCompletion(taskCompletions, altTaskId, false, false, updateTime, updates);
     }
   }
 };
@@ -359,22 +383,30 @@ export async function handleUpdateTask(
   const rows = (await getRes.json()) as Array<Record<string, unknown>>;
   const currentData = (rows[0]?.[dataField] as Record<string, unknown>) || {};
   const taskCompletions = (currentData.taskCompletions as Record<string, TaskCompletion>) || {};
+  const updateMap = new Map<string, TaskState>();
   setTaskCompletion(
     taskCompletions,
     taskId,
     state === 'completed' || state === 'failed',
     state === 'failed',
-    updateTime
+    updateTime,
+    updateMap
   );
   const tasks = await getTasks();
   if (tasks.length > 0) {
-    updateDependentTasks(taskId, state, tasks, taskCompletions, updateTime);
+    updateDependentTasks(taskId, state, tasks, taskCompletions, updateTime, updateMap);
     const changedTask = tasks.find((task) => task.id === taskId);
     if (changedTask) {
-      updateAlternativeTasks(changedTask, state, taskCompletions, updateTime);
+      updateAlternativeTasks(changedTask, state, taskCompletions, updateTime, updateMap);
     }
   }
   currentData.taskCompletions = taskCompletions;
+  if (updateMap.size > 0) {
+    currentData.lastApiUpdate = buildApiUpdateMeta(
+      Array.from(updateMap.entries()).map(([id, taskState]) => ({ id, state: taskState })),
+      updateTime
+    );
+  }
   const patchUrl = `${env.SUPABASE_URL}/rest/v1/user_progress?user_id=eq.${token.user_id}`;
   await fetch(patchUrl, {
     method: 'PATCH',
@@ -409,16 +441,26 @@ export async function handleUpdateTasks(
   });
   const rows = (await getRes.json()) as Array<Record<string, unknown>>;
   const currentData = (rows[0]?.[dataField] as Record<string, unknown>) || {};
-  const taskCompletions = (currentData.taskCompletions as Record<string, unknown>) || {};
+  const taskCompletions = (currentData.taskCompletions as Record<string, TaskCompletion>) || {};
+  const updateMap = new Map<string, TaskState>();
   // Apply all updates
   for (const update of updates) {
-    taskCompletions[update.id] = {
-      complete: update.state === 'completed' || update.state === 'failed',
-      failed: update.state === 'failed',
-      timestamp: updateTime,
-    };
+    setTaskCompletion(
+      taskCompletions,
+      update.id,
+      update.state === 'completed' || update.state === 'failed',
+      update.state === 'failed',
+      updateTime,
+      updateMap
+    );
   }
   currentData.taskCompletions = taskCompletions;
+  if (updateMap.size > 0) {
+    currentData.lastApiUpdate = buildApiUpdateMeta(
+      Array.from(updateMap.entries()).map(([id, taskState]) => ({ id, state: taskState })),
+      updateTime
+    );
+  }
   // Save back
   const patchUrl = `${env.SUPABASE_URL}/rest/v1/user_progress?user_id=eq.${token.user_id}`;
   await fetch(patchUrl, {
