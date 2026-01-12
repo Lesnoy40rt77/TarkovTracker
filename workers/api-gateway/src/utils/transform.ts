@@ -88,38 +88,55 @@ export function transformProgress(
     pmcFaction,
   });
   // Transform tasks to array format
-  const tasksProgress: ProgressResponseTask[] = Object.entries(taskCompletions).map(
-    ([id, data]) => ({
+  const tasksProgress: ProgressResponseTask[] = Object.entries(taskCompletions).map(([id, data]) => {
+    const entry: ProgressResponseTask = {
       id,
       complete: data.complete === true && data.failed !== true,
-      invalid: invalidTasks[id] || false,
-      failed: data.failed || false,
-    })
-  );
+    };
+    if (invalidTasks[id]) {
+      entry.invalid = true;
+    }
+    if (data.failed === true) {
+      entry.failed = true;
+    }
+    return entry;
+  });
   // Transform objectives to array format
   const taskObjectivesProgress: ProgressResponseObjective[] = Object.entries(
     progressData?.taskObjectives ?? {}
-  ).map(([id, data]) => ({
-    id,
-    complete: data.complete || false,
-    count: data.count ?? 0,
-    invalid: invalidObjectives[id] || false,
-  }));
+  ).map(([id, data]) => {
+    const entry: ProgressResponseObjective = {
+      id,
+      complete: data.complete === true,
+    };
+    if (typeof data.count === 'number' && data.count > 0) {
+      entry.count = data.count;
+    }
+    if (invalidObjectives[id]) {
+      entry.invalid = true;
+    }
+    return entry;
+  });
   // Transform hideout modules
   const hideoutModulesProgress: ProgressResponseHideoutModule[] = Object.entries(
     progressData?.hideoutModules ?? {}
   ).map(([id, data]) => ({
     id,
-    complete: data.complete || false,
+    complete: data.complete === true,
   }));
   // Transform hideout parts
   const hideoutPartsProgress: ProgressResponseHideoutPart[] = Object.entries(
     progressData?.hideoutParts ?? {}
-  ).map(([id, data]) => ({
-    id,
-    complete: data.complete || false,
-    count: data.count ?? 0,
-  }));
+  ).map(([id, data]) => {
+    const entry: ProgressResponseHideoutPart = {
+      id,
+      complete: data.complete === true,
+    };
+    if (typeof data.count === 'number' && data.count > 0) {
+      entry.count = data.count;
+    }
+    return entry;
+  });
   // Apply hideout auto-complete based on game edition
   applyHideoutAutoComplete(
     hideoutModulesProgress,

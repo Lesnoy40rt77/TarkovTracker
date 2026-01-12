@@ -168,10 +168,13 @@ export const OPENAPI_SPEC = {
         properties: {
           id: { type: 'string' },
           complete: { type: 'boolean' },
-          count: { type: 'number' },
+          count: {
+            type: 'number',
+            description: 'Only included when greater than 0.',
+          },
           invalid: { type: 'boolean' },
         },
-        required: ['id', 'complete', 'count'],
+        required: ['id', 'complete'],
       },
       ProgressHideoutModule: {
         type: 'object',
@@ -186,9 +189,12 @@ export const OPENAPI_SPEC = {
         properties: {
           id: { type: 'string' },
           complete: { type: 'boolean' },
-          count: { type: 'number' },
+          count: {
+            type: 'number',
+            description: 'Only included when greater than 0.',
+          },
         },
-        required: ['id', 'complete', 'count'],
+        required: ['id', 'complete'],
       },
       ProgressMeta: {
         type: 'object',

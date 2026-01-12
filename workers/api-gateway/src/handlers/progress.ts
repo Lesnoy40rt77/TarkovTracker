@@ -8,6 +8,8 @@ import type {
   ProgressResponse,
   TaskState,
   BatchTaskUpdate,
+  TaskCompletion,
+  TarkovTask,
 } from '../types';
 const DISPLAY_NAME_CACHE_TTL_SECONDS = 86400;
 function getMetaString(metadata: Record<string, unknown>, key: string): string | null {
@@ -94,6 +96,107 @@ async function getUserDisplayName(env: Env, userId: string): Promise<string | nu
     return null;
   }
 }
+const setTaskCompletion = (
+  taskCompletions: Record<string, TaskCompletion>,
+  taskId: string,
+  complete: boolean,
+  failed: boolean,
+  timestamp: number
+): void => {
+  taskCompletions[taskId] = { complete, failed, timestamp };
+};
+const checkAllRequirementsMet = (
+  dependentTask: TarkovTask,
+  changedTaskId: string,
+  newState: TaskState,
+  taskCompletions: Record<string, TaskCompletion>
+): boolean => {
+  const requirements = dependentTask.taskRequirements ?? [];
+  return requirements.every((requirement) => {
+    if (!requirement?.task?.id) return true;
+    const reqTaskId = requirement.task.id;
+    const requirementStatus = requirement.status ?? [];
+    if (reqTaskId === changedTaskId) {
+      if (requirementStatus.includes('complete') && newState === 'completed') return true;
+      if (requirementStatus.includes('failed') && newState === 'failed') return true;
+      if (
+        requirementStatus.includes('active') &&
+        (newState === 'uncompleted' || newState === 'completed')
+      ) {
+        return true;
+      }
+      return false;
+    }
+    const otherTaskData = taskCompletions[reqTaskId];
+    if (
+      requirementStatus.includes('complete') &&
+      otherTaskData?.complete &&
+      !otherTaskData?.failed
+    ) {
+      return true;
+    }
+    if (
+      requirementStatus.includes('active') &&
+      (otherTaskData?.complete === false ||
+        (otherTaskData?.complete === true && !otherTaskData?.failed))
+    ) {
+      return true;
+    }
+    if (requirementStatus.includes('failed') && otherTaskData?.failed) {
+      return true;
+    }
+    return false;
+  });
+};
+const updateDependentTasks = (
+  changedTaskId: string,
+  newState: TaskState,
+  tasks: TarkovTask[],
+  taskCompletions: Record<string, TaskCompletion>,
+  updateTime: number
+): void => {
+  for (const dependentTask of tasks) {
+    const requirements = dependentTask.taskRequirements ?? [];
+    if (!requirements.length) continue;
+    let shouldUnlock = false;
+    let shouldLock = false;
+    for (const requirement of requirements) {
+      if (requirement?.task?.id !== changedTaskId) continue;
+      const requirementStatus = requirement.status ?? [];
+      if (!requirementStatus.includes('complete')) continue;
+      if (newState === 'completed') {
+        shouldUnlock = checkAllRequirementsMet(
+          dependentTask,
+          changedTaskId,
+          newState,
+          taskCompletions
+        );
+      } else {
+        shouldLock = true;
+      }
+    }
+    if (shouldUnlock || shouldLock) {
+      setTaskCompletion(taskCompletions, dependentTask.id, false, false, updateTime);
+    }
+  }
+};
+const updateAlternativeTasks = (
+  changedTask: TarkovTask,
+  newState: TaskState,
+  taskCompletions: Record<string, TaskCompletion>,
+  updateTime: number
+): void => {
+  const alternatives = changedTask.alternatives ?? [];
+  if (!alternatives.length) return;
+  for (const altTaskId of alternatives) {
+    if (!altTaskId) continue;
+    if (newState === 'completed') {
+      setTaskCompletion(taskCompletions, altTaskId, true, true, updateTime);
+    } else if (newState !== 'failed') {
+      setTaskCompletion(taskCompletions, altTaskId, false, false, updateTime);
+    }
+  }
+};
 /**
  * Handle GET /api/progress - Return player progress
  */
@@ -245,49 +348,8 @@ export async function handleUpdateTask(
   gameMode: 'pvp' | 'pve'
 ): Promise<{ taskId: string; state: string; message: string }> {
   const updateTime = Date.now();
-  // Build update data based on state
-  const taskData: Record<string, boolean | number> = {
-    complete: state === 'completed' || state === 'failed',
-    failed: state === 'failed',
-    timestamp: updateTime,
-  };
-  // Use RPC to update nested JSON field
-  const url = `${env.SUPABASE_URL}/rest/v1/rpc/update_task_completion`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      p_user_id: token.user_id,
-      p_game_mode: gameMode,
-      p_task_id: taskId,
-      p_complete: taskData.complete,
-      p_failed: taskData.failed,
-      p_timestamp: taskData.timestamp,
-    }),
-  });
-  if (!response.ok) {
-    // Fallback: fetch, modify, and update the entire row
-    await updateTaskFallback(env, token.user_id, gameMode, taskId, taskData);
-  }
-  return { taskId, state, message: 'Task updated successfully' };
-}
-/**
- * Fallback: fetch, modify, and update entire progress row
- */
-async function updateTaskFallback(
-  env: Env,
-  userId: string,
-  gameMode: 'pvp' | 'pve',
-  taskId: string,
-  taskData: Record<string, boolean | number>
-): Promise<void> {
   const dataField = gameMode === 'pve' ? 'pve_data' : 'pvp_data';
-  // Fetch current data
-  const getUrl = `${env.SUPABASE_URL}/rest/v1/user_progress?user_id=eq.${userId}&select=${dataField}`;
+  const getUrl = `${env.SUPABASE_URL}/rest/v1/user_progress?user_id=eq.${token.user_id}&select=${dataField}`;
   const getRes = await fetch(getUrl, {
     headers: {
       Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
@@ -296,12 +358,24 @@ async function updateTaskFallback(
   });
   const rows = (await getRes.json()) as Array<Record<string, unknown>>;
   const currentData = (rows[0]?.[dataField] as Record<string, unknown>) || {};
-  const taskCompletions = (currentData.taskCompletions as Record<string, unknown>) || {};
-  // Update task completion
-  taskCompletions[taskId] = taskData;
+  const taskCompletions = (currentData.taskCompletions as Record<string, TaskCompletion>) || {};
+  setTaskCompletion(
+    taskCompletions,
+    taskId,
+    state === 'completed' || state === 'failed',
+    state === 'failed',
+    updateTime
+  );
+  const tasks = await getTasks();
+  if (tasks.length > 0) {
+    updateDependentTasks(taskId, state, tasks, taskCompletions, updateTime);
+    const changedTask = tasks.find((task) => task.id === taskId);
+    if (changedTask) {
+      updateAlternativeTasks(changedTask, state, taskCompletions, updateTime);
+    }
+  }
   currentData.taskCompletions = taskCompletions;
-  // Save back
-  const patchUrl = `${env.SUPABASE_URL}/rest/v1/user_progress?user_id=eq.${userId}`;
+  const patchUrl = `${env.SUPABASE_URL}/rest/v1/user_progress?user_id=eq.${token.user_id}`;
   await fetch(patchUrl, {
     method: 'PATCH',
     headers: {
@@ -312,6 +386,7 @@ async function updateTaskFallback(
     },
     body: JSON.stringify({ [dataField]: currentData }),
   });
+  return { taskId, state, message: 'Task updated successfully' };
 }
 /**
  * Handle POST /api/progress/tasks - Batch update tasks
