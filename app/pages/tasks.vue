@@ -666,12 +666,11 @@
   const handleScroll = () => {
     scrollY.value = window.scrollY;
   };
-  const scrollToMap = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  // Alias for semantic clarity - scrolls to top where the map is located
+  const scrollToMap = scrollToTop;
   /**
    * Scrolls to the map and activates the popup for a specific objective.
    * Used by TaskObjective's "Jump to map" button.

@@ -302,6 +302,7 @@
     });
     let isPinned = false;
     let isHovering = false;
+    let popupHideTimer: ReturnType<typeof setTimeout> | null = null;
     let currentMountedComponent: { element: HTMLElement; unmount: () => void } | null = null;
 
     // Store original colors for restoration when unpinned
@@ -387,13 +388,23 @@
     // Hover events
     layer.on('mouseover', () => {
       isHovering = true;
+      // Cancel any pending hide timeout
+      if (popupHideTimer) {
+        clearTimeout(popupHideTimer);
+        popupHideTimer = null;
+      }
       if (!isPinned) {
         showPopup(false);
       }
     });
     layer.on('mouseout', () => {
       isHovering = false;
-      setTimeout(() => {
+      // Cancel any pending hide timeout before setting a new one
+      if (popupHideTimer) {
+        clearTimeout(popupHideTimer);
+      }
+      popupHideTimer = setTimeout(() => {
+        popupHideTimer = null;
         if (!isHovering && !isPinned) {
           hidePopup();
         }
@@ -419,11 +430,21 @@
       if (popupElement) {
         popupElement.addEventListener('mouseenter', () => {
           isHovering = true;
+          // Cancel any pending hide timeout
+          if (popupHideTimer) {
+            clearTimeout(popupHideTimer);
+            popupHideTimer = null;
+          }
         });
         popupElement.addEventListener('mouseleave', () => {
           isHovering = false;
           if (!isPinned) {
-            setTimeout(() => {
+            // Cancel any pending hide timeout before setting a new one
+            if (popupHideTimer) {
+              clearTimeout(popupHideTimer);
+            }
+            popupHideTimer = setTimeout(() => {
+              popupHideTimer = null;
               if (!isHovering) {
                 hidePopup();
               }
