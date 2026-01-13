@@ -8,8 +8,8 @@
         <button
           type="button"
           class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10"
-          aria-label="Go to objective in task list"
-          title="Go to objective"
+          :aria-label="t('maps.tooltip.goToInTaskList')"
+          :title="t('maps.tooltip.goTo')"
           @click.stop="scrollToObjective"
         >
           <UIcon name="i-mdi-arrow-down-circle-outline" class="h-4 w-4" />
@@ -18,7 +18,7 @@
           v-if="!readOnly"
           type="button"
           class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10"
-          :aria-label="isComplete ? 'Uncomplete objective' : 'Complete objective'"
+          :aria-label="isComplete ? t('maps.tooltip.uncomplete') : t('maps.tooltip.complete')"
           :aria-pressed="isComplete"
           @click.stop="toggleObjective"
         >
@@ -27,7 +27,7 @@
         <button
           type="button"
           class="inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-300 hover:bg-white/10"
-          aria-label="Close"
+          :aria-label="t('generic.close_button')"
           @click.stop="emitClose"
         >
           <UIcon name="i-mdi-close" class="h-4 w-4" />
@@ -35,7 +35,7 @@
       </div>
     </div>
     <div class="mt-1">
-      <div v-if="!objective" class="text-xs text-gray-400">Objective unavailable.</div>
+      <div v-if="!objective" class="text-xs text-gray-400">{{ t('maps.tooltip.objectiveUnavailable') }}</div>
       <div v-else class="text-sm text-gray-200">
         <div class="text-gray-300">{{ objective.description }}</div>
         <div v-if="!readOnly && requiredCount > 1" class="mt-1 text-[11px] text-gray-400">
@@ -46,26 +46,40 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed, inject } from 'vue';
+  import { computed, inject, onBeforeUnmount } from 'vue';
+  import { useI18n } from 'vue-i18n';
   import { useMetadataStore } from '@/stores/useMetadata';
   import { useTarkovStore } from '@/stores/useTarkov';
   import type { Router } from 'vue-router';
+
   const props = withDefaults(
     defineProps<{
       objectiveId: string;
       readOnly?: boolean;
+      onClose?: () => void;
     }>(),
     {
       readOnly: false,
     }
   );
+
   const emit = defineEmits<{
     (e: 'close'): void;
   }>();
-  const emitClose = () => emit('close');
+
+  const emitClose = () => {
+    emit('close');
+    props.onClose?.();
+  };
+
+  const { t } = useI18n();
   const router = inject<Router>('router');
   const metadataStore = useMetadataStore();
   const tarkovStore = useTarkovStore();
+
+  // Track timer IDs for cleanup on unmount
+  const pendingTimers: ReturnType<typeof setTimeout>[] = [];
+
   const objective = computed(() => {
     return metadataStore.objectives.find((o) => o.id === props.objectiveId);
   });
@@ -74,10 +88,11 @@
     if (!taskId) return null;
     return metadataStore.tasks.find((t) => t.id === taskId) ?? null;
   });
-  const taskName = computed(() => task.value?.name ?? 'Task');
+  const taskName = computed(() => task.value?.name ?? t('maps.tooltip.taskFallback'));
   const isComplete = computed(() => tarkovStore.isTaskObjectiveComplete(props.objectiveId));
   const requiredCount = computed(() => objective.value?.count ?? 1);
   const currentCount = computed(() => tarkovStore.getObjectiveCount(props.objectiveId));
+
   const toggleObjective = () => {
     if (props.readOnly) return;
     const required = requiredCount.value;
@@ -93,6 +108,15 @@
       tarkovStore.setObjectiveCount(props.objectiveId, required);
     }
   };
+
+  /**
+   * Clears all pending timers tracked by this component.
+   */
+  const clearPendingTimers = () => {
+    pendingTimers.forEach((timerId) => clearTimeout(timerId));
+    pendingTimers.length = 0;
+  };
+
   /**
    * Scrolls to the objective in the task list and highlights it.
    * Falls back to task card if objective element not found.
@@ -105,14 +129,20 @@
     const taskEl = document.getElementById(`task-${task.value.id}`);
     const targetEl = objectiveEl || taskEl;
     if (targetEl) {
+      // Clear any pending timers before scheduling new ones
+      clearPendingTimers();
+
       // Element exists - scroll to it and highlight
       targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => {
+      const addTimer = setTimeout(() => {
         targetEl.classList.add('objective-highlight');
       }, 300);
-      setTimeout(() => {
+      const removeTimer = setTimeout(() => {
         targetEl.classList.remove('objective-highlight');
       }, 2800);
+
+      // Track timers for cleanup
+      pendingTimers.push(addTimer, removeTimer);
       return;
     }
     // Neither element in DOM - add query params to trigger task loading
@@ -126,6 +156,11 @@
       },
     });
   };
+
+  // Clean up timers on component unmount
+  onBeforeUnmount(() => {
+    clearPendingTimers();
+  });
 </script>
 <style scoped>
   .leaflet-objective-tooltip {

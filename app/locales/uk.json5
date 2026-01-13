@@ -560,6 +560,16 @@
       title: 'Небезпечна зона',
     },
   },
+  maps: {
+    tooltip: {
+      goTo: 'Перейти до цілі',
+      goToInTaskList: 'Перейти до цілі у списку завдань',
+      complete: 'Виконати ціль',
+      uncomplete: 'Скасувати виконання цілі',
+      objectiveUnavailable: 'Ціль недоступна.',
+      taskFallback: 'Завдання',
+    },
+  },
   generic: {
     item: 'Предмет',
     items: 'Предмети',

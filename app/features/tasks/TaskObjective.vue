@@ -266,32 +266,6 @@
   };
 </script>
 <style>
-  /* Highlight animation for scroll-to-objective feature */
-  .objective-highlight {
-    animation: objective-glow 2.2s ease-in-out;
-    border: 1px solid transparent;
-    border-radius: 0.375rem;
-  }
-  @keyframes objective-glow {
-    0% {
-      border-color: transparent;
-      box-shadow: none;
-    }
-    15% {
-      border-color: #8b5cf6;
-      box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
-    }
-    50% {
-      border-color: #a78bfa;
-      box-shadow: 0 0 16px rgba(167, 139, 250, 0.5);
-    }
-    85% {
-      border-color: #8b5cf6;
-      box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
-    }
-    100% {
-      border-color: transparent;
-      box-shadow: none;
-    }
-  }
+  /* Shared highlight animation imported from global CSS */
+  @import '@/assets/css/objective-highlight.css';
 </style>

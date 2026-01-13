@@ -689,6 +689,16 @@
       confirm_word: '删除账户',
     },
   },
+  maps: {
+    tooltip: {
+      goTo: '前往目标',
+      goToInTaskList: '在任务列表中前往目标',
+      complete: '完成目标',
+      uncomplete: '取消完成目标',
+      objectiveUnavailable: '目标不可用。',
+      taskFallback: '任务',
+    },
+  },
   generic: {
     item: '物品',
     items: '物品',

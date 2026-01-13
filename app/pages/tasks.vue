@@ -579,6 +579,8 @@
     return 'locked';
   };
   const highlightTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
+  // Track highlightObjective timers separately (can have multiple nested timeouts)
+  const highlightObjectiveTimers = ref<ReturnType<typeof setTimeout>[]>([]);
   const highlightTask = (taskElement: HTMLElement) => {
     taskElement.classList.add(
       'ring-2',
@@ -609,6 +611,9 @@
       clearTimeout(pinnedTaskTimeout.value);
       pinnedTaskTimeout.value = null;
     }
+    // Clear highlightObjective timers
+    highlightObjectiveTimers.value.forEach((timerId) => clearTimeout(timerId));
+    highlightObjectiveTimers.value = [];
   });
   const scrollToTask = async (taskId: string, options?: { noPinning?: boolean }) => {
     await nextTick();
@@ -658,18 +663,24 @@
     if (!options?.noPinning) highlightTask(newTaskElement);
   };
   const highlightObjective = (objectiveId: string, taskId: string) => {
+    // Clear any existing highlightObjective timers before starting new ones
+    highlightObjectiveTimers.value.forEach((timerId) => clearTimeout(timerId));
+    highlightObjectiveTimers.value = [];
+
     // Wait a bit for the DOM to settle after task scroll
-    setTimeout(() => {
+    const outerTimer = setTimeout(() => {
       const objectiveEl = document.getElementById(`objective-${objectiveId}`);
       // Try objective first, fall back to task card
       const targetEl = objectiveEl || document.getElementById(`task-${taskId}`);
       if (!targetEl) return;
       targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       targetEl.classList.add('objective-highlight');
-      setTimeout(() => {
+      const innerTimer = setTimeout(() => {
         targetEl.classList.remove('objective-highlight');
       }, 2500);
+      highlightObjectiveTimers.value.push(innerTimer);
     }, 500);
+    highlightObjectiveTimers.value.push(outerTimer);
   };
   const handleTaskQueryParam = async () => {
     const taskId = getQueryString(route.query.task);

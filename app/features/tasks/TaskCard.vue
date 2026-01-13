@@ -859,30 +859,11 @@
   };
 </script>
 <style>
-  /* Highlight animation for scroll-to-objective feature (fallback to task card) */
+  /* Shared highlight animation imported from global CSS */
+  @import '@/assets/css/objective-highlight.css';
+
+  /* Task card uses the card variant to preserve existing border/shadow */
   .objective-highlight {
-    animation: objective-glow 2.2s ease-in-out !important;
-  }
-  @keyframes objective-glow {
-    0% {
-      border-color: rgba(255, 255, 255, 0.1);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 10px 30px rgba(0, 0, 0, 0.35);
-    }
-    15% {
-      border-color: #8b5cf6;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 0 12px rgba(139, 92, 246, 0.4);
-    }
-    50% {
-      border-color: #a78bfa;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 0 16px rgba(167, 139, 250, 0.5);
-    }
-    85% {
-      border-color: #8b5cf6;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 0 12px rgba(139, 92, 246, 0.4);
-    }
-    100% {
-      border-color: rgba(255, 255, 255, 0.1);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 10px 30px rgba(0, 0, 0, 0.35);
-    }
+    animation: objective-glow-card 2.2s ease-in-out !important;
   }
 </style>

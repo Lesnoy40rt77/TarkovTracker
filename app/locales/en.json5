@@ -703,6 +703,16 @@
       confirm_word: 'DELETE',
     },
   },
+  maps: {
+    tooltip: {
+      goTo: 'Go to objective',
+      goToInTaskList: 'Go to objective in task list',
+      complete: 'Complete objective',
+      uncomplete: 'Uncomplete objective',
+      objectiveUnavailable: 'Objective unavailable.',
+      taskFallback: 'Task',
+    },
+  },
   generic: {
     item: 'Item',
     items: 'Items',
