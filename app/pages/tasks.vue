@@ -612,8 +612,8 @@
   const BATCH_SIZE = 10;
   const visibleTaskCount = ref(INITIAL_BATCH);
   const loadMoreSentinel = ref<HTMLElement | null>(null);
-  // Flag to prevent visibleTaskCount reset during scroll-to-task navigation
-  const isScrollingToTask = ref(false);
+  // Flag to prevent visibleTaskCount reset during task navigation (e.g., from map tooltip)
+  const isNavigatingToTask = ref(false);
   // Tasks slice excluding the pinned task (shown separately)
   const unpinnedTasksSlice = computed(() => {
     const tasks = pinnedTask.value
@@ -643,7 +643,7 @@
   });
   // Reset visible count when filters change (but not during scroll-to-task)
   watch(filteredTasks, () => {
-    if (!isScrollingToTask.value) {
+    if (!isNavigatingToTask.value) {
       visibleTaskCount.value = INITIAL_BATCH;
     }
     if (pinnedTaskId.value && !filteredTasks.value.some((task) => task.id === pinnedTaskId.value)) {
@@ -747,38 +747,15 @@
     }
     return null;
   };
-  const scrollToTask = async (taskId: string) => {
+  /**
+   * Pins a task to the top of the task list.
+   * Always pins regardless of current visibility to keep behavior consistent.
+   */
+  const pinTask = async (taskId: string) => {
     await nextTick();
     const taskIndex = filteredTasks.value.findIndex((t) => t.id === taskId);
     if (taskIndex === -1) return;
-    const pinTaskToTop = () => {
-      pinnedTaskId.value = taskId;
-    };
-    // Helper to scroll to an element
-    const scrollToElement = (element: HTMLElement) => {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
-    // If task is already in DOM, scroll to it
-    const taskElement = document.getElementById(`task-${taskId}`);
-    if (taskElement) {
-      const rect = taskElement.getBoundingClientRect();
-      const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
-      if (isVisible) {
-        // Already visible, nothing to do
-        return;
-      }
-      // Task in DOM but not visible - pin it
-      // Note: We always pin because content-visibility: auto causes layout shifts
-      // when scrolling past many unrendered elements. Pinning puts the task at the
-      // top of the list, avoiding this issue entirely.
-      // No automatic scroll - user can scroll manually to see the pinned task
-      pinTaskToTop();
-      return;
-    }
-    // Task not in DOM - need to load it first via pinning
-    // Pinning ensures the task renders at the top of the task list
-    // No automatic scroll - user can scroll manually to see the pinned task
-    pinTaskToTop();
+    pinnedTaskId.value = taskId;
   };
   /**
    * Applies objective-highlight class to an element when it becomes visible.
@@ -811,7 +788,7 @@
         const entry = entries[0];
         if (entry?.isIntersecting) {
           observer.disconnect();
-          // Small delay to let scroll settle
+          // Small delay to let element settle
           setTimeout(applyHighlight, 100);
         }
       },
@@ -822,26 +799,17 @@
     const cleanupTimer = setTimeout(() => observer.disconnect(), 5000);
     highlightObjectiveTimers.value.push(cleanupTimer);
   };
-  const highlightObjective = async (objectiveId: string, taskId: string) => {
+  /**
+   * Highlights a specific objective within a task.
+   * Task should already be pinned before calling this.
+   */
+  const highlightObjective = async (objectiveId: string) => {
     // Clear any existing highlightObjective timers before starting new ones
     highlightObjectiveTimers.value.forEach((timerId) => clearTimeout(timerId));
     highlightObjectiveTimers.value = [];
     // Wait for objective element to appear in DOM (only highlight objectives, never task cards)
     const objectiveEl = await waitForElement(`objective-${objectiveId}`, 1500);
-    if (!objectiveEl) {
-      // If objective not found, just scroll to task without highlighting
-      const taskEl = await waitForElement(`task-${taskId}`, 500);
-      if (taskEl && !pinnedTaskId.value) {
-        // Only scroll if task is not pinned (pinned tasks are already at top)
-        taskEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      return;
-    }
-    // Only scroll to objective if the task is NOT pinned
-    // Scrolling to an objective inside a pinned task causes the card content to appear shifted
-    if (!pinnedTaskId.value || pinnedTaskId.value !== taskId) {
-      objectiveEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    if (!objectiveEl) return;
     highlightObjectiveWhenVisible(objectiveEl);
   };
   const handleTaskQueryParam = async () => {
@@ -851,9 +819,9 @@
     const taskInMetadata = tasks.value.find((t) => t.id === taskId);
     if (!taskInMetadata) return;
     // Set flag to prevent filter watch from resetting visibleTaskCount during navigation
-    isScrollingToTask.value = true;
+    isNavigatingToTask.value = true;
     try {
-      // If highlighting from map tooltip, don't change the view - just pin and scroll
+      // If highlighting from map tooltip, don't change the view - just pin and highlight
       const isMapHighlight = !!objectiveIdToHighlight;
       if (!isMapHighlight) {
         // Enable the appropriate type filter based on task properties
@@ -897,15 +865,14 @@
       }
       // Wait for filter/watch updates to settle
       await nextTick();
-      // scrollToTask pins the task to the top temporarily for reliable scrolling
-      // (content-visibility: auto causes layout shifts when scrolling past unrendered elements)
-      await scrollToTask(taskId);
-      // Highlight specific objective if requested (falls back to task card if objective not found)
+      // Pin the task to the top for consistent behavior
+      await pinTask(taskId);
+      // Highlight specific objective if requested
       if (objectiveIdToHighlight) {
-        highlightObjective(objectiveIdToHighlight, taskId);
+        highlightObjective(objectiveIdToHighlight);
       }
     } finally {
-      isScrollingToTask.value = false;
+      isNavigatingToTask.value = false;
     }
     // Clear the query params to avoid re-triggering on filter changes
     const nextQuery = { ...route.query } as Record<string, string | string[] | undefined>;
