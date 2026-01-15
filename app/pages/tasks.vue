@@ -610,7 +610,6 @@
   // Progressive rendering - load tasks incrementally for smooth scrolling
   const INITIAL_BATCH = 15;
   const BATCH_SIZE = 10;
-
   /**
    * Timing constants (in milliseconds) for task navigation and highlighting
    */
@@ -729,7 +728,6 @@
   let jumpToMapTimeoutId: ReturnType<typeof setTimeout> | null = null;
   // AbortController for waitForElement cancellation
   let waitForElementAbortController: AbortController | null = null;
-
   onBeforeUnmount(() => {
     updateDebouncedSearch.cancel();
     window.removeEventListener('scroll', handleScroll);
@@ -765,11 +763,9 @@
     }
     waitForElementAbortController = new AbortController();
     const signal = waitForElementAbortController.signal;
-
     for (let i = 0; i < maxAttempts; i++) {
       // Check if aborted
       if (signal.aborted) return null;
-
       await nextTick();
       // First try by ID
       const el = document.getElementById(elementId);
