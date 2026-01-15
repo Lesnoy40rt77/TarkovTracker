@@ -41,6 +41,14 @@
     aria: {
       zoomSpeed: 'Швидкість масштабування',
     },
+    tooltip: {
+      goTo: 'Перейти до цілі',
+      goToInTaskList: 'Перейти до цілі у списку завдань',
+      complete: 'Виконати ціль',
+      uncomplete: 'Скасувати виконання цілі',
+      objectiveUnavailable: 'Ціль недоступна.',
+      taskFallback: 'Завдання',
+    },
   },
   page: {
     index: {
@@ -562,16 +570,6 @@
     },
     danger_zone: {
       title: 'Небезпечна зона',
-    },
-  },
-  maps: {
-    tooltip: {
-      goTo: 'Перейти до цілі',
-      goToInTaskList: 'Перейти до цілі у списку завдань',
-      complete: 'Виконати ціль',
-      uncomplete: 'Скасувати виконання цілі',
-      objectiveUnavailable: 'Ціль недоступна.',
-      taskFallback: 'Завдання',
     },
   },
   generic: {

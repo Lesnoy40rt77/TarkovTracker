@@ -41,6 +41,14 @@
     aria: {
       zoomSpeed: 'Скорость зума',
     },
+    tooltip: {
+      goTo: 'Перейти к цели',
+      goToInTaskList: 'Перейти к цели в списке задач',
+      complete: 'Завершить цель',
+      uncomplete: 'Отменить завершение цели',
+      objectiveUnavailable: 'Цель недоступна.',
+      taskFallback: 'Задача',
+    },
   },
   page: {
     index: {
@@ -550,16 +558,6 @@
     },
     danger_zone: {
       title: 'Опасная зона',
-    },
-  },
-  maps: {
-    tooltip: {
-      goTo: 'Перейти к цели',
-      goToInTaskList: 'Перейти к цели в списке задач',
-      complete: 'Завершить цель',
-      uncomplete: 'Отменить завершение цели',
-      objectiveUnavailable: 'Цель недоступна.',
-      taskFallback: 'Задача',
     },
   },
   generic: {

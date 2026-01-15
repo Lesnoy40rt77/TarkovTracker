@@ -58,6 +58,14 @@
     aria: {
       zoomSpeed: 'Zoomgeschwindigkeit',
     },
+    tooltip: {
+      goTo: 'Zum Ziel gehen',
+      goToInTaskList: 'Zum Ziel in der Aufgabenliste gehen',
+      complete: 'Ziel abschließen',
+      uncomplete: 'Ziel nicht abschließen',
+      objectiveUnavailable: 'Ziel nicht verfügbar.',
+      taskFallback: 'Aufgabe',
+    },
   },
   page: {
     index: {
@@ -639,16 +647,6 @@
     },
     danger_zone: {
       title: 'Gefahrenzone',
-    },
-  },
-  maps: {
-    tooltip: {
-      goTo: 'Zum Ziel gehen',
-      goToInTaskList: 'Zum Ziel in der Aufgabenliste gehen',
-      complete: 'Ziel abschließen',
-      uncomplete: 'Ziel nicht abschließen',
-      objectiveUnavailable: 'Ziel nicht verfügbar.',
-      taskFallback: 'Aufgabe',
     },
   },
   generic: {

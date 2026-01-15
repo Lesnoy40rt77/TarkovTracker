@@ -58,6 +58,14 @@
     aria: {
       zoomSpeed: '缩放速度',
     },
+    tooltip: {
+      goTo: '前往目标',
+      goToInTaskList: '在任务列表中前往目标',
+      complete: '完成目标',
+      uncomplete: '取消完成目标',
+      objectiveUnavailable: '目标不可用。',
+      taskFallback: '任务',
+    },
   },
   page: {
     index: {
@@ -691,16 +699,6 @@
       title: '危险操作区',
       confirm_delete_instruction: '输入 {word} 确认操作:',
       confirm_word: '删除账户',
-    },
-  },
-  maps: {
-    tooltip: {
-      goTo: '前往目标',
-      goToInTaskList: '在任务列表中前往目标',
-      complete: '完成目标',
-      uncomplete: '取消完成目标',
-      objectiveUnavailable: '目标不可用。',
-      taskFallback: '任务',
     },
   },
   generic: {

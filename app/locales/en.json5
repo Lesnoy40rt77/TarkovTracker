@@ -58,6 +58,14 @@
     aria: {
       zoomSpeed: 'Zoom speed',
     },
+    tooltip: {
+      goTo: 'Go to objective',
+      goToInTaskList: 'Go to objective in task list',
+      complete: 'Complete objective',
+      uncomplete: 'Uncomplete objective',
+      objectiveUnavailable: 'Objective unavailable.',
+      taskFallback: 'Task',
+    },
   },
   page: {
     index: {
@@ -705,16 +713,6 @@
       title: 'Danger Zone',
       confirm_delete_instruction: 'Type {word} to confirm:',
       confirm_word: 'DELETE',
-    },
-  },
-  maps: {
-    tooltip: {
-      goTo: 'Go to objective',
-      goToInTaskList: 'Go to objective in task list',
-      complete: 'Complete objective',
-      uncomplete: 'Uncomplete objective',
-      objectiveUnavailable: 'Objective unavailable.',
-      taskFallback: 'Task',
     },
   },
   generic: {

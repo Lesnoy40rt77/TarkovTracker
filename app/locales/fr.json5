@@ -41,6 +41,14 @@
     aria: {
       zoomSpeed: 'Vitesse du zoom',
     },
+    tooltip: {
+      goTo: "Aller à l'objectif",
+      goToInTaskList: "Aller à l'objectif dans la liste des tâches",
+      complete: "Terminer l'objectif",
+      uncomplete: "Annuler l'objectif",
+      objectiveUnavailable: 'Objectif indisponible.',
+      taskFallback: 'Tâche',
+    },
   },
   page: {
     index: {
@@ -582,16 +590,6 @@
     },
     danger_zone: {
       title: 'Zone de danger',
-    },
-  },
-  maps: {
-    tooltip: {
-      goTo: "Aller à l'objectif",
-      goToInTaskList: "Aller à l'objectif dans la liste des tâches",
-      complete: "Terminer l'objectif",
-      uncomplete: "Annuler l'objectif",
-      objectiveUnavailable: 'Objectif indisponible.',
-      taskFallback: 'Tâche',
     },
   },
   generic: {
