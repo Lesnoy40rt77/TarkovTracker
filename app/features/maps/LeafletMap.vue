@@ -166,10 +166,10 @@
   import type { TarkovMap, MapExtract } from '@/types/tarkov';
   import { logger } from '@/utils/logger';
   import { gameToLatLng, outlineToLatLngArray, isValidMapSvgConfig } from '@/utils/mapCoordinates';
+  import { MAP_MARKER_COLORS as MAP_COLORS } from '@/utils/theme-colors';
   import LeafletObjectiveTooltip from './LeafletObjectiveTooltip.vue';
   import type L from 'leaflet';
   import { useNuxtApp } from '#imports';
-  import { MAP_MARKER_COLORS as MAP_COLORS } from '@/utils/theme-colors';
   // Types for marks (matching TarkovMap.vue structure)
   interface MapZone {
     map: { id: string };
@@ -424,7 +424,6 @@
           activePinnedPopupCleanup();
         }
         showPopup(true);
-        activePinnedPopupCleanup = unpinAndHide;
       }
     });
     // Popup element hover handlers (stored for cleanup)
@@ -757,6 +756,10 @@
   });
   // Cleanup
   onUnmounted(() => {
+    // Clean up any pinned popup before unmounting
+    if (activePinnedPopupCleanup) {
+      activePinnedPopupCleanup();
+    }
     objectiveMarkers.clear();
     clearMarkers();
   });
