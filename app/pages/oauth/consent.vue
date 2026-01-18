@@ -1,7 +1,10 @@
 <script setup lang="ts">
   const route = useRoute();
   const { client: supabase } = useNuxtApp().$supabase;
-  const authorizationId = computed(() => route.query.authorization_id as string);
+  const authorizationId = computed(() => {
+    const value = route.query.authorization_id;
+    return typeof value === 'string' ? value : '';
+  });
   const loading = ref(true);
   const error = ref('');
   const details = ref<{
@@ -18,6 +21,11 @@
       return;
     }
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        await navigateTo({ path: '/login', query: { redirect: route.fullPath } });
+        return;
+      }
       const { data, error: fetchError } = await supabase.auth.oauth.getAuthorizationDetails(
         authorizationId.value
       );
@@ -28,6 +36,11 @@
         } else {
           throw fetchError;
         }
+        return;
+      }
+      if (data?.redirect_url) {
+        console.log('[OAuth] Auto-redirecting to:', data.redirect_url);
+        window.location.href = data.redirect_url;
         return;
       }
       details.value = data;
