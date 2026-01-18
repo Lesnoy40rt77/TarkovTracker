@@ -32,8 +32,7 @@
   maps: {
     zoom: 'Zoom',
     notAvailableTitle: 'Map Not Available',
-    notAvailableDescription:
-      'The interactive map for {mapName} is not yet available. We are waiting for a compatible map to be created.',
+    notAvailableDescription: 'The interactive map for {mapName} is not yet available. We are waiting for a compatible map to be created.',
     placeholder: 'this location',
     floors: 'Floors',
     reset: 'Reset',

@@ -32,8 +32,7 @@
   maps: {
     zoom: 'Zoom',
     notAvailableTitle: 'Karte nicht verfügbar',
-    notAvailableDescription:
-      'Die interaktive Karte für {mapName} ist noch nicht verfügbar. Wir warten auf eine kompatible Karte.',
+    notAvailableDescription: 'Die interaktive Karte für {mapName} ist noch nicht verfügbar. Wir warten auf eine kompatible Karte.',
     placeholder: 'diesen Ort',
     floors: 'Stockwerke',
     reset: 'Zurücksetzen',

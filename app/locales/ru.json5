@@ -15,8 +15,7 @@
   maps: {
     zoom: 'Масштаб',
     notAvailableTitle: 'Карта недоступна',
-    notAvailableDescription:
-      'Интерактивная карта для {mapName} пока недоступна. Мы ждём появления совместимой карты.',
+    notAvailableDescription: 'Интерактивная карта для {mapName} пока недоступна. Мы ждём появления совместимой карты.',
     placeholder: 'этой локации',
     floors: 'Этажи',
     reset: 'Сброс',

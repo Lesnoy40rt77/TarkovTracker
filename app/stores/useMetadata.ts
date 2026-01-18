@@ -830,7 +830,10 @@ export const useMetadataStore = defineStore('metadata', {
             localStorage.setItem(CACHE_PURGE_STORAGE_KEY, lastPurgeAt);
             logger.info('[MetadataStore] Cleared local cache after server purge.');
           } catch (clearError) {
-            logger.error('[MetadataStore] Failed to clear local cache after server purge:', clearError);
+            logger.error(
+              '[MetadataStore] Failed to clear local cache after server purge:',
+              clearError
+            );
           }
         }
       } catch (error) {

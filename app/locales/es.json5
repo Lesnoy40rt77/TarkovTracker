@@ -16,8 +16,7 @@
   maps: {
     zoom: 'Zoom',
     notAvailableTitle: 'Mapa no disponible',
-    notAvailableDescription:
-      'El mapa interactivo de {mapName} aún no está disponible. Estamos esperando a que se cree un mapa compatible.',
+    notAvailableDescription: 'El mapa interactivo de {mapName} aún no está disponible. Estamos esperando a que se cree un mapa compatible.',
     placeholder: 'esta ubicación',
     floors: 'Pisos',
     reset: 'Restablecer',
