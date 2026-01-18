@@ -293,7 +293,3 @@
     }
   };
 </script>
-<style>
-  /* Shared highlight animation imported from global CSS */
-  @import '@/assets/css/objective-highlight.css';
-</style>

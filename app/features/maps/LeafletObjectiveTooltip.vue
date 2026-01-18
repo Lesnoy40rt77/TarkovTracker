@@ -1,5 +1,5 @@
 <template>
-  <div class="leaflet-objective-tooltip">
+  <div class="min-w-[220px]">
     <div class="flex items-start justify-between gap-2">
       <div class="min-w-0 flex-1">
         <div class="text-sm font-semibold leading-snug text-gray-100">{{ taskName }}</div>
@@ -132,8 +132,3 @@
     });
   };
 </script>
-<style scoped>
-  .leaflet-objective-tooltip {
-    min-width: 220px;
-  }
-</style>
