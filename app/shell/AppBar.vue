@@ -1,15 +1,15 @@
 <template>
   <header
-    class="border-surface-700/50 bg-surface-900/95 fixed top-0 right-0 z-40 h-16 border-b shadow-[0_1px_0_rgba(0,0,0,0.4)] backdrop-blur-sm"
+    class="border-surface-700/50 bg-surface-900/95 fixed top-0 right-0 z-40 h-11 border-b shadow-[0_1px_0_rgba(0,0,0,0.4)] backdrop-blur-sm"
   >
-    <div class="flex h-full items-center gap-1 px-2 sm:gap-3 sm:px-3">
+    <div class="flex h-full items-center gap-1 px-2 sm:gap-2 sm:px-3">
       <!-- Left: Toggle Button -->
       <AppTooltip text="Toggle Menu Drawer">
         <UButton
           :icon="navBarIcon"
           variant="ghost"
           color="neutral"
-          size="xl"
+          size="md"
           aria-label="Toggle Menu Drawer"
           :class="{ 'rotate-180': isDrawerCollapsed }"
           class="transition-transform duration-200"
@@ -17,19 +17,19 @@
         />
       </AppTooltip>
       <!-- Center: Page Title -->
-      <span class="min-w-0 flex-1 truncate text-xl font-bold text-white">
+      <span class="min-w-0 flex-1 truncate text-base font-semibold text-white">
         {{ pageTitle }}
       </span>
       <!-- Right: Status Icons & Settings -->
       <div class="ml-auto flex items-center gap-1 sm:gap-2">
         <AppTooltip v-if="dataError" text="Error Loading Tarkov Data">
           <span class="inline-flex rounded">
-            <UIcon name="i-mdi-database-alert" class="text-error-500 h-6 w-6" />
+            <UIcon name="i-mdi-database-alert" class="text-error-500 h-5 w-5" />
           </span>
         </AppTooltip>
         <AppTooltip v-if="dataLoading || hideoutLoading" text="Loading Tarkov Data">
           <span class="inline-flex rounded">
-            <UIcon name="i-heroicons-arrow-path" class="text-primary-500 h-6 w-6 animate-spin" />
+            <UIcon name="i-heroicons-arrow-path" class="text-primary-500 h-5 w-5 animate-spin" />
           </span>
         </AppTooltip>
         <!-- Community Links -->
@@ -38,12 +38,12 @@
             href="https://discord.gg/M8nBgA2sT6"
             target="_blank"
             rel="noopener noreferrer"
-            class="hover:bg-surface-700 flex h-9 w-9 items-center justify-center rounded-md transition-colors"
+            class="hover:bg-surface-700 flex h-7 w-7 items-center justify-center rounded transition-colors"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="currentColor"
               class="text-surface-300 hover:text-white"
@@ -60,9 +60,9 @@
             href="https://github.com/tarkovtracker-org/TarkovTrackerNuxt"
             target="_blank"
             rel="noopener noreferrer"
-            class="hover:bg-surface-700 flex h-9 w-9 items-center justify-center rounded-md transition-colors"
+            class="hover:bg-surface-700 flex h-7 w-7 items-center justify-center rounded transition-colors"
           >
-            <UIcon name="i-mdi-github" class="text-surface-300 h-5 w-5 hover:text-white" />
+            <UIcon name="i-mdi-github" class="text-surface-300 h-4.5 w-4.5 hover:text-white" />
           </a>
         </AppTooltip>
         <!-- Language selector -->
