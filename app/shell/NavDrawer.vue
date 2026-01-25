@@ -16,11 +16,11 @@
     :class="[sidebarWidth]"
   >
     <div
-      class="scrollbar-none relative z-10 flex h-full flex-col overflow-x-hidden overflow-y-auto"
+      class="scrollbar-thin relative z-10 flex h-full flex-col overflow-x-hidden overflow-y-auto"
     >
       <NuxtLink
         to="/"
-        class="group mt-1 flex flex-col items-center px-3 py-1.5 transition-opacity hover:opacity-90"
+        class="group mt-1 flex shrink-0 flex-col items-center px-3 py-1.5 transition-opacity hover:opacity-90"
       >
         <div
           :class="isCollapsed ? 'w-8' : 'w-32.5'"
@@ -40,10 +40,10 @@
           <div class="text-base leading-tight font-medium text-white">TarkovTracker.org</div>
         </div>
       </NuxtLink>
-      <div class="bg-surface-800 mx-3 my-0.5 h-px" />
+      <div class="bg-surface-800 mx-3 my-0.5 h-px shrink-0" />
       <div
         v-if="!isCollapsed"
-        class="bg-surface-850 mx-3 my-2 overflow-hidden rounded-lg border border-white/10"
+        class="bg-surface-850 mx-3 my-2 shrink-0 rounded-lg border border-white/10"
       >
         <template v-if="isLoggedIn">
           <div class="flex items-center gap-2 border-b border-white/8 px-3 py-2.5">
@@ -79,7 +79,7 @@
         <DrawerGameSettings />
       </div>
       <template v-else>
-        <ul class="flex flex-col gap-1 px-1">
+        <ul class="flex shrink-0 flex-col gap-1 px-1">
           <template v-if="isLoggedIn">
             <UDropdownMenu
               :items="accountItems"
@@ -110,12 +110,12 @@
             </UTooltip>
           </template>
         </ul>
-        <div class="bg-surface-800 mx-3 my-0.5 h-px" />
+        <div class="bg-surface-800 mx-3 my-0.5 h-px shrink-0" />
         <DrawerLevel :is-collapsed="true" />
       </template>
-      <div class="bg-surface-800 mx-3 my-2 h-px" />
+      <div class="bg-surface-800 mx-3 my-2 h-px shrink-0" />
       <DrawerLinks :is-collapsed="isCollapsed" />
-      <div class="bg-surface-800 mx-3 my-2 h-px" />
+      <div class="bg-surface-800 mx-3 my-2 h-px shrink-0" />
       <div class="flex flex-col gap-0.5">
         <div v-if="!isCollapsed" class="px-4 py-2">
           <h3 class="text-surface-400 text-xs font-semibold tracking-wider uppercase">
