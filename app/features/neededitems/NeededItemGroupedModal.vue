@@ -4,10 +4,13 @@
     :title="itemInfo.name"
     :description="`${currentTotal}/${totalNeeded}`"
     :ui="{ content: 'bg-transparent border-0 p-0 shadow-none ring-0 outline-none' }"
+    scrollable
     @update:open="$emit('update:open', $event)"
   >
     <template #content>
-      <div class="bg-surface-900 w-full max-w-2xl rounded-lg">
+      <div
+        class="bg-surface-900 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg"
+      >
         <div class="flex items-center gap-4 border-b border-white/10 p-4">
           <div class="bg-surface-800 relative h-16 w-16 shrink-0 overflow-hidden rounded">
             <GameItem
@@ -40,7 +43,7 @@
             <UIcon name="i-mdi-close" class="h-6 w-6" />
           </button>
         </div>
-        <div class="max-h-[70vh] space-y-6 overflow-y-auto p-4">
+        <div class="min-h-0 flex-1 space-y-6 overflow-y-auto p-4">
           <div class="bg-surface-800 rounded-lg p-4">
             <h4 class="text-surface-300 mb-3 text-sm font-medium tracking-wide uppercase">
               Collected Items
@@ -92,7 +95,7 @@
                       {{ getTask(obj.taskId)?.name || 'Unknown Task' }}
                     </span>
                   </router-link>
-                  <UBadge v-if="isKappa(obj)" color="warning" size="xs">Kappa</UBadge>
+                  <UBadge v-if="isKappa(obj)" color="kappa" size="xs">Kappa</UBadge>
                 </div>
                 <div class="flex shrink-0 items-center gap-2">
                   <span
