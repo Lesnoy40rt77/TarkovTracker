@@ -218,7 +218,7 @@ export interface Task {
   experience?: number;
   map?: { id: string; name?: string };
   locations?: string[];
-  trader?: { id: string; name?: string; imageLink?: string };
+  trader?: { id: string; name?: string; normalizedName?: string; imageLink?: string };
   objectives?: TaskObjective[];
   taskRequirements?: TaskRequirement[];
   minPlayerLevel?: number;

@@ -111,7 +111,7 @@
               </span>
               <UIcon
                 name="i-heroicons-chevron-down-20-solid"
-                class="text-surface-400 h-3.5 w-3.5 transition-transform duration-200 [[data-state=open]_&]:rotate-180"
+                class="text-surface-400 h-3.5 w-3.5 transition-transform duration-200 in-data-[state=open]:rotate-180"
               />
             </button>
           </UDropdownMenu>

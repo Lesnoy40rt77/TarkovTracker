@@ -10,6 +10,10 @@
       v-model:hide-non-fir-special-equipment="hideNonFirSpecialEquipment"
       v-model:hide-team-items="hideTeamItems"
       v-model:kappa-only="kappaOnly"
+      v-model:sort-by="sortBy"
+      v-model:sort-direction="sortDirection"
+      v-model:hide-owned="hideOwned"
+      v-model:card-style="cardStyle"
       :filter-tabs="filterTabsWithCounts"
       :total-count="displayItems.length"
       :ungrouped-count="filteredItems.length"
@@ -238,6 +242,22 @@
   const kappaOnly = computed({
     get: () => preferencesStore.getNeededItemsKappaOnly,
     set: (value) => preferencesStore.setNeededItemsKappaOnly(value),
+  });
+  const sortBy = computed({
+    get: () => preferencesStore.getNeededItemsSortBy as 'priority' | 'name' | 'category' | 'count',
+    set: (value) => preferencesStore.setNeededItemsSortBy(value),
+  });
+  const sortDirection = computed({
+    get: () => preferencesStore.getNeededItemsSortDirection as 'asc' | 'desc',
+    set: (value) => preferencesStore.setNeededItemsSortDirection(value),
+  });
+  const hideOwned = computed({
+    get: () => preferencesStore.getNeededItemsHideOwned,
+    set: (value) => preferencesStore.setNeededItemsHideOwned(value),
+  });
+  const cardStyle = computed({
+    get: () => preferencesStore.getNeededItemsCardStyle as 'compact' | 'expanded',
+    set: (value) => preferencesStore.setNeededItemsCardStyle(value),
   });
   // Team filter preferences (two-way binding with preferences store)
   const hideTeamItems = computed({

@@ -8,7 +8,7 @@
   >
     <div
       v-if="isComplete && !isFailed"
-      class="bg-completed-600/[0.03] pointer-events-none absolute inset-0 z-0"
+      class="bg-completed-600/3 pointer-events-none absolute inset-0 z-0"
     />
     <div
       v-if="showBackgroundIcon"

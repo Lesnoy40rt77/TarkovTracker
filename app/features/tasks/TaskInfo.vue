@@ -102,10 +102,6 @@
             <template #names>{{ neededBy.join(', ') }}</template>
           </i18n-t>
         </InfoRow>
-        <!-- Task ID -->
-        <div v-if="preferencesStore.getShowTaskIds" class="text-surface-600 mt-2 text-xs">
-          ID: {{ task.id }}
-        </div>
       </div>
     </template>
     <template v-else>
