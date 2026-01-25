@@ -250,7 +250,7 @@
                 v-if="actionButtonState === 'locked'"
                 :size="actionButtonSize"
                 color="primary"
-                variant="soft"
+                variant="outline"
                 class="shrink-0"
                 @click.stop="markTaskAvailable()"
               >
@@ -261,7 +261,7 @@
                 v-else-if="actionButtonState === 'complete'"
                 :size="actionButtonSize"
                 color="info"
-                variant="soft"
+                variant="outline"
                 class="shrink-0"
                 @click.stop="markTaskUncomplete()"
               >
@@ -287,7 +287,7 @@
                 <UButton
                   :size="actionButtonSize"
                   color="error"
-                  variant="soft"
+                  variant="outline"
                   @click.stop="markTaskFailed()"
                 >
                   {{ t('page.tasks.questcard.failbutton', 'Fail') }}
