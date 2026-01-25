@@ -102,20 +102,34 @@
               {{ t('page.tasks.questcard.levelBadge', { count: task.minPlayerLevel }) }}
             </UBadge>
           </AppTooltip>
-          <AppTooltip :text="task?.map?.name || t('page.tasks.questcard.anyMap', 'Any')">
+          <AppTooltip
+            :text="
+              isGlobalTask
+                ? t(
+                    'page.tasks.questcard.globalTaskTooltip',
+                    'This task can be completed on any map'
+                  )
+                : task?.map?.name || t('page.tasks.questcard.anyMap', 'Any')
+            "
+          >
             <UBadge
               size="xs"
-              color="neutral"
+              :color="isGlobalTask ? 'info' : 'neutral'"
               variant="soft"
               class="inline-flex max-w-40 items-center gap-1 text-[11px]"
+              :class="isGlobalTask ? 'border-info-500/30 border' : ''"
             >
               <UIcon
-                :name="task?.map?.name ? 'i-mdi-map-marker' : 'i-mdi-earth'"
+                :name="isGlobalTask || !task?.map?.name ? 'i-mdi-earth' : 'i-mdi-map-marker'"
                 aria-hidden="true"
                 class="h-3 w-3"
               />
               <span class="truncate">
-                {{ task?.map?.name || t('page.tasks.questcard.anyMap', 'Any') }}
+                {{
+                  isGlobalTask
+                    ? t('page.tasks.questcard.globalTask', 'Any Map')
+                    : task?.map?.name || t('page.tasks.questcard.anyMap', 'Any')
+                }}
               </span>
             </UBadge>
           </AppTooltip>
@@ -470,6 +484,7 @@
   import ContextMenuItem from '@/components/ui/ContextMenuItem.vue';
   import { useSharedBreakpoints } from '@/composables/useSharedBreakpoints';
   import { useTaskActions, type TaskActionPayload } from '@/composables/useTaskActions';
+  import { useTaskFiltering } from '@/composables/useTaskFiltering';
   import { isTaskSuccessful, useTaskState } from '@/composables/useTaskState';
   import QuestObjectivesSkeleton from '@/features/tasks/QuestObjectivesSkeleton.vue';
   import { useMetadataStore } from '@/stores/useMetadata';
@@ -521,6 +536,7 @@
   const tarkovStore = useTarkovStore();
   const preferencesStore = usePreferencesStore();
   const metadataStore = useMetadataStore();
+  const { isGlobalTask: isGlobalTaskFn } = useTaskFiltering();
   const formatNumber = useLocaleNumberFormatter();
   const taskContextMenu = ref<ContextMenuRef | null>(null);
   const itemContextMenu = ref<ContextMenuRef | null>(null);
@@ -675,6 +691,7 @@
     return 'available';
   });
   const onMapView = computed(() => preferencesStore.getTaskPrimaryView === 'maps');
+  const isGlobalTask = computed(() => isGlobalTaskFn(props.task));
   // Get objectives from props or fall back to store when props are stale
   // This handles the case where visibleTasks holds old task objects after objectives merge
   const taskObjectives = computed(() => {

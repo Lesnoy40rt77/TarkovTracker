@@ -135,8 +135,8 @@
       filters: {
         title: 'Filtres de Quêtes',
         close: 'Fermer',
-        hide_global_tasks: 'Cacher les quêtes globales sur la vue carte',
-        show_global_tasks: 'Afficher les quêtes globales sur la vue carte',
+        hide_global_tasks: 'Cacher les quêtes globales',
+        show_global_tasks: 'Afficher les quêtes globales',
         hide_non_kappa_tasks: 'Cacher les quêtes hors Kappa',
         show_non_kappa_tasks: 'Afficher les quêtes hors Kappa',
         level: 'Niveau',
@@ -192,7 +192,10 @@
         objectiveshidden: '{count} objectifs non présent sur la carte ({uncompleted} non terminés)',
         alternatives: 'Quêtes alternatives',
         alternativefailed: 'Les quêtes alternatives seront également réniitialisées',
-        differentfaction: 'Cette quête n’est pas disponible pour votre faction',
+        differentfaction: "Cette quête n'est pas disponible pour votre faction",
+        anyMap: "N'importe",
+        globalTask: "N'importe quelle carte",
+        globalTaskTooltip: "Cette quête peut être complétée sur n'importe quelle carte",
       },
     },
     traders: {
