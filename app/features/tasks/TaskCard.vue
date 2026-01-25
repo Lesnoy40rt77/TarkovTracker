@@ -260,7 +260,7 @@
               <UButton
                 v-else-if="actionButtonState === 'complete'"
                 :size="actionButtonSize"
-                color="primary"
+                color="info"
                 variant="soft"
                 class="shrink-0"
                 @click.stop="markTaskUncomplete()"
@@ -654,8 +654,10 @@
     return EDITION_SHORT_NAMES[minExclusiveEdition.value.title] || minExclusiveEdition.value.title;
   });
   const taskClasses = computed(() => {
-    if (isComplete.value && !isFailed.value) return 'border-success-500/25 bg-success-500/10';
-    if (isFailed.value) return 'border-error-500/25 bg-error-500/10';
+    if (isComplete.value && !isFailed.value)
+      return 'border-success-500/40 bg-success-950/60 ring-1 ring-inset ring-success-500/20';
+    if (isFailed.value)
+      return 'border-error-500/40 bg-error-950/50 ring-1 ring-inset ring-error-500/20';
     if (isInvalid.value) return 'border-surface-500/20 bg-surface-500/5 opacity-60';
     if (isLocked.value) return 'border-white/12 bg-surface-900/10';
     return 'border-white/12';
