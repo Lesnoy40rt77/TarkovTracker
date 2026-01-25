@@ -55,6 +55,12 @@ export interface PreferencesState {
   showPreviousQuests: boolean;
   taskCardDensity: 'comfortable' | 'compact';
   enableManualTaskFail: boolean;
+  hideCompletedTaskObjectives: boolean;
+  showAllFilter: boolean;
+  showAvailableFilter: boolean;
+  showLockedFilter: boolean;
+  showCompletedFilter: boolean;
+  showFailedFilter: boolean;
   // XP and Level settings
   useAutomaticLevelCalculation: boolean;
   // Holiday effects
@@ -117,6 +123,12 @@ export const preferencesDefaultState: PreferencesState = {
   showPreviousQuests: true,
   taskCardDensity: 'compact',
   enableManualTaskFail: false,
+  hideCompletedTaskObjectives: true,
+  showAllFilter: true,
+  showAvailableFilter: true,
+  showLockedFilter: true,
+  showCompletedFilter: true,
+  showFailedFilter: true,
   // XP and Level settings
   useAutomaticLevelCalculation: false,
   // Holiday effects (enabled by default during holiday season)
@@ -289,6 +301,24 @@ export const usePreferencesStore = defineStore('preferences', {
     getEnableManualTaskFail: (state) => {
       return state.enableManualTaskFail ?? false;
     },
+    getHideCompletedTaskObjectives: (state) => {
+      return state.hideCompletedTaskObjectives ?? true;
+    },
+    getShowAllFilter: (state) => {
+      return state.showAllFilter ?? true;
+    },
+    getShowAvailableFilter: (state) => {
+      return state.showAvailableFilter ?? true;
+    },
+    getShowLockedFilter: (state) => {
+      return state.showLockedFilter ?? true;
+    },
+    getShowCompletedFilter: (state) => {
+      return state.showCompletedFilter ?? true;
+    },
+    getShowFailedFilter: (state) => {
+      return state.showFailedFilter ?? true;
+    },
     getUseAutomaticLevelCalculation: (state) => {
       return state.useAutomaticLevelCalculation ?? false;
     },
@@ -450,6 +480,24 @@ export const usePreferencesStore = defineStore('preferences', {
     setEnableManualTaskFail(enable: boolean) {
       this.enableManualTaskFail = enable;
     },
+    setHideCompletedTaskObjectives(hide: boolean) {
+      this.hideCompletedTaskObjectives = hide;
+    },
+    setShowAllFilter(show: boolean) {
+      this.showAllFilter = show;
+    },
+    setShowAvailableFilter(show: boolean) {
+      this.showAvailableFilter = show;
+    },
+    setShowLockedFilter(show: boolean) {
+      this.showLockedFilter = show;
+    },
+    setShowCompletedFilter(show: boolean) {
+      this.showCompletedFilter = show;
+    },
+    setShowFailedFilter(show: boolean) {
+      this.showFailedFilter = show;
+    },
     setUseAutomaticLevelCalculation(use: boolean) {
       this.useAutomaticLevelCalculation = use;
     },
@@ -534,6 +582,12 @@ export const usePreferencesStore = defineStore('preferences', {
       'showPreviousQuests',
       'taskCardDensity',
       'enableManualTaskFail',
+      'hideCompletedTaskObjectives',
+      'showAllFilter',
+      'showAvailableFilter',
+      'showLockedFilter',
+      'showCompletedFilter',
+      'showFailedFilter',
       'useAutomaticLevelCalculation',
       'enableHolidayEffects',
       'showMapExtracts',
@@ -649,6 +703,12 @@ if (shouldInitPreferencesWatchers) {
                       hideout_primary_view: preferencesState.hideoutPrimaryView,
                       locale_override: preferencesState.localeOverride,
                       enable_manual_task_fail: preferencesState.enableManualTaskFail,
+                      hide_completed_task_objectives: preferencesState.hideCompletedTaskObjectives,
+                      show_all_filter: preferencesState.showAllFilter,
+                      show_available_filter: preferencesState.showAvailableFilter,
+                      show_locked_filter: preferencesState.showLockedFilter,
+                      show_completed_filter: preferencesState.showCompletedFilter,
+                      show_failed_filter: preferencesState.showFailedFilter,
                       use_automatic_level_calculation:
                         preferencesState.useAutomaticLevelCalculation,
                     };

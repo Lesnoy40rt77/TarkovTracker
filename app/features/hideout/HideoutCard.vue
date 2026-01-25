@@ -24,7 +24,7 @@
             </span>
             <div
               v-if="!upgradeDisabled"
-              class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold leading-none"
+              class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs leading-none font-semibold"
               :class="
                 prerequisitesMet
                   ? 'bg-success-500/20 border-success-500/50 text-success-400'
@@ -290,25 +290,22 @@
   const downgradeButtonUi = {
     base: 'bg-error-900/40 hover:bg-error-900/60 active:bg-error-900/80 text-error-300 border border-error-700/50',
   };
-  const getHighlightColor = (): 'secondary' | 'success' | 'error' => {
-    const level = progressStore.hideoutLevels?.[props.station.id]?.self ?? 0;
-    if (level > 0) {
-      return 'secondary';
-    }
+  const getHighlightColor = (): 'success' | 'error' | 'primary' => {
+    if (!nextLevel.value) return 'primary';
     return prerequisitesMet.value ? 'success' : 'error';
   };
   const highlightClasses = computed(() => {
     const color = getHighlightColor();
     const classes: Record<string, boolean> = {};
     switch (color) {
+      case 'primary':
+        classes['bg-gradient-to-br from-primary-800 via-primary-700 to-primary-600'] = true;
+        break;
       case 'success':
         classes['bg-gradient-to-br from-success-800 via-success-700 to-success-600'] = true;
         break;
       case 'error':
         classes['bg-gradient-to-br from-error-800 via-error-700 to-error-600'] = true;
-        break;
-      case 'secondary':
-        classes['bg-gradient-to-br from-secondary-800 via-secondary-700 to-secondary-600'] = true;
         break;
       default:
         classes['bg-gradient-to-br from-accent-800 via-accent-700 to-accent-600'] = true;

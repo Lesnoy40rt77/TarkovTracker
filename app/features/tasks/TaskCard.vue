@@ -576,7 +576,7 @@
   </UCard>
 </template>
 <script setup lang="ts">
-  import { computed, defineAsyncComponent, ref } from 'vue';
+  import { computed, defineAsyncComponent, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
   import ContextMenu from '@/components/ui/ContextMenu.vue';
@@ -638,8 +638,19 @@
   const selectedItem = ref<{ id: string; wikiLink?: string } | null>(null);
   // Consolidated task state using composable (reduces store lookups)
   const { isComplete, isFailed, isLocked, isInvalid } = useTaskState(() => props.task.id);
-  // Objectives visibility - auto-collapsed if task is completed
-  const objectivesVisible = ref(!isComplete.value);
+  // Objectives visibility - auto-collapsed if task is completed and setting enabled
+  const objectivesVisible = ref(
+    !(isComplete.value && preferencesStore.getHideCompletedTaskObjectives)
+  );
+  // Update objectives visibility when the preference changes
+  watch(
+    () => preferencesStore.getHideCompletedTaskObjectives,
+    (hideObjectives) => {
+      if (isComplete.value) {
+        objectivesVisible.value = !hideObjectives;
+      }
+    }
+  );
   // Use extracted task actions composable
   const { markTaskComplete, markTaskUncomplete, markTaskAvailable, markTaskFailed } =
     useTaskActions(

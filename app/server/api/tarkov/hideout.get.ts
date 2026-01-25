@@ -17,6 +17,7 @@ const TARKOV_HIDEOUT_QUERY = `
             id
             item {
               id
+              backgroundColor
             }
             count
             quantity
@@ -53,6 +54,7 @@ const TARKOV_HIDEOUT_QUERY = `
           requiredItems {
             item {
               id
+              backgroundColor
             }
             count
             quantity
@@ -60,6 +62,7 @@ const TARKOV_HIDEOUT_QUERY = `
           rewardItems {
             item {
               id
+              backgroundColor
             }
             count
             quantity

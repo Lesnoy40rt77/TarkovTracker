@@ -136,6 +136,7 @@
           <!-- Status filters -->
           <div class="flex items-center gap-1">
             <UButton
+              v-if="preferencesStore.getShowAllFilter"
               variant="ghost"
               color="neutral"
               size="sm"
@@ -153,6 +154,7 @@
               </span>
             </UButton>
             <UButton
+              v-if="preferencesStore.getShowAvailableFilter"
               variant="ghost"
               color="neutral"
               size="sm"
@@ -172,6 +174,7 @@
               </span>
             </UButton>
             <UButton
+              v-if="preferencesStore.getShowLockedFilter"
               variant="ghost"
               color="neutral"
               size="sm"
@@ -191,6 +194,7 @@
               </span>
             </UButton>
             <UButton
+              v-if="preferencesStore.getShowCompletedFilter"
               variant="ghost"
               color="neutral"
               size="sm"
@@ -210,6 +214,7 @@
               </span>
             </UButton>
             <UButton
+              v-if="preferencesStore.getShowFailedFilter"
               variant="ghost"
               color="neutral"
               size="sm"

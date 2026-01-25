@@ -99,6 +99,55 @@
             <UCheckbox v-model="showPreviousQuests" />
             <span class="text-surface-200 text-sm">Previous Tasks</span>
           </label>
+          <label
+            class="hover:bg-surface-700/50 flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 transition-colors"
+          >
+            <UCheckbox v-model="hideCompletedTaskObjectives" />
+            <span class="text-surface-200 text-sm">Hide Completed Task Objectives</span>
+          </label>
+        </div>
+      </section>
+      <section class="bg-surface-800/50 rounded-lg border border-white/5 p-3">
+        <div class="mb-2 flex items-center gap-2">
+          <UIcon name="i-mdi-filter-variant" class="text-success-400 h-4 w-4" />
+          <h3 class="text-xs font-semibold tracking-wide text-white uppercase">
+            {{ t('page.tasks.settings.tabs.filterBar', 'Filter Bar') }}
+          </h3>
+        </div>
+        <p class="text-surface-500 mb-2 text-xs">
+          {{ t('page.tasks.settings.filterBar.hint', 'Show or hide status filters.') }}
+        </p>
+        <div class="space-y-1">
+          <label
+            class="hover:bg-surface-700/50 flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 transition-colors"
+          >
+            <UCheckbox v-model="showAllFilter" />
+            <span class="text-surface-200 text-sm">All Filter</span>
+          </label>
+          <label
+            class="hover:bg-surface-700/50 flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 transition-colors"
+          >
+            <UCheckbox v-model="showAvailableFilter" />
+            <span class="text-surface-200 text-sm">Available Filter</span>
+          </label>
+          <label
+            class="hover:bg-surface-700/50 flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 transition-colors"
+          >
+            <UCheckbox v-model="showLockedFilter" />
+            <span class="text-surface-200 text-sm">Locked Filter</span>
+          </label>
+          <label
+            class="hover:bg-surface-700/50 flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 transition-colors"
+          >
+            <UCheckbox v-model="showCompletedFilter" />
+            <span class="text-surface-200 text-sm">Completed Filter</span>
+          </label>
+          <label
+            class="hover:bg-surface-700/50 flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 transition-colors"
+          >
+            <UCheckbox v-model="showFailedFilter" />
+            <span class="text-surface-200 text-sm">Failed Filter</span>
+          </label>
         </div>
       </section>
       <section class="bg-surface-800/50 rounded-lg border border-white/5 p-3">
@@ -183,6 +232,30 @@
   const enableManualTaskFail = computed({
     get: () => preferencesStore.getEnableManualTaskFail,
     set: (value) => preferencesStore.setEnableManualTaskFail(value),
+  });
+  const hideCompletedTaskObjectives = computed({
+    get: () => preferencesStore.getHideCompletedTaskObjectives,
+    set: (value) => preferencesStore.setHideCompletedTaskObjectives(value),
+  });
+  const showAllFilter = computed({
+    get: () => preferencesStore.getShowAllFilter,
+    set: (value) => preferencesStore.setShowAllFilter(value),
+  });
+  const showAvailableFilter = computed({
+    get: () => preferencesStore.getShowAvailableFilter,
+    set: (value) => preferencesStore.setShowAvailableFilter(value),
+  });
+  const showLockedFilter = computed({
+    get: () => preferencesStore.getShowLockedFilter,
+    set: (value) => preferencesStore.setShowLockedFilter(value),
+  });
+  const showCompletedFilter = computed({
+    get: () => preferencesStore.getShowCompletedFilter,
+    set: (value) => preferencesStore.setShowCompletedFilter(value),
+  });
+  const showFailedFilter = computed({
+    get: () => preferencesStore.getShowFailedFilter,
+    set: (value) => preferencesStore.setShowFailedFilter(value),
   });
   const failedTasksCount = computed(
     () => metadataStore.tasks.filter((task) => tarkovStore.isTaskFailed(task.id)).length

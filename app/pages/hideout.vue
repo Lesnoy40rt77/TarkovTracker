@@ -5,39 +5,58 @@
         <div
           class="bg-surface-900 border-surface-700/50 w-full max-w-4xl rounded-lg border px-4 py-3 shadow-sm"
         >
-          <div class="flex flex-wrap justify-center gap-2">
-            <UButton
-              v-for="view in primaryViews"
-              :key="view.view"
-              :icon="`i-${view.icon}`"
-              :variant="'ghost'"
-              :color="'neutral'"
-              size="md"
-              class="shrink-0"
-              :class="{
-                'border-surface-200 rounded-none border-b-2': activePrimaryView === view.view,
-              }"
-              @click="activePrimaryView = view.view"
-            >
-              <span class="text-xs sm:text-sm">{{ view.title.toUpperCase() }}</span>
-              <span
-                :class="[
-                  'ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold text-white sm:h-7 sm:min-w-7 sm:px-1.5 sm:text-sm',
-                  view.badgeColor,
-                ]"
-              >
-                {{ view.count }}
-              </span>
-            </UButton>
+          <div class="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2">
+            <div></div>
+            <div class="flex flex-wrap justify-center gap-2">
+              <template v-for="(view, index) in primaryViews" :key="view.view">
+                <UButton
+                  :icon="`i-${view.icon}`"
+                  :variant="'ghost'"
+                  :color="'neutral'"
+                  size="md"
+                  class="shrink-0"
+                  :class="{
+                    'border-surface-200 rounded-none border-b-2': activePrimaryView === view.view,
+                  }"
+                  @click="activePrimaryView = view.view"
+                >
+                  <span class="text-xs sm:text-sm">{{ view.title.toUpperCase() }}</span>
+                  <span
+                    :class="[
+                      'ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold text-white sm:h-7 sm:min-w-7 sm:px-1.5 sm:text-sm',
+                      view.badgeColor,
+                    ]"
+                  >
+                    {{ view.count }}
+                  </span>
+                </UButton>
+                <span
+                  v-if="index === 0"
+                  aria-hidden="true"
+                  class="bg-surface-700/60 h-6 w-px self-center"
+                ></span>
+              </template>
+            </div>
+            <div class="flex justify-end">
+              <UPopover>
+                <UButton icon="i-mdi-cog" color="neutral" variant="ghost" size="sm">
+                  <span class="hidden sm:inline">
+                    {{ t('settings.title', 'Settings').toUpperCase() }}
+                  </span>
+                </UButton>
+                <template #content>
+                  <div class="w-64 p-3">
+                    <UCheckbox
+                      v-model="preferencesStore.hideoutCollapseCompleted"
+                      :label="$t('page.hideout.collapsecompleted') || 'Collapse completed stations'"
+                      color="success"
+                    />
+                  </div>
+                </template>
+              </UPopover>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="flex justify-end px-2">
-        <UCheckbox
-          v-model="preferencesStore.hideoutCollapseCompleted"
-          :label="$t('page.hideout.collapsecompleted') || 'Collapse completed stations'"
-          color="success"
-        />
       </div>
     </div>
     <div>
@@ -99,18 +118,18 @@
     useHideoutFiltering();
   const primaryViews = computed(() => [
     {
+      title: t('page.hideout.primaryviews.all'),
+      icon: 'mdi-clipboard-check',
+      view: 'all',
+      count: stationCounts.value.all,
+      badgeColor: 'bg-secondary-600',
+    },
+    {
       title: t('page.hideout.primaryviews.available'),
       icon: 'mdi-tag-arrow-up-outline',
       view: 'available',
       count: stationCounts.value.available,
       badgeColor: 'bg-info-600',
-    },
-    {
-      title: t('page.hideout.primaryviews.maxed'),
-      icon: 'mdi-arrow-collapse-up',
-      view: 'maxed',
-      count: stationCounts.value.maxed,
-      badgeColor: 'bg-success-600',
     },
     {
       title: t('page.hideout.primaryviews.locked'),
@@ -120,11 +139,11 @@
       badgeColor: 'bg-surface-600',
     },
     {
-      title: t('page.hideout.primaryviews.all'),
-      icon: 'mdi-clipboard-check',
-      view: 'all',
-      count: stationCounts.value.all,
-      badgeColor: 'bg-secondary-600',
+      title: t('page.hideout.primaryviews.maxed'),
+      icon: 'mdi-arrow-collapse-up',
+      view: 'maxed',
+      count: stationCounts.value.maxed,
+      badgeColor: 'bg-success-600',
     },
   ]);
   // Handle deep linking to a specific station via ?station=stationId query param

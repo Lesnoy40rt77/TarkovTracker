@@ -26,6 +26,7 @@ export const TARKOV_ITEMS_LITE_QUERY = `
       name
       image512pxLink
       iconLink
+      backgroundColor
     }
   }
 `;
@@ -160,12 +161,14 @@ export const TARKOV_TASKS_CORE_QUERY = `
 const ITEM_REF_FRAGMENT = `
   fragment ItemRef on Item {
     id
+    backgroundColor
     properties {
       ... on ItemPropertiesWeapon {
         defaultPreset {
           id
           iconLink
           image512pxLink
+          backgroundColor
         }
       }
     }

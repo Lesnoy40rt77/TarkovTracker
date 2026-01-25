@@ -292,7 +292,9 @@ export type Database = {
       user_preferences: {
         Row: {
           created_at: string | null
+          enable_holiday_effects: boolean | null
           enable_manual_task_fail: boolean | null
+          hide_completed_task_objectives: boolean | null
           hide_global_tasks: boolean | null
           hide_non_kappa_tasks: boolean | null
           hideout_primary_view: string | null
@@ -302,12 +304,33 @@ export type Database = {
           items_team_hide_non_fir: boolean | null
           locale_override: string | null
           map_team_hide_all: boolean | null
+          needed_items_fir_filter: string | null
+          needed_items_group_by_item: boolean | null
+          needed_items_hide_non_fir_special_equipment: boolean | null
+          needed_items_kappa_only: boolean | null
+          needed_items_view_mode: string | null
           needed_type_view: string | null
           neededitems_style: string | null
+          show_all_filter: boolean | null
+          show_completed_filter: boolean | null
+          show_experience_rewards: boolean | null
+          show_failed_filter: boolean | null
+          show_lightkeeper_tasks: boolean | null
+          show_map_extracts: boolean | null
+          show_next_quests: boolean | null
+          show_non_special_tasks: boolean | null
+          show_not_required_labels: boolean | null
+          show_previous_quests: boolean | null
+          show_required_labels: boolean | null
+          show_task_ids: boolean | null
           streamer_mode: boolean | null
+          task_card_density: string | null
           task_map_view: string | null
           task_primary_view: string | null
           task_secondary_view: string | null
+          task_shared_by_all_only: boolean | null
+          task_sort_direction: string | null
+          task_sort_mode: string | null
           task_team_hide_all: boolean | null
           task_trader_view: string | null
           task_user_view: string | null
@@ -318,7 +341,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          enable_holiday_effects?: boolean | null
           enable_manual_task_fail?: boolean | null
+          hide_completed_task_objectives?: boolean | null
           hide_global_tasks?: boolean | null
           hide_non_kappa_tasks?: boolean | null
           hideout_primary_view?: string | null
@@ -328,12 +353,33 @@ export type Database = {
           items_team_hide_non_fir?: boolean | null
           locale_override?: string | null
           map_team_hide_all?: boolean | null
+          needed_items_fir_filter?: string | null
+          needed_items_group_by_item?: boolean | null
+          needed_items_hide_non_fir_special_equipment?: boolean | null
+          needed_items_kappa_only?: boolean | null
+          needed_items_view_mode?: string | null
           needed_type_view?: string | null
           neededitems_style?: string | null
+          show_all_filter?: boolean | null
+          show_completed_filter?: boolean | null
+          show_experience_rewards?: boolean | null
+          show_failed_filter?: boolean | null
+          show_lightkeeper_tasks?: boolean | null
+          show_map_extracts?: boolean | null
+          show_next_quests?: boolean | null
+          show_non_special_tasks?: boolean | null
+          show_not_required_labels?: boolean | null
+          show_previous_quests?: boolean | null
+          show_required_labels?: boolean | null
+          show_task_ids?: boolean | null
           streamer_mode?: boolean | null
+          task_card_density?: string | null
           task_map_view?: string | null
           task_primary_view?: string | null
           task_secondary_view?: string | null
+          task_shared_by_all_only?: boolean | null
+          task_sort_direction?: string | null
+          task_sort_mode?: string | null
           task_team_hide_all?: boolean | null
           task_trader_view?: string | null
           task_user_view?: string | null
@@ -344,7 +390,9 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          enable_holiday_effects?: boolean | null
           enable_manual_task_fail?: boolean | null
+          hide_completed_task_objectives?: boolean | null
           hide_global_tasks?: boolean | null
           hide_non_kappa_tasks?: boolean | null
           hideout_primary_view?: string | null
@@ -354,12 +402,33 @@ export type Database = {
           items_team_hide_non_fir?: boolean | null
           locale_override?: string | null
           map_team_hide_all?: boolean | null
+          needed_items_fir_filter?: string | null
+          needed_items_group_by_item?: boolean | null
+          needed_items_hide_non_fir_special_equipment?: boolean | null
+          needed_items_kappa_only?: boolean | null
+          needed_items_view_mode?: string | null
           needed_type_view?: string | null
           neededitems_style?: string | null
+          show_all_filter?: boolean | null
+          show_completed_filter?: boolean | null
+          show_experience_rewards?: boolean | null
+          show_failed_filter?: boolean | null
+          show_lightkeeper_tasks?: boolean | null
+          show_map_extracts?: boolean | null
+          show_next_quests?: boolean | null
+          show_non_special_tasks?: boolean | null
+          show_not_required_labels?: boolean | null
+          show_previous_quests?: boolean | null
+          show_required_labels?: boolean | null
+          show_task_ids?: boolean | null
           streamer_mode?: boolean | null
+          task_card_density?: string | null
           task_map_view?: string | null
           task_primary_view?: string | null
           task_secondary_view?: string | null
+          task_shared_by_all_only?: boolean | null
+          task_sort_direction?: string | null
+          task_sort_mode?: string | null
           task_team_hide_all?: boolean | null
           task_trader_view?: string | null
           task_user_view?: string | null
