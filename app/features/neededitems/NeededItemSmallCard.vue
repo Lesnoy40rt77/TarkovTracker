@@ -58,7 +58,7 @@
               fill
               :class="[
                 'h-full w-full',
-                isSingleItem && !selfCompletedNeed ? '!cursor-pointer' : '',
+                isSingleItem && !selfCompletedNeed ? 'cursor-pointer!' : '',
               ]"
             />
             <!-- Compact Mode Controls Overlay -->
@@ -225,8 +225,7 @@
     const baseLayoutClasses =
       'relative z-0 aspect-[4/3] w-full shrink-0 origin-bottom overflow-hidden';
     const roundedClasses = cardStyle.value === 'compact' ? 'rounded-lg' : 'rounded-t-lg';
-    const cursorClass =
-      isSingleItem.value && !selfCompletedNeed.value ? 'cursor-pointer' : '';
+    const cursorClass = isSingleItem.value && !selfCompletedNeed.value ? 'cursor-pointer' : '';
     return [baseLayoutClasses, roundedClasses, cursorClass];
   });
   const itemCountTagClasses = computed(() => {

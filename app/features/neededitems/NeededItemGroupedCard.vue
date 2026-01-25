@@ -1,5 +1,8 @@
 <template>
-  <div class="bg-surface-800 flex h-full flex-col rounded-lg">
+  <div
+    class="bg-surface-800 hover:bg-surface-700 flex h-full cursor-pointer flex-col rounded-lg transition-colors"
+    @click="showModal = true"
+  >
     <!-- Top section: Image + Name side by side -->
     <div class="flex items-center gap-3 p-3">
       <!-- Item image -->
@@ -172,16 +175,31 @@
         </div>
       </div>
     </div>
+    <NeededItemGroupedModal
+      v-model:open="showModal"
+      :item-info="groupedItem.item"
+      :task-objectives="taskObjectives"
+      :hideout-modules="hideoutModules"
+    />
   </div>
 </template>
 <script setup lang="ts">
+  import { computed, ref } from 'vue';
   import { useCraftableItem } from '@/composables/useCraftableItem';
-  import type { GroupedNeededItem } from '@/types/tarkov';
+  import NeededItemGroupedModal from '@/features/neededitems/NeededItemGroupedModal.vue';
+  import type {
+    GroupedNeededItem,
+    NeededItemHideoutModule,
+    NeededItemTaskObjective,
+  } from '@/types/tarkov';
   import { formatCompactNumber } from '@/utils/formatters';
   const props = defineProps<{
     groupedItem: GroupedNeededItem;
+    taskObjectives: NeededItemTaskObjective[];
+    hideoutModules: NeededItemHideoutModule[];
     activeFilter?: 'all' | 'tasks' | 'hideout' | 'completed';
   }>();
+  const showModal = ref(false);
   const itemId = computed(() => props.groupedItem.item.id);
   const isComplete = computed(() => {
     return props.groupedItem.currentCount >= props.groupedItem.total;

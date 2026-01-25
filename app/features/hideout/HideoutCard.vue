@@ -96,7 +96,7 @@
           <!-- Item Requirements Section -->
           <div
             v-if="hasItemRequirements"
-            class="bg-surface-800 rounded-lg p-3 relative"
+            class="bg-surface-800 relative rounded-lg p-3"
             :class="moduleHighlightClasses"
           >
             <div class="mb-3 flex items-center text-base font-medium">

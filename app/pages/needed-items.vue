@@ -54,6 +54,8 @@
               v-for="(group, index) in visibleGroupedItems"
               :key="group.item.id"
               :grouped-item="group"
+              :task-objectives="objectivesByItemId.get(group.item.id)?.taskObjectives ?? []"
+              :hideout-modules="objectivesByItemId.get(group.item.id)?.hideoutModules ?? []"
               :active-filter="activeFilter"
               :data-index="index"
               class="h-full"
@@ -622,6 +624,30 @@
         }
         return sortDirection.value === 'asc' ? cmp : -cmp;
       });
+  });
+  const objectivesByItemId = computed(() => {
+    const map = new Map<
+      string,
+      {
+        taskObjectives: NeededItemTaskObjective[];
+        hideoutModules: NeededItemHideoutModule[];
+      }
+    >();
+    for (const need of filteredItems.value) {
+      const itemData = getNeededItemData(need);
+      const itemId = itemData?.id;
+      if (!itemId) continue;
+      if (!map.has(itemId)) {
+        map.set(itemId, { taskObjectives: [], hideoutModules: [] });
+      }
+      const entry = map.get(itemId)!;
+      if (need.needType === 'taskObjective') {
+        entry.taskObjectives.push(need as NeededItemTaskObjective);
+      } else {
+        entry.hideoutModules.push(need as NeededItemHideoutModule);
+      }
+    }
+    return map;
   });
   // Display items - either grouped or individual
   const displayItems = computed(() => {
