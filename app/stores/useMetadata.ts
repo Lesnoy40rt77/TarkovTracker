@@ -174,6 +174,9 @@ interface PromiseStore {
   readonly initPromise: Promise<void> | null;
   readonly isInitializing: boolean;
 }
+type PromiseKey = {
+  [K in keyof PromiseStore]: PromiseStore[K] extends Promise<void> | null ? K : never;
+}[keyof PromiseStore];
 type MutablePromiseStore = {
   -readonly [K in keyof PromiseStore]: PromiseStore[K];
 };
@@ -224,6 +227,22 @@ const isFetchSuccess = <T>(value: unknown): value is FetchSuccess<T> => {
   if (Object.prototype.hasOwnProperty.call(value, 'error')) return false;
   return Object.prototype.hasOwnProperty.call(value, 'data');
 };
+function createItemPicker(itemsById: Map<string, TarkovItem>) {
+  const pickItemLite = (item?: TarkovItem | null): TarkovItem | undefined => {
+    if (!item?.id) return item ?? undefined;
+    const fullItem = itemsById.get(item.id);
+    if (!fullItem) return item;
+    const mergedProperties = item.properties
+      ? { ...(fullItem.properties ?? {}), ...item.properties }
+      : fullItem.properties;
+    return mergedProperties ? { ...fullItem, properties: mergedProperties } : fullItem;
+  };
+  const pickItemArray = (items?: TarkovItem[] | null): TarkovItem[] | undefined => {
+    if (!Array.isArray(items)) return items ?? undefined;
+    return items.map((i) => pickItemLite(i) ?? i);
+  };
+  return { pickItemLite, pickItemArray };
+}
 interface MetadataState {
   // Initialization and loading states
   initialized: boolean;
@@ -278,7 +297,6 @@ export const useMetadataStore = defineStore('metadata', {
     initialized: false,
     initializationFailed: false,
     loading: false,
-    // Indicates objectives still need to be fetched (set when tasks exist but objectives not yet loaded)
     tasksObjectivesPending: false,
     tasksObjectivesHydrated: false,
     hideoutLoading: false,
@@ -638,8 +656,8 @@ export const useMetadataStore = defineStore('metadata', {
       }
     },
     /**
-     * Generic fetch helper with caching to eliminate repetitive fetch patterns.
-     * Handles: cache check → fetch → process → cache result → error handling
+     * Generic fetch helper with caching and promise deduplication.
+     * Handles: dedup → cache check → fetch → process → cache result → error handling
      */
     async fetchWithCache<T>(config: {
       cacheType: CacheType;
@@ -660,6 +678,44 @@ export const useMetadataStore = defineStore('metadata', {
       onEmpty?: () => void;
       logName: string;
       forceRefresh?: boolean;
+      promiseKey?: PromiseKey;
+    }): Promise<void> {
+      const { promiseKey, forceRefresh = false } = config;
+      if (promiseKey) {
+        const promises = getPromiseStore(this);
+        const existing = promises[promiseKey];
+        if (existing && !forceRefresh) return existing;
+        const promise = this._doFetchWithCache<T>(config);
+        promises[promiseKey] = promise;
+        try {
+          await promise;
+        } finally {
+          promises[promiseKey] = null;
+        }
+        return;
+      }
+      return this._doFetchWithCache<T>(config);
+    },
+    async _doFetchWithCache<T>(config: {
+      cacheType: CacheType;
+      cacheKey: string;
+      cacheLanguage?: string;
+      endpoint: string;
+      queryParams?: Record<string, string>;
+      cacheTTL: number;
+      loadingKey?:
+        | 'loading'
+        | 'tasksObjectivesPending'
+        | 'hideoutLoading'
+        | 'itemsLoading'
+        | 'prestigeLoading'
+        | 'editionsLoading';
+      errorKey?: 'error' | 'hideoutError' | 'itemsError' | 'prestigeError' | 'editionsError';
+      processData: (data: T) => void;
+      onEmpty?: () => void;
+      logName: string;
+      forceRefresh?: boolean;
+      promiseKey?: PromiseKey;
     }): Promise<void> {
       const perfTimer = perfStart(`[Metadata] fetch ${config.logName}`, {
         cacheKey: config.cacheKey,
@@ -964,59 +1020,42 @@ export const useMetadataStore = defineStore('metadata', {
      */
     async fetchTaskObjectivesData(forceRefresh = false) {
       if (this.tasksObjectivesHydrated && !forceRefresh) return;
-      const promises = getPromiseStore(this);
-      // Only skip if there's an active promise (not just loading flag)
-      if (promises.taskObjectivesPromise && !forceRefresh) return promises.taskObjectivesPromise;
       const apiGameMode = this.getApiGameMode();
-      promises.taskObjectivesPromise = (async () => {
-        await this.fetchWithCache<TarkovTaskObjectivesQueryResult>({
-          cacheType: 'tasks-objectives' as CacheType,
-          cacheKey: apiGameMode,
-          endpoint: '/api/tarkov/tasks-objectives',
-          queryParams: { lang: this.languageCode, gameMode: apiGameMode },
-          cacheTTL: CACHE_CONFIG.DEFAULT_TTL,
-          loadingKey: 'tasksObjectivesPending',
-          processData: (data) => {
-            this.mergeTaskObjectives(data.tasks);
-            this.hydrateTaskItems();
-          },
-          logName: 'Task objectives',
-          forceRefresh,
-        });
-      })();
-      try {
-        await promises.taskObjectivesPromise;
-      } finally {
-        promises.taskObjectivesPromise = null;
-      }
+      await this.fetchWithCache<TarkovTaskObjectivesQueryResult>({
+        cacheType: 'tasks-objectives' as CacheType,
+        cacheKey: apiGameMode,
+        endpoint: '/api/tarkov/tasks-objectives',
+        queryParams: { lang: this.languageCode, gameMode: apiGameMode },
+        cacheTTL: CACHE_CONFIG.DEFAULT_TTL,
+        loadingKey: 'tasksObjectivesPending',
+        processData: (data) => {
+          this.mergeTaskObjectives(data.tasks);
+          this.hydrateTaskItems();
+        },
+        logName: 'Task objectives',
+        forceRefresh,
+        promiseKey: 'taskObjectivesPromise',
+      });
     },
     /**
      * Fetch task rewards data
      */
     async fetchTaskRewardsData(forceRefresh = false) {
-      const promises = getPromiseStore(this);
-      if (promises.taskRewardsPromise && !forceRefresh) return promises.taskRewardsPromise;
       const apiGameMode = this.getApiGameMode();
-      promises.taskRewardsPromise = (async () => {
-        await this.fetchWithCache<TarkovTaskRewardsQueryResult>({
-          cacheType: 'tasks-rewards' as CacheType,
-          cacheKey: apiGameMode,
-          endpoint: '/api/tarkov/tasks-rewards',
-          queryParams: { lang: this.languageCode, gameMode: apiGameMode },
-          cacheTTL: CACHE_CONFIG.DEFAULT_TTL,
-          processData: (data) => {
-            this.mergeTaskRewards(data.tasks);
-            this.hydrateTaskItems();
-          },
-          logName: 'Task rewards',
-          forceRefresh,
-        });
-      })();
-      try {
-        await promises.taskRewardsPromise;
-      } finally {
-        promises.taskRewardsPromise = null;
-      }
+      await this.fetchWithCache<TarkovTaskRewardsQueryResult>({
+        cacheType: 'tasks-rewards' as CacheType,
+        cacheKey: apiGameMode,
+        endpoint: '/api/tarkov/tasks-rewards',
+        queryParams: { lang: this.languageCode, gameMode: apiGameMode },
+        cacheTTL: CACHE_CONFIG.DEFAULT_TTL,
+        processData: (data) => {
+          this.mergeTaskRewards(data.tasks);
+          this.hydrateTaskItems();
+        },
+        logName: 'Task rewards',
+        forceRefresh,
+        promiseKey: 'taskRewardsPromise',
+      });
     },
     /**
      * Backwards-compatible wrapper for legacy callers
@@ -1061,81 +1100,64 @@ export const useMetadataStore = defineStore('metadata', {
       if (this.itemsFullLoaded && this.itemsLanguage === this.languageCode && !forceRefresh) return;
       if (this.items.length > 0 && this.itemsLanguage === this.languageCode && !forceRefresh)
         return;
-      const promises = getPromiseStore(this);
-      // Check promise first to ensure we return an actual promise when loading is in progress
-      if (promises.itemsLitePromise && !forceRefresh) return promises.itemsLitePromise;
-      promises.itemsLitePromise = (async () => {
-        await this.fetchWithCache<TarkovItemsQueryResult>({
-          cacheType: 'items-lite' as CacheType,
-          cacheKey: 'all',
-          endpoint: '/api/tarkov/items-lite',
-          queryParams: { lang: this.languageCode },
-          cacheTTL: CACHE_CONFIG.MAX_TTL,
-          loadingKey: 'itemsLoading',
-          errorKey: 'itemsError',
-          processData: (data) => {
-            this.items = markRaw(data.items || []);
-            this.rebuildItemsIndex();
-            this.itemsLanguage = this.languageCode;
-            this.itemsFullLoaded = false;
-            this.hydrateTaskItems();
-            this.hydrateHideoutItems();
-          },
-          onEmpty: () => {
-            this.items = markRaw([]);
-            this.itemsById = markRaw(new Map<string, TarkovItem>());
-            this.itemsLanguage = this.languageCode;
-            this.itemsFullLoaded = false;
-          },
-          logName: 'Items (lite)',
-          forceRefresh,
-        });
-      })();
-      try {
-        await promises.itemsLitePromise;
-      } finally {
-        promises.itemsLitePromise = null;
-      }
+      await this.fetchWithCache<TarkovItemsQueryResult>({
+        cacheType: 'items-lite' as CacheType,
+        cacheKey: 'all',
+        endpoint: '/api/tarkov/items-lite',
+        queryParams: { lang: this.languageCode },
+        cacheTTL: CACHE_CONFIG.MAX_TTL,
+        loadingKey: 'itemsLoading',
+        errorKey: 'itemsError',
+        processData: (data) => {
+          this.items = markRaw(data.items || []);
+          this.rebuildItemsIndex();
+          this.itemsLanguage = this.languageCode;
+          this.itemsFullLoaded = false;
+          this.hydrateTaskItems();
+          this.hydrateHideoutItems();
+        },
+        onEmpty: () => {
+          this.items = markRaw([]);
+          this.itemsById = markRaw(new Map<string, TarkovItem>());
+          this.itemsLanguage = this.languageCode;
+          this.itemsFullLoaded = false;
+        },
+        logName: 'Items (lite)',
+        forceRefresh,
+        promiseKey: 'itemsLitePromise',
+      });
     },
     /**
      * Fetch full items data (language-specific, not game-mode specific)
      */
     async fetchItemsFullData(forceRefresh = false) {
       if (this.itemsFullLoaded && this.itemsLanguage === this.languageCode && !forceRefresh) return;
-      const promises = getPromiseStore(this);
-      if (promises.itemsFullPromise && !forceRefresh) return promises.itemsFullPromise;
-      promises.itemsFullPromise = (async () => {
-        await this.fetchWithCache<TarkovItemsQueryResult>({
-          cacheType: 'items' as CacheType,
-          cacheKey: 'all',
-          endpoint: '/api/tarkov/items',
-          queryParams: { lang: this.languageCode },
-          cacheTTL: CACHE_CONFIG.MAX_TTL,
-          loadingKey: 'itemsLoading',
-          errorKey: 'itemsError',
-          processData: (data) => {
-            this.items = markRaw(data.items || []);
-            this.rebuildItemsIndex();
-            this.itemsLanguage = this.languageCode;
-            this.itemsFullLoaded = true;
-            this.hydrateTaskItems();
-            this.hydrateHideoutItems();
-          },
-          onEmpty: () => {
-            this.items = markRaw([]);
-            this.itemsById = markRaw(new Map<string, TarkovItem>());
-            this.itemsLanguage = this.languageCode;
-            this.itemsFullLoaded = false;
-          },
-          logName: 'Items (full)',
-          forceRefresh,
-        });
-      })();
-      try {
-        await promises.itemsFullPromise;
-      } finally {
-        promises.itemsFullPromise = null;
-      }
+      await this.fetchWithCache<TarkovItemsQueryResult>({
+        cacheType: 'items' as CacheType,
+        cacheKey: 'all',
+        endpoint: '/api/tarkov/items',
+        queryParams: { lang: this.languageCode },
+        cacheTTL: CACHE_CONFIG.MAX_TTL,
+        loadingKey: 'itemsLoading',
+        errorKey: 'itemsError',
+        processData: (data) => {
+          this.items = markRaw(data.items || []);
+          this.rebuildItemsIndex();
+          this.itemsLanguage = this.languageCode;
+          this.itemsFullLoaded = true;
+          this.hydrateTaskItems();
+          this.hydrateHideoutItems();
+        },
+        onEmpty: () => {
+          this.items = markRaw([]);
+          this.itemsById = markRaw(new Map<string, TarkovItem>());
+          this.itemsLanguage = this.languageCode;
+          this.itemsFullLoaded = false;
+        },
+        logName: 'Items (full)',
+        forceRefresh,
+        promiseKey: 'itemsFullPromise',
+      });
     },
     /**
      * Backwards-compatible wrapper for legacy callers
@@ -1251,7 +1273,6 @@ export const useMetadataStore = defineStore('metadata', {
         maps: data.maps?.length ?? 0,
         traders: data.traders?.length ?? 0,
       });
-      // Indicates objectives still need to be fetched (set when tasks exist but objectives not yet loaded)
       this.tasksObjectivesPending = (data.tasks?.length ?? 0) > 0;
       this.tasksObjectivesHydrated = false;
       this.processTasksData({
@@ -1457,21 +1478,7 @@ export const useMetadataStore = defineStore('metadata', {
       const itemsById = this.itemsById.size
         ? this.itemsById
         : new Map(this.items.map((item) => [item.id, item]));
-      // Merge item data to preserve task-specific fields like properties.defaultPreset
-      // without allowing lightweight task items to overwrite full base fields.
-      const pickItemLite = (item?: TarkovItem | null): TarkovItem | undefined => {
-        if (!item?.id) return item ?? undefined;
-        const fullItem = itemsById.get(item.id);
-        if (!fullItem) return item;
-        const mergedProperties = item.properties
-          ? { ...(fullItem.properties ?? {}), ...item.properties }
-          : fullItem.properties;
-        return mergedProperties ? { ...fullItem, properties: mergedProperties } : fullItem;
-      };
-      const pickItemArray = (items?: TarkovItem[] | null): TarkovItem[] | undefined => {
-        if (!Array.isArray(items)) return items ?? undefined;
-        return items.map((item) => pickItemLite(item) ?? item);
-      };
+      const { pickItemLite, pickItemArray } = createItemPicker(itemsById);
       const hydrateObjective = (objective: TaskObjective): TaskObjective => {
         const obj = objective as ObjectiveWithItems;
         return {
@@ -1533,17 +1540,7 @@ export const useMetadataStore = defineStore('metadata', {
       const itemsById = this.itemsById.size
         ? this.itemsById
         : new Map(this.items.map((item) => [item.id, item]));
-      // Merge item data to preserve full item fields while selectively merging hideout-specific properties
-      // (mirrors hydrateTaskItems pattern: fullItem as base, only merge properties deeply)
-      const pickItemLite = (item?: TarkovItem | null): TarkovItem | undefined => {
-        if (!item?.id) return item ?? undefined;
-        const fullItem = itemsById.get(item.id);
-        if (!fullItem) return item;
-        const mergedProperties = item.properties
-          ? { ...(fullItem.properties ?? {}), ...item.properties }
-          : fullItem.properties;
-        return mergedProperties ? { ...fullItem, properties: mergedProperties } : fullItem;
-      };
+      const { pickItemLite } = createItemPicker(itemsById);
       this.hideoutStations = this.hideoutStations.map((station) => ({
         ...station,
         levels: station.levels.map((level) => ({
@@ -1616,23 +1613,9 @@ export const useMetadataStore = defineStore('metadata', {
       if (Array.isArray(data.playerLevels)) {
         this.playerLevels = markRaw(this.convertToCumulativeXP(data.playerLevels));
       }
+      this.rebuildTaskDerivedData();
       if (this.tasks.length > 0) {
-        const graphBuilder = useGraphBuilder();
-        const processedData = graphBuilder.processTaskData(this.tasks);
-        this.tasks = markRaw(processedData.tasks);
-        this.taskGraph = processedData.taskGraph;
-        this.mapTasks = markRaw(processedData.mapTasks);
-        this.objectiveMaps = markRaw(processedData.objectiveMaps);
-        this.objectiveGPS = markRaw(processedData.objectiveGPS);
-        this.alternativeTasks = markRaw(processedData.alternativeTasks);
-        this.alternativeTaskSources = markRaw(
-          this.buildAlternativeTaskSources(processedData.alternativeTasks)
-        );
-        this.neededItemTaskObjectives = markRaw(processedData.neededItemTaskObjectives);
         tarkovStore.repairFailedTaskStates();
-        this.rebuildTaskIndex();
-      } else {
-        this.resetTasksData();
       }
       perfEnd(perfTimer, {
         tasks: this.tasks.length,
