@@ -1,5 +1,5 @@
 <template>
-  <div class="min-w-[220px]">
+  <div class="min-w-55">
     <div class="flex items-center justify-between gap-2">
       <div class="min-w-0 flex-1">
         <div class="text-sm leading-snug font-semibold text-gray-100">{{ taskName }}</div>
@@ -17,9 +17,11 @@
         <button
           v-if="!readOnly"
           type="button"
-          class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10"
+          class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-200"
+          :class="isToggleDisabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-white/10'"
           :aria-label="isComplete ? t('maps.tooltip.uncomplete') : t('maps.tooltip.complete')"
           :aria-pressed="isComplete"
+          :disabled="isToggleDisabled"
           @click.stop="toggleObjective"
         >
           <UIcon
@@ -55,6 +57,7 @@
   import { useI18n } from 'vue-i18n';
   import { useMetadataStore } from '@/stores/useMetadata';
   import { useTarkovStore } from '@/stores/useTarkov';
+  import { logger } from '@/utils/logger';
   import type { Router } from 'vue-router';
   const props = withDefaults(
     defineProps<{
@@ -64,6 +67,7 @@
     }>(),
     {
       readOnly: false,
+      onClose: undefined,
     }
   );
   const emit = defineEmits<{
@@ -93,8 +97,18 @@
   const isComplete = computed(() => tarkovStore.isTaskObjectiveComplete(props.objectiveId));
   const requiredCount = computed(() => objective.value?.count ?? 1);
   const currentCount = computed(() => tarkovStore.getObjectiveCount(props.objectiveId));
+  // Check if parent task is complete or failed (locked state)
+  const isParentTaskLocked = computed(() => {
+    const taskId = objective.value?.taskId;
+    if (!taskId) return false;
+    const isTaskComplete = tarkovStore.isTaskComplete(taskId) && !tarkovStore.isTaskFailed(taskId);
+    const isTaskFailed = tarkovStore.isTaskFailed(taskId);
+    return isTaskComplete || isTaskFailed;
+  });
+  // Disable toggle button when parent task is locked or readOnly
+  const isToggleDisabled = computed(() => props.readOnly || isParentTaskLocked.value);
   const toggleObjective = () => {
-    if (props.readOnly) return;
+    if (isToggleDisabled.value) return;
     const required = requiredCount.value;
     if (isComplete.value) {
       tarkovStore.setTaskObjectiveUncomplete(props.objectiveId);
@@ -115,10 +129,11 @@
    * ensuring the highlight happens even if this tooltip unmounts (e.g., from hover ending).
    */
   const scrollToObjective = () => {
-    if (!task.value || !router) return;
-    // Use query params to trigger scroll and highlight via tasks.vue
-    // This ensures the highlight happens even if this tooltip component
-    // gets unmounted (e.g., when hover ends during scroll)
+    if (!task.value) return;
+    if (!router) {
+      logger.warn('LeafletObjectiveTooltip: router not available, cannot scroll to objective');
+      return;
+    }
     const currentQuery = { ...router.currentRoute.value.query };
     router.replace({
       query: {

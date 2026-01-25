@@ -1,8 +1,16 @@
+import { useMetadataStore } from '@/stores/useMetadata';
 import type { TaskObjective } from '@/types/tarkov';
-/**
- * Extended objective interface with optional location data.
- * These fields are present on some objectives from the tarkov.dev API.
- */
+const NON_LOCATION_OBJECTIVE_TYPES = new Set([
+  'giveItem',
+  'giveQuestItem',
+  'traderLevel',
+  'traderStanding',
+  'playerLevel',
+  'taskStatus',
+  'skill',
+  'experience',
+  'buildWeapon',
+]);
 interface ObjectiveWithLocation extends TaskObjective {
   zones?: Array<{ map: { id: string }; outline: { x: number; z: number }[] }>;
   possibleLocations?: Array<{
@@ -14,12 +22,10 @@ interface ObjectiveWithLocation extends TaskObjective {
  * Checks if an objective has actionable map location data.
  * Used to determine if the "Jump To Map" button should be shown.
  *
- * Only returns true when we have actual coordinate data to jump to:
+ * Returns true when we have actual coordinate data to jump to:
  * - Zones with non-empty outline arrays
  * - PossibleLocations with non-empty positions arrays
- *
- * Note: We intentionally exclude objectives that only have `maps` without
- * coordinates, as there's no specific point to jump to on the map.
+ * - GPS fallback coordinates from metadata store
  *
  * @param objective - The basic objective from props
  * @param fullObjective - Optional full objective from metadata store with additional fields
@@ -30,6 +36,9 @@ export function objectiveHasMapLocation(
   fullObjective?: TaskObjective
 ): boolean {
   const target = (fullObjective ?? objective) as ObjectiveWithLocation;
+  if (target.type && NON_LOCATION_OBJECTIVE_TYPES.has(target.type)) {
+    return false;
+  }
   // Check for zones with actual outline coordinates
   const hasZonesWithOutlines =
     Array.isArray(target.zones) &&
@@ -40,5 +49,17 @@ export function objectiveHasMapLocation(
     target.possibleLocations.some(
       (loc) => Array.isArray(loc.positions) && loc.positions.length > 0
     );
-  return hasZonesWithOutlines || hasLocationsWithPositions;
+  if (hasZonesWithOutlines || hasLocationsWithPositions) {
+    return true;
+  }
+  // Check GPS fallback from metadata store
+  const taskId = target.taskId ?? objective.taskId;
+  if (!taskId) return false;
+  const metadataStore = useMetadataStore();
+  const objectiveMaps = metadataStore.objectiveMaps?.[taskId] ?? [];
+  const objectiveGps = metadataStore.objectiveGPS?.[taskId] ?? [];
+  const isOnAnyMap = objectiveMaps.some((mapInfo) => mapInfo.objectiveID === objective.id);
+  const gpsInfo = objectiveGps.find((gps) => gps.objectiveID === objective.id);
+  const hasGpsCoordinates = gpsInfo && (gpsInfo.x !== undefined || gpsInfo.y !== undefined);
+  return isOnAnyMap && hasGpsCoordinates;
 }

@@ -39,12 +39,11 @@
         >
           <button
             type="button"
-            class="focus-visible:ring-primary-500 focus-visible:ring-offset-surface-900 flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-300 transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            class="focus-visible:ring-primary-500 focus-visible:ring-offset-surface-900 flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            :class="isJumpToMapDisabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-white/10'"
             :aria-label="t('page.tasks.questcard.jumpToMap', 'Jump To Map')"
-            @click.stop="
-              ($event.currentTarget as HTMLElement)?.blur();
-              handleJumpToMap();
-            "
+            :disabled="isJumpToMapDisabled"
+            @click.stop="onJumpToMapClick"
           >
             <UIcon name="i-mdi-map-marker" aria-hidden="true" class="h-4 w-4" />
           </button>
@@ -197,15 +196,25 @@
     return 'mdi-help-circle';
   });
   const neededCount = computed(() => fullObjective.value?.count ?? props.objective.count ?? 1);
-  // Check if this objective has map location data (for "Jump to map" button)
+  // Check if this objective has map location data (on any map)
   const hasMapLocation = computed(() => {
     if (!isMapView?.value) return false;
     return objectiveHasMapLocation(props.objective, fullObjective.value);
   });
+  // Disable "Jump to map" when objective is complete and current view doesn't show completed markers
+  const shouldShowCompletedOnMap = computed(() =>
+    ['completed', 'all'].includes(preferencesStore.getTaskSecondaryView)
+  );
+  const isJumpToMapDisabled = computed(() => isComplete.value && !shouldShowCompletedOnMap.value);
   const handleJumpToMap = () => {
     if (jumpToMapObjective) {
       jumpToMapObjective(props.objective.id);
     }
+  };
+  const onJumpToMapClick = (event: MouseEvent) => {
+    if (isJumpToMapDisabled.value) return;
+    (event.currentTarget as HTMLElement)?.blur();
+    handleJumpToMap();
   };
   const handleRowClick = () => {
     if (isParentTaskLocked.value) return;

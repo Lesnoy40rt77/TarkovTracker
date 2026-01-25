@@ -157,7 +157,7 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed, createApp, onUnmounted, ref, toRef, watch } from 'vue';
+  import { computed, createApp, inject, onUnmounted, ref, toRef, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
   import { useLeafletMap } from '@/composables/useLeafletMap';
@@ -206,6 +206,8 @@
   const { $i18n } = useNuxtApp();
   const metadataStore = useMetadataStore();
   const preferencesStore = usePreferencesStore();
+  // Inject clearPinnedTask from parent (tasks.vue) to pass to tooltip
+  const clearPinnedTask = inject<(() => void) | null>('clearPinnedTask', null);
   // Check if map is unavailable
   const isMapUnavailable = computed(() => {
     return props.map?.unavailable === true;
@@ -283,8 +285,9 @@
   ): { element: HTMLElement; unmount: () => void } {
     const container = document.createElement('div');
     const app = createApp(LeafletObjectiveTooltip, { objectiveId, onClose });
-    // Provide router and i18n to the standalone app instance
+    // Provide dependencies to the standalone app instance
     app.provide('router', router);
+    app.provide('clearPinnedTask', clearPinnedTask);
     app.use($i18n);
     app.mount(container);
     return { element: container, unmount: () => app.unmount() };
@@ -338,6 +341,12 @@
         }
       }
     };
+    const cleanupMountedComponent = () => {
+      if (currentMountedComponent) {
+        currentMountedComponent.unmount();
+        currentMountedComponent = null;
+      }
+    };
     const showPopup = (pinned: boolean) => {
       if (!mapInstance.value) return;
       // Close any other pinned popup first if we're pinning
@@ -350,9 +359,7 @@
         setLayerSelected(true);
       }
       // Unmount previous component if exists
-      if (currentMountedComponent) {
-        currentMountedComponent.unmount();
-      }
+      cleanupMountedComponent();
       // Mount the Vue component
       currentMountedComponent = mountObjectiveTooltip(objectiveId, unpinAndHide);
       popup.setContent(currentMountedComponent.element);
@@ -367,10 +374,7 @@
     const hidePopup = () => {
       if (!isPinned && mapInstance.value) {
         popup.remove();
-        if (currentMountedComponent) {
-          currentMountedComponent.unmount();
-          currentMountedComponent = null;
-        }
+        cleanupMountedComponent();
       }
     };
     const unpinAndHide = () => {
@@ -383,10 +387,7 @@
       }
       if (mapInstance.value) {
         popup.remove();
-        if (currentMountedComponent) {
-          currentMountedComponent.unmount();
-          currentMountedComponent = null;
-        }
+        cleanupMountedComponent();
       }
     };
     // Store reference for programmatic activation
@@ -481,10 +482,7 @@
       }
       popup.remove();
       objectiveMarkers.delete(objectiveId);
-      if (currentMountedComponent) {
-        currentMountedComponent.unmount();
-        currentMountedComponent = null;
-      }
+      cleanupMountedComponent();
     });
   };
   /**

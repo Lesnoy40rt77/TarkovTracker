@@ -39,17 +39,18 @@
         </span>
         <!-- Jump To Map button (only shown when in maps view and any objective has actionable coordinates) -->
         <AppTooltip
-          v-if="getMapObjectiveId(row)"
+          v-if="rowHasMapLocation(row)"
           :text="t('page.tasks.questcard.jumpToMap', 'Jump To Map')"
         >
           <button
             type="button"
-            class="focus-visible:ring-primary-500 focus-visible:ring-offset-surface-900 flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-300 transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-            :aria-label="t('page.tasks.questcard.jumpToMap', 'Jump To Map')"
-            @click.stop="
-              ($event.currentTarget as HTMLElement)?.blur();
-              handleJumpToMap(getMapObjectiveId(row)!);
+            class="focus-visible:ring-primary-500 focus-visible:ring-offset-surface-900 flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            :class="
+              isJumpToMapDisabledForRow(row) ? 'cursor-not-allowed opacity-50' : 'hover:bg-white/10'
             "
+            :aria-label="t('page.tasks.questcard.jumpToMap', 'Jump To Map')"
+            :disabled="isJumpToMapDisabledForRow(row)"
+            @click.stop="onJumpToMapClick($event, row)"
           >
             <UIcon name="i-mdi-map-marker" aria-hidden="true" class="h-4 w-4" />
           </button>
@@ -99,6 +100,7 @@
   import ObjectiveCountControls from '@/features/tasks/ObjectiveCountControls.vue';
   import { objectiveHasMapLocation } from '@/features/tasks/task-objective-helpers';
   import { useMetadataStore } from '@/stores/useMetadata';
+  import { usePreferencesStore } from '@/stores/usePreferences';
   import { useTarkovStore } from '@/stores/useTarkov';
   import type { TaskObjective } from '@/types/tarkov';
   // Inject functions from tasks.vue for map integration
@@ -112,6 +114,7 @@
   const { t } = useI18n({ useScope: 'global' });
   const tarkovStore = useTarkovStore();
   const metadataStore = useMetadataStore();
+  const preferencesStore = usePreferencesStore();
   type ObjectiveMeta = {
     neededCount: number;
     currentCount: number;
@@ -259,24 +262,58 @@
   const getRowObjectiveIds = (row: ConsolidatedRow): string[] => {
     return row.objectives.map((objRow) => objRow.objective.id);
   };
+  const rowHasMapLocation = (row: ConsolidatedRow): boolean => {
+    if (!isMapView?.value) return false;
+    return row.objectives.some((objRow) => {
+      const fullObj = fullObjectives.value.find((o) => o.id === objRow.objective.id);
+      return objectiveHasMapLocation(objRow.objective, fullObj);
+    });
+  };
   /**
-   * Finds an objective with map location data from a consolidated row.
-   * Returns the objective ID if found, null otherwise.
+   * Finds an objective with map location data from a consolidated row for jumping.
+   * Prefers incomplete objectives, but returns completed ones if view shows them.
    */
   const getMapObjectiveId = (row: ConsolidatedRow): string | null => {
     if (!isMapView?.value) return null;
+    const showCompleted = ['completed', 'all'].includes(preferencesStore.getTaskSecondaryView);
+    let fallbackCompleteId: string | null = null;
     for (const objRow of row.objectives) {
       const obj = objRow.objective;
       const fullObj = fullObjectives.value.find((o) => o.id === obj.id);
-      if (objectiveHasMapLocation(obj, fullObj)) {
+      if (!objectiveHasMapLocation(obj, fullObj)) continue;
+      const isComplete = tarkovStore.isTaskObjectiveComplete(obj.id);
+      if (!isComplete) {
         return obj.id;
       }
+      if (showCompleted && !fallbackCompleteId) {
+        fallbackCompleteId = obj.id;
+      }
     }
-    return null;
+    return fallbackCompleteId;
   };
-  const handleJumpToMap = (objectiveId: string) => {
-    if (jumpToMapObjective) {
-      jumpToMapObjective(objectiveId);
+  // Check if current view shows completed objectives on map
+  const shouldShowCompletedOnMap = computed(() =>
+    ['completed', 'all'].includes(preferencesStore.getTaskSecondaryView)
+  );
+  /**
+   * Checks if the "Jump to Map" button should be disabled for a row.
+   * Disabled when all objectives with map location are complete AND current view doesn't show completed markers.
+   */
+  const isJumpToMapDisabledForRow = (row: ConsolidatedRow): boolean => {
+    const hasLocation = rowHasMapLocation(row);
+    const hasIncompleteWithLocation = getMapObjectiveId(row) !== null;
+    // If there's an incomplete objective with location, always enabled
+    if (hasIncompleteWithLocation) return false;
+    // If all are complete, only disable if current view doesn't show completed
+    return hasLocation && !shouldShowCompletedOnMap.value;
+  };
+  const onJumpToMapClick = (event: MouseEvent, row: ConsolidatedRow) => {
+    const objectiveId = getMapObjectiveId(row);
+    if (objectiveId) {
+      (event.currentTarget as HTMLElement)?.blur();
+      if (jumpToMapObjective) {
+        jumpToMapObjective(objectiveId);
+      }
     }
   };
   const isObjectiveComplete = (objectiveId: string) => {

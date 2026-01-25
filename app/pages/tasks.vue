@@ -630,6 +630,8 @@
   const ELEMENT_WAIT_RETRY_DELAY = 50; // Delay between retries when waiting for DOM element
   const HIGHLIGHT_SETTLE_DELAY = 100; // Delay to let element settle before highlighting
   const HIGHLIGHT_DURATION = 3500; // How long the highlight animation stays visible
+  const POPUP_ACTIVATE_RETRY_DELAY = 150;
+  const POPUP_ACTIVATE_MAX_ATTEMPTS = 6;
   const visibleTaskCount = ref(INITIAL_BATCH);
   const loadMoreSentinel = ref<HTMLElement | null>(null);
   // Flag to prevent visibleTaskCount reset during task navigation (e.g., from map tooltip)
@@ -640,13 +642,6 @@
       ? filteredTasks.value.filter((task) => task.id !== pinnedTask.value?.id)
       : filteredTasks.value;
     return tasks.slice(0, visibleTaskCount.value);
-  });
-  // For backwards compatibility - includes pinned task at top
-  const visibleTasksSlice = computed(() => {
-    if (pinnedTask.value) {
-      return [pinnedTask.value, ...unpinnedTasksSlice.value];
-    }
-    return unpinnedTasksSlice.value;
   });
   const hasMoreTasks = computed(() => visibleTaskCount.value < filteredTasks.value.length);
   const loadMoreTasks = () => {
@@ -693,26 +688,88 @@
   const scrollToMap = scrollToTop;
   let jumpToMapTimeoutId: ReturnType<typeof setTimeout> | null = null;
   let waitForElementAbortController: AbortController | null = null;
+  const popupActivateTimers = ref<ReturnType<typeof setTimeout>[]>([]);
+  /**
+   * Finds which map an objective is on (for map switching).
+   * Checks zones, possibleLocations, and GPS fallback.
+   */
+  const findObjectiveMapId = (objectiveId: string): string | null => {
+    const objective = metadataStore.objectives.find((o) => o.id === objectiveId);
+    if (!objective) return null;
+    const taskId = objective.taskId;
+    if (!taskId) return null;
+    // Check zones
+    const objWithZones = objective as typeof objective & {
+      zones?: Array<{ map?: { id: string } }>;
+    };
+    if (objWithZones.zones?.length) {
+      const zoneMapId = objWithZones.zones[0]?.map?.id;
+      if (zoneMapId) return zoneMapId;
+    }
+    // Check possibleLocations
+    const objWithLocs = objective as typeof objective & {
+      possibleLocations?: Array<{ map?: { id: string } }>;
+    };
+    if (objWithLocs.possibleLocations?.length) {
+      const locMapId = objWithLocs.possibleLocations[0]?.map?.id;
+      if (locMapId) return locMapId;
+    }
+    // Check GPS fallback via objectiveMaps
+    const objectiveMapsForTask = metadataStore.objectiveMaps?.[taskId] ?? [];
+    const mapInfo = objectiveMapsForTask.find((m) => m.objectiveID === objectiveId);
+    if (mapInfo?.mapID) return mapInfo.mapID;
+    return null;
+  };
   /**
    * Scrolls to the map and activates the popup for a specific objective.
+   * Switches to the correct map if needed.
    * Used by TaskObjective's "Jump to map" button.
    */
-  const jumpToMapObjective = (objectiveId: string) => {
+  const clearPopupActivateTimers = () => {
+    popupActivateTimers.value.forEach((timerId) => clearTimeout(timerId));
+    popupActivateTimers.value = [];
+  };
+  const activateObjectivePopupWithRetry = (objectiveId: string) => {
+    clearPopupActivateTimers();
+    let attempts = 0;
+    const tryActivate = () => {
+      const success = leafletMapRef.value?.activateObjectivePopup(objectiveId);
+      if (success) return;
+      attempts += 1;
+      if (attempts > POPUP_ACTIVATE_MAX_ATTEMPTS) return;
+      const timerId = setTimeout(tryActivate, POPUP_ACTIVATE_RETRY_DELAY);
+      popupActivateTimers.value.push(timerId);
+    };
+    tryActivate();
+  };
+  const jumpToMapObjective = async (objectiveId: string) => {
     // Clear any pending jumpToMap timeout
     if (jumpToMapTimeoutId) {
       clearTimeout(jumpToMapTimeoutId);
       jumpToMapTimeoutId = null;
     }
+    // Find which map this objective is on
+    const targetMapId = findObjectiveMapId(objectiveId);
+    const currentMapId = getTaskMapView.value;
+    // Switch map if needed
+    if (targetMapId && targetMapId !== currentMapId) {
+      preferencesStore.setTaskMapView(targetMapId);
+      await nextTick();
+      // Wait a bit for map to re-render with new markers
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    // Always scroll to map first
     const isNearTop = window.scrollY < 100;
-    if (isNearTop) {
-      // Already at top, activate immediately
-      leafletMapRef.value?.activateObjectivePopup(objectiveId);
-    } else {
-      // Need to scroll, use minimal delay
+    if (!isNearTop) {
       scrollToMap();
+    }
+    // Try to activate popup, with retry after delay if scroll needed
+    if (isNearTop) {
+      activateObjectivePopupWithRetry(objectiveId);
+    } else {
       jumpToMapTimeoutId = setTimeout(() => {
         jumpToMapTimeoutId = null;
-        leafletMapRef.value?.activateObjectivePopup(objectiveId);
+        activateObjectivePopupWithRetry(objectiveId);
       }, SCROLL_TO_MAP_POPUP_DELAY);
     }
   };
@@ -753,6 +810,7 @@
       clearTimeout(jumpToMapTimeoutId);
       jumpToMapTimeoutId = null;
     }
+    clearPopupActivateTimers();
     // Abort any pending waitForElement calls
     if (waitForElementAbortController) {
       waitForElementAbortController.abort();
@@ -841,14 +899,16 @@
       }, HIGHLIGHT_DURATION);
       highlightObjectiveTimers.value.push(removeTimer);
     };
-    // Check if already in view
+    // Always scroll to element to ensure visibility (user may be viewing map above)
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Check if already in view (scroll may be instant if nearby)
     const rect = element.getBoundingClientRect();
     const isInView = rect.top >= 0 && rect.bottom <= window.innerHeight;
     if (isInView) {
       applyHighlight();
       return;
     }
-    // Wait for element to become visible
+    // Wait for element to become visible after scroll
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
@@ -897,8 +957,13 @@
     // Set flag to prevent filter watch from resetting visibleTaskCount during navigation
     isNavigatingToTask.value = true;
     try {
-      // If highlighting from map tooltip, don't change the view - just pin and highlight
+      // If highlighting from map tooltip, only clear search (keep current filters)
+      // Otherwise, adjust all filters to ensure task visibility
       const isMapHighlight = !!objectiveIdToHighlight;
+      // Always clear search query so the target task is visible
+      if (searchQuery.value) {
+        searchQuery.value = '';
+      }
       if (!isMapHighlight) {
         // Enable the appropriate type filter based on task properties
         const isKappaRequired = taskInMetadata.kappaRequired === true;
@@ -933,10 +998,6 @@
         // Set primary view to 'all' to ensure the task is visible regardless of map/trader
         if (preferencesStore.getTaskPrimaryView !== 'all') {
           preferencesStore.setTaskPrimaryView('all');
-        }
-        // Clear search query so the target task is visible
-        if (searchQuery.value) {
-          searchQuery.value = '';
         }
       }
       // Wait for filter/watch updates to settle

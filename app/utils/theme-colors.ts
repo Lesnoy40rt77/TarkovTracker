@@ -94,11 +94,3 @@ export const MAP_MARKER_COLORS = {
   /** Extract dot border - near black */
   EXTRACT_DOT_BORDER: THEME_COLORS.neutral.black,
 } as const;
-/**
- * Highlight color for objective scroll/focus animations.
- * Matches --color-selection-500 (violet) for selection states.
- *
- * Note: For CSS contexts, prefer using var(--color-selection-500) directly.
- * This constant is for JS contexts where Leaflet's API requires raw strings.
- */
-export const HIGHLIGHT_COLOR = THEME_COLORS.selection[500];
