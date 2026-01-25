@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # Commands
 
 ```bash
@@ -16,9 +20,10 @@ cd workers/team-gateway && npx wrangler deploy
 
 # Architecture
 
-- **Nuxt 4 SPA** (`app/`) with file-based routing
+- **Nuxt 4 SPA** (`app/`) with file-based routing, `ssr: false`—no SSR features
 - **Features**: Domain slices (tasks, team, hideout, maps, neededitems, traders, settings, admin)
-- **State**: Three-store pattern (useMetadata, useProgress, usePreferences)
+- **Shell**: App chrome in `app/shell/` (AppBar, NavDrawer, AppFooter)
+- **State**: Three-store pattern (useMetadata, useProgress, usePreferences) + useTarkov computed facade
 - **Backend**: Supabase (auth, PostgreSQL, Realtime), Cloudflare Workers (api-gateway, team-gateway), Nitro routes
 - **Sync**: Supabase Broadcast for team real-time updates
 - **Game Modes**: Dual PvP/PvE tracking, XP system with xpOffset
@@ -64,3 +69,11 @@ Node.js >=24.12.0 required (see `.nvmrc`)
 
 - Make the plan extremely concise. Sacrifice grammar for the sake of concision.
 - At the end of each plan, give a list of unresolved questions to answer, if any.
+
+## Pitfalls
+
+- No SSR features (SPA-only)
+- No parent-relative imports (`../..`)—use `@/` aliases
+- No hex colors—Tailwind theme only
+- Mock network calls in tests
+- Prefer early returns over deep nesting
