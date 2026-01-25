@@ -58,6 +58,14 @@
     aria: {
       zoomSpeed: 'Zoomgeschwindigkeit',
     },
+    tooltip: {
+      goTo: 'Zum Ziel gehen',
+      goToInTaskList: 'Zum Ziel in der Aufgabenliste gehen',
+      complete: 'Ziel abschließen',
+      uncomplete: 'Ziel nicht abschließen',
+      objectiveUnavailable: 'Ziel nicht verfügbar.',
+      taskFallback: 'Aufgabe',
+    },
   },
   page: {
     index: {
@@ -178,6 +186,7 @@
       notasksfound: 'Keine Aufgaben gefunden. Ändere deine Filter oder passe dein Level an.',
       showing_all_sources: 'Zeige alle Quellen',
       loading: 'Lade Aufgaben',
+      selectedTask: 'Ausgewählte Aufgabe',
       questcard: {
         level: 'Level: {count}',
         levelBadge: 'Lv {count}',
@@ -251,7 +260,10 @@
         anyMap: 'Beliebig',
         globalTask: 'Beliebige Karte',
         globalTaskTooltip: 'Diese Aufgabe kann auf jeder Karte abgeschlossen werden',
+        jumpToMap: 'Zur Karte springen',
       },
+      scrollToMap: 'Zur Karte scrollen',
+      scrollToTop: 'Nach oben scrollen',
     },
     traders: {
       title: 'Händler',
@@ -641,6 +653,7 @@
     item: 'Gegenstand',
     items: 'Gegenstände',
     close_button: 'Schließen',
+    dismiss: 'Verwerfen',
     loading: 'Lädt...',
     error: 'Fehler',
   },

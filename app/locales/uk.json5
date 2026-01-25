@@ -41,6 +41,14 @@
     aria: {
       zoomSpeed: 'Швидкість масштабування',
     },
+    tooltip: {
+      goTo: 'Перейти до цілі',
+      goToInTaskList: 'Перейти до цілі у списку завдань',
+      complete: 'Виконати ціль',
+      uncomplete: 'Скасувати виконання цілі',
+      objectiveUnavailable: 'Ціль недоступна.',
+      taskFallback: 'Завдання',
+    },
   },
   page: {
     index: {
@@ -161,6 +169,7 @@
       notasksfound: 'Завдання не знайдено. Спробуйте змінити фільтри або оновити рівень.',
       showing_all_sources: 'Показати всі джерела',
       loading: 'Завантажуємо завдання',
+      selectedTask: 'Обране завдання',
       questcard: {
         level: 'Потрібний рівень: {count}',
         wiki: 'Wiki сторінка',
@@ -195,7 +204,10 @@
         anyMap: 'Будь-яка',
         globalTask: 'Будь-яка карта',
         globalTaskTooltip: 'Це завдання можна виконати на будь-якій карті',
+        jumpToMap: 'Перейти до карти',
       },
+      scrollToMap: 'Прокрутити до карти',
+      scrollToTop: 'Вгору',
     },
     traders: {
       title: 'Торговці',
@@ -564,6 +576,7 @@
     item: 'Предмет',
     items: 'Предмети',
     close_button: 'Закрити',
+    dismiss: 'Відхилити',
     loading: 'Завантаження...',
     error: 'Помилка',
   },

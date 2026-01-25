@@ -58,6 +58,14 @@
     aria: {
       zoomSpeed: '缩放速度',
     },
+    tooltip: {
+      goTo: '前往目标',
+      goToInTaskList: '在任务列表中前往目标',
+      complete: '完成目标',
+      uncomplete: '取消完成目标',
+      objectiveUnavailable: '目标不可用。',
+      taskFallback: '任务',
+    },
   },
   page: {
     index: {
@@ -235,6 +243,7 @@
       notasksfound: '未找到任务，可尝试修改筛选条件或更新人物等级',
       showing_all_sources: '显示全部来源',
       loading: '加载任务中',
+      selectedTask: '已选任务',
       questcard: {
         level: '等级要求：{count}',
         levelBadge: '等级 {count}',
@@ -312,7 +321,10 @@
         anyMap: '任意',
         globalTask: '任意地图',
         globalTaskTooltip: '此任务可在任意地图上完成',
+        jumpToMap: '跳转到地图',
       },
+      scrollToMap: '滚动到地图',
+      scrollToTop: '滚动到顶部',
     },
     traders: {
       title: '商人',
@@ -693,6 +705,7 @@
     item: '物品',
     items: '物品',
     close_button: '关闭',
+    dismiss: '关闭',
     loading: '加载中...',
     error: '出错了',
   },

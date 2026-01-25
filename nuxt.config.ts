@@ -135,7 +135,7 @@ export default defineNuxtConfig({
       ],
     },
   },
-  css: ['~/assets/css/tailwind.css', 'leaflet/dist/leaflet.css'],
+  css: ['~/assets/css/tailwind.css'],
   alias: {
     '@': appDir,
     '~': appDir,

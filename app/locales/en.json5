@@ -58,6 +58,14 @@
     aria: {
       zoomSpeed: 'Zoom speed',
     },
+    tooltip: {
+      goTo: 'Go to objective',
+      goToInTaskList: 'Go to objective in task list',
+      complete: 'Complete objective',
+      uncomplete: 'Uncomplete objective',
+      objectiveUnavailable: 'Objective unavailable.',
+      taskFallback: 'Task',
+    },
   },
   page: {
     index: {
@@ -235,6 +243,7 @@
       notasksfound: 'No tasks found. Try changing your filters or updating your level.',
       showing_all_sources: 'Showing all sources',
       loading: 'Loading tasks',
+      selectedTask: 'Selected Task',
       questcard: {
         level: 'Level: {count}',
         levelBadge: 'Lv {count}',
@@ -312,7 +321,10 @@
         anyMap: 'Any',
         globalTask: 'Any Map',
         globalTaskTooltip: 'This task can be completed on any map',
+        jumpToMap: 'Jump To Map',
       },
+      scrollToMap: 'Scroll to Map',
+      scrollToTop: 'Scroll to top',
     },
     traders: {
       title: 'Traders',
@@ -707,6 +719,7 @@
     item: 'Item',
     items: 'Items',
     close_button: 'Close',
+    dismiss: 'Dismiss',
     loading: 'Loading...',
     error: 'Error',
   },

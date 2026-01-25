@@ -41,6 +41,14 @@
     aria: {
       zoomSpeed: 'Vitesse du zoom',
     },
+    tooltip: {
+      goTo: "Aller à l'objectif",
+      goToInTaskList: "Aller à l'objectif dans la liste des tâches",
+      complete: "Terminer l'objectif",
+      uncomplete: "Annuler l'objectif",
+      objectiveUnavailable: 'Objectif indisponible.',
+      taskFallback: 'Tâche',
+    },
   },
   page: {
     index: {
@@ -161,6 +169,7 @@
       notasksfound: 'Aucune quête trouvée. Essayez de modifier vos filtres ou de mettre à jour votre niveau.',
       showing_all_sources: 'Afficher toutes les sources',
       loading: 'Chargement des quêtes',
+      selectedTask: 'Tâche sélectionnée',
       questcard: {
         level: 'Niveau requis : {count}',
         wiki: 'Wiki',
@@ -196,7 +205,10 @@
         anyMap: "N'importe",
         globalTask: "N'importe quelle carte",
         globalTaskTooltip: "Cette quête peut être complétée sur n'importe quelle carte",
+        jumpToMap: 'Aller à la carte',
       },
+      scrollToMap: 'Défiler vers la carte',
+      scrollToTop: 'Retour en haut',
     },
     traders: {
       title: 'Marchands',
@@ -584,6 +596,7 @@
     item: 'Objet',
     items: 'Objets',
     close_button: 'Fermer',
+    dismiss: 'Ignorer',
     loading: 'Chargement...',
     error: 'Erreur',
   },

@@ -41,6 +41,14 @@
     aria: {
       zoomSpeed: 'Скорость зума',
     },
+    tooltip: {
+      goTo: 'Перейти к цели',
+      goToInTaskList: 'Перейти к цели в списке задач',
+      complete: 'Завершить цель',
+      uncomplete: 'Отменить завершение цели',
+      objectiveUnavailable: 'Цель недоступна.',
+      taskFallback: 'Задача',
+    },
   },
   page: {
     index: {
@@ -161,6 +169,7 @@
       notasksfound: 'Задания не найдены. Попробуйте изменить фильтры или обновить уровень.',
       showing_all_sources: 'Показать все источники',
       loading: 'Загружаем задания',
+      selectedTask: 'Выбранное задание',
       questcard: {
         level: 'Требуемый уровень: {count}',
         wiki: 'Wiki страница',
@@ -195,7 +204,10 @@
         anyMap: 'Любая',
         globalTask: 'Любая карта',
         globalTaskTooltip: 'Это задание можно выполнить на любой карте',
+        jumpToMap: 'Перейти к карте',
       },
+      scrollToMap: 'Прокрутить к карте',
+      scrollToTop: 'Наверх',
     },
     traders: {
       title: 'Торговцы',
@@ -552,6 +564,7 @@
     item: 'Предмет',
     items: 'Предметы',
     close_button: 'Закрыть',
+    dismiss: 'Отклонить',
     loading: 'Загрузка...',
     error: 'Ошибка',
   },

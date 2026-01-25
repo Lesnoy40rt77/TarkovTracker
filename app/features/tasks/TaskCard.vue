@@ -1,6 +1,5 @@
 <template>
   <UCard
-    :id="`task-${task.id}`"
     class="relative overflow-hidden border border-white/10 bg-[hsl(240_5%_7%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_10px_30px_rgba(0,0,0,0.35)]"
     :class="taskClasses"
     :ui="{ body: cardBodyClass }"

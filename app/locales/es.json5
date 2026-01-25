@@ -42,6 +42,14 @@
     aria: {
       zoomSpeed: 'Velocidad de zoom',
     },
+    tooltip: {
+      goTo: 'Ir al objetivo',
+      goToInTaskList: 'Ir al objetivo en la lista de tareas',
+      complete: 'Completar objetivo',
+      uncomplete: 'Descompletar objetivo',
+      objectiveUnavailable: 'Objetivo no disponible.',
+      taskFallback: 'Tarea',
+    },
   },
   page: {
     index: {
@@ -139,6 +147,7 @@
       notasksfound: 'No se han encontrado misiones. Prueba a cambiar los filtros o actualizar el nivel.',
       showing_all_sources: 'Mostrar todas las fuentes',
       loading: 'Cargando misiones',
+      selectedTask: 'Tarea seleccionada',
       questcard: {
         level: 'Nivel requerido: {count}',
         wiki: 'Wiki',
@@ -173,7 +182,10 @@
         anyMap: 'Cualquiera',
         globalTask: 'Cualquier mapa',
         globalTaskTooltip: 'Esta misión se puede completar en cualquier mapa',
+        jumpToMap: 'Ir al mapa',
       },
+      scrollToMap: 'Desplazar al mapa',
+      scrollToTop: 'Volver arriba',
     },
     traders: {
       title: 'Comerciantes',
@@ -542,6 +554,7 @@
     item: 'Objeto',
     items: 'Objetos',
     close_button: 'Cerrar',
+    dismiss: 'Descartar',
     loading: 'Cargando...',
     error: 'Error',
   },
