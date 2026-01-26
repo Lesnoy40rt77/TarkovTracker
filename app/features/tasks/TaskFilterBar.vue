@@ -406,7 +406,7 @@
   const filtersVisible = ref(!belowMd.value);
   // Settings drawer state
   const { isOpen: isDrawerOpen, toggle: toggleDrawer } = useTaskSettingsDrawer();
-  const { calculateMapTaskTotals, calculateStatusCounts, calculateTraderCounts, disabledTasks } =
+  const { calculateMapTaskTotals, calculateStatusCounts, calculateTraderCounts } =
     useTaskFiltering();
   const maps = computed(() => metadataStore.mapsWithSvg);
   const traders = computed(() =>
@@ -522,9 +522,7 @@
     return calculateMapTaskTotals(
       mergedMaps.value,
       metadataStore.tasks,
-      disabledTasks,
       preferencesStore.getHideGlobalTasks,
-      preferencesStore.getHideNonKappaTasks,
       preferencesStore.getTaskUserView,
       preferencesStore.getTaskSecondaryView
     );
