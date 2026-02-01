@@ -143,7 +143,6 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
   ].filter(Boolean) as string[],
   i18n: {
-    autoImport: true,
     bundle: {
       compositionOnly: false,
       runtimeOnly: false,

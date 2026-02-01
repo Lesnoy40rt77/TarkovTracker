@@ -1,31 +1,7 @@
 {
+  "extends": "./.nuxt/tsconfig.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "target": "ES2020",
-    "paths": {
-      "@/*": ["./app/*"],
-      "~/*": ["./app/*"]
-    },
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "typeRoots": ["./app/types", "./types", "./node_modules/@types"],
     "types": ["node", "vitest"]
   },
-  "exclude": ["supabase/functions/**/*", ".claude-plugin/**/*", "workers/**/*"],
-  // https://nuxt.com/docs/guide/concepts/typescript
-  "files": [],
-  "references": [
-    {
-      "path": "./.nuxt/tsconfig.app.json"
-    },
-    {
-      "path": "./.nuxt/tsconfig.server.json"
-    },
-    {
-      "path": "./.nuxt/tsconfig.shared.json"
-    },
-    {
-      "path": "./.nuxt/tsconfig.node.json"
-    }
-  ]
+  "exclude": ["supabase/functions/**/*", ".claude-plugin/**/*", "workers/**/*"]
 }
