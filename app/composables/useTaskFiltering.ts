@@ -880,7 +880,6 @@ export function useTaskFiltering() {
     updateVisibleTasks,
     resetTraderOrderMapCache,
     mapObjectiveTypes,
-    disabledTasks: [] as string[],
     RAID_RELEVANT_OBJECTIVE_TYPES,
     isRaidRelevantObjective,
     isGlobalTask,

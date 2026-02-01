@@ -21,7 +21,6 @@
         @click="handleCardClick"
       >
         <template v-if="hasItem">
-          <!-- Item image with count badge -->
           <div :class="imageContainerClasses">
             <div class="absolute top-0 left-0 z-10">
               <div
@@ -58,13 +57,12 @@
               fill
               :class="[
                 'h-full w-full',
-                isSingleItem && !selfCompletedNeed ? 'cursor-pointer!' : '',
+                isSingleItem && !selfCompletedNeed ? '!cursor-pointer' : '',
               ]"
             />
-            <!-- Compact Mode Controls Overlay -->
             <div
               v-if="cardStyle === 'compact' && !isSingleItem && !selfCompletedNeed"
-              class="absolute inset-x-0 bottom-0 z-20 flex justify-center bg-black/70 p-1"
+              class="bg-surface-900/70 absolute inset-x-0 bottom-0 z-20 flex justify-center p-1"
               @click.stop
             >
               <ItemCountControls
@@ -78,9 +76,7 @@
               />
             </div>
           </div>
-          <!-- Card content (Expanded only) -->
           <div v-if="cardStyle === 'expanded'" class="flex flex-1 flex-col p-2">
-            <!-- Item name -->
             <div class="flex min-h-10 items-start justify-center">
               <span
                 class="line-clamp-2 text-center text-[clamp(0.7rem,2.5vw,0.875rem)] leading-snug font-medium"
@@ -88,7 +84,6 @@
                 {{ item?.name ?? '' }}
               </span>
             </div>
-            <!-- Task/Station link -->
             <div class="flex min-h-7 w-full items-center justify-center overflow-hidden">
               <template v-if="props.need.needType == 'taskObjective' && relatedTask">
                 <TaskLink
@@ -110,7 +105,6 @@
                 </span>
               </template>
             </div>
-            <!-- Requirements (Level & Tasks Before) -->
             <div
               class="text-surface-400 flex min-h-10 flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-[clamp(0.625rem,1.8vw,0.75rem)]"
             >
@@ -126,7 +120,6 @@
                 {{ lockedBefore }} before
               </span>
             </div>
-            <!-- Controls - hide for single items since clicking image toggles -->
             <div v-if="!isSingleItem" class="mt-auto flex items-center justify-center pt-2">
               <template v-if="!selfCompletedNeed">
                 <ItemCountControls

@@ -517,7 +517,6 @@ export interface TarkovDataComposable {
   traders: ComputedRef<Trader[]>;
   neededItemTaskObjectives: Ref<NeededItemTaskObjective[]>;
   neededItemHideoutModules: Ref<NeededItemHideoutModule[]>;
-  disabledTasks: string[];
   playerLevels: ComputedRef<PlayerLevel[]>;
   minPlayerLevel: ComputedRef<number>;
   maxPlayerLevel: ComputedRef<number>;
