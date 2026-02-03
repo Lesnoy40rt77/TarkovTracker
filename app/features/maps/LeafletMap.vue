@@ -162,6 +162,7 @@
   </div>
 </template>
 <script setup lang="ts">
+  import type L from 'leaflet';
   import { computed, createApp, inject, onUnmounted, ref, toRef, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
@@ -177,7 +178,6 @@
     isValidMapTileConfig,
   } from '@/utils/mapCoordinates';
   import { MAP_MARKER_COLORS as MAP_COLORS } from '@/utils/theme-colors';
-  import type L from 'leaflet';
   // Types for marks (matching TarkovMap.vue structure)
   interface MapZone {
     map: { id: string };

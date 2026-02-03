@@ -3,6 +3,7 @@
  * Handles map initialization, SVG overlay loading, floor switching, and layer management.
  */
 import { useDebounceFn } from '@vueuse/core';
+import type L from 'leaflet';
 import {
   ref,
   shallowRef,
@@ -29,7 +30,6 @@ import {
   type MapSvgConfig,
   type MapTileConfig,
 } from '@/utils/mapCoordinates';
-import type L from 'leaflet';
 export interface UseLeafletMapOptions {
   /** Container element ref */
   containerRef: Ref<HTMLElement | null>;
@@ -304,22 +304,33 @@ export function useLeafletMap(options: UseLeafletMapOptions): UseLeafletMapRetur
     L: typeof import('leaflet'),
     tileConfig: MapTileConfig
   ): Promise<void> {
-    if (!mapInstance.value) return;
-    if (svgLayer.value && mapInstance.value) {
-      mapInstance.value.removeLayer(svgLayer.value);
-      svgLayer.value = null;
+    const map = mapInstance.value;
+    if (!map) return;
+    if (tileLayer.value) {
+      map.removeLayer(tileLayer.value);
+      tileLayer.value = null;
     }
-    if (tileLayer.value && mapInstance.value) {
-      mapInstance.value.removeLayer(tileLayer.value);
+    try {
+      const bounds = getLeafletBounds(tileConfig);
+      tileLayer.value = L.tileLayer(tileConfig.tilePath, {
+        minZoom: tileConfig.minZoom ?? 1,
+        maxZoom: tileConfig.maxZoom ?? 6,
+        noWrap: true,
+        bounds,
+        pane: 'mapBackground',
+      });
+      tileLayer.value.addTo(map);
+      if (svgLayer.value) {
+        map.removeLayer(svgLayer.value);
+        svgLayer.value = null;
+      }
+    } catch (error) {
+      if (tileLayer.value && map.hasLayer(tileLayer.value)) {
+        map.removeLayer(tileLayer.value);
+      }
+      tileLayer.value = null;
+      logger.error('Failed to load tile map layer:', error);
     }
-    tileLayer.value = L.tileLayer(tileConfig.tilePath, {
-      minZoom: tileConfig.minZoom ?? 1,
-      maxZoom: tileConfig.maxZoom ?? 6,
-      noWrap: true,
-      bounds: getLeafletBounds(tileConfig),
-      pane: 'mapBackground',
-    });
-    tileLayer.value.addTo(mapInstance.value);
   }
   /**
    * Checks if a floor name represents an underground/basement level.

@@ -8,8 +8,8 @@
         <button
           type="button"
           class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10"
-          :aria-label="t('maps.tooltip.goToInTaskList')"
-          :title="t('maps.tooltip.goTo')"
+          :aria-label="translate('maps.tooltip.goToInTaskList')"
+          :title="translate('maps.tooltip.goTo')"
           @click.stop="scrollToObjective"
         >
           <UIcon name="i-mdi-arrow-down-circle-outline" class="h-4 w-4" />
@@ -19,7 +19,9 @@
           type="button"
           class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-200"
           :class="isToggleDisabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-white/10'"
-          :aria-label="isComplete ? t('maps.tooltip.uncomplete') : t('maps.tooltip.complete')"
+          :aria-label="
+            isComplete ? translate('maps.tooltip.uncomplete') : translate('maps.tooltip.complete')
+          "
           :aria-pressed="isComplete"
           :disabled="isToggleDisabled"
           @click.stop="toggleObjective"
@@ -32,7 +34,7 @@
         <button
           type="button"
           class="inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-300 hover:bg-white/10"
-          :aria-label="t('generic.close_button')"
+          :aria-label="translate('generic.close_button')"
           @click.stop="emitClose"
         >
           <UIcon name="i-mdi-close" class="h-4 w-4" />
@@ -41,7 +43,7 @@
     </div>
     <div class="mt-1">
       <div v-if="!objective" class="text-xs text-gray-400">
-        {{ t('maps.tooltip.objectiveUnavailable') }}
+        {{ translate('maps.tooltip.objectiveUnavailable') }}
       </div>
       <div v-else class="text-sm text-gray-200">
         <div class="text-gray-300">{{ objective.description }}</div>
@@ -54,11 +56,11 @@
 </template>
 <script setup lang="ts">
   import { computed, inject } from 'vue';
+  import type { Composer } from 'vue-i18n';
+  import type { Router } from 'vue-router';
   import { useMetadataStore } from '@/stores/useMetadata';
   import { useTarkovStore } from '@/stores/useTarkov';
   import { logger } from '@/utils/logger';
-  import type { Composer } from 'vue-i18n';
-  import type { Router } from 'vue-router';
   const props = withDefaults(
     defineProps<{
       objectiveId: string;
@@ -83,7 +85,7 @@
     // Clear the pinned task when user closes the tooltip
     clearPinnedTask?.();
   };
-  const t: Composer['t'] = ((...args: Parameters<Composer['t']>) => {
+  const translate: Composer['t'] = ((...args: Parameters<Composer['t']>) => {
     if (props.t) {
       return props.t(...args);
     }
@@ -101,7 +103,7 @@
     if (!taskId) return null;
     return metadataStore.tasks.find((t) => t.id === taskId) ?? null;
   });
-  const taskName = computed(() => task.value?.name ?? t('maps.tooltip.taskFallback'));
+  const taskName = computed(() => task.value?.name ?? translate('maps.tooltip.taskFallback'));
   const isComplete = computed(() => tarkovStore.isTaskObjectiveComplete(props.objectiveId));
   const requiredCount = computed(() => objective.value?.count ?? 1);
   const currentCount = computed(() => tarkovStore.getObjectiveCount(props.objectiveId));

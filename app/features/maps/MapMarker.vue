@@ -20,11 +20,11 @@
 </template>
 <script setup lang="ts">
   import { computed, ref } from 'vue';
+  import type { CSSProperties } from 'vue';
   import TaskLink from '@/features/tasks/TaskLink.vue';
   import TaskObjective from '@/features/tasks/TaskObjective.vue';
   import { useMetadataStore } from '@/stores/useMetadata';
   import { logger } from '@/utils/logger';
-  import type { CSSProperties } from 'vue';
   const metadataStore = useMetadataStore();
   const objectives = computed(() => metadataStore.objectives);
   const tasks = computed(() => metadataStore.tasks);
