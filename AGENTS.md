@@ -175,6 +175,7 @@
 - **No over-thinking in responses**. Sacrifice explanatory language for brevity—layman's terms only when necessary.
 - **Be concise**. Direct responses only: "Fixed X by changing Y to Z." Minimize explanation unless asked. Use file references for context.
 - **No comments** unless explicitly requested. Comments are token overhead.
+- **Run `npm run format` once** before leaving code. It handles both formatting and linting. Only show errors, skip success output.
 - **Own all issues**. Fix formatting, linting, and pre-existing bugs without being asked. Don't deflect with "these are from earlier changes."
 - **Self-assess code**. Don't ask "what does this do?" Read and understand it. Only clarify ambiguous intent ("Is this supposed to do X or Y?").
 - **Ask before acting on complex requests**. Clarify ambiguous or multi-interpretation tasks before proceeding—it's better to ask one question than redo work.
