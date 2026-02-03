@@ -1,4 +1,4 @@
-import { computed } from 'vue';
+import { computed, type ComputedRef } from 'vue';
 import { useMetadataStore } from '@/stores/useMetadata';
 import { usePreferencesStore } from '@/stores/usePreferences';
 import { useProgressStore } from '@/stores/useProgress';
@@ -7,7 +7,6 @@ import type { TaskObjective, Trader } from '@/types/tarkov';
 import { CURRENCY_ITEM_IDS } from '@/utils/constants';
 import { isTaskAvailableForEdition as checkTaskEdition } from '@/utils/editionHelpers';
 import { buildTaskTypeFilterOptions, filterTasksByTypeSettings } from '@/utils/taskTypeFilters';
-import type { ComputedRef } from 'vue';
 type TraderStats = {
   id: Trader['id'];
   name: Trader['name'];

@@ -31,20 +31,15 @@ describe('useSkillCalculation', () => {
   it('validates and clamps totalLevel input', () => {
     const { setTotalSkillLevel, totalSkills } = useSkillCalculation();
     const skillName = 'Strength';
-    // Test negative value (clamps to 0)
     setTotalSkillLevel(skillName, -5);
     expect(totalSkills.value[skillName] || 0).toBe(0);
-    // Test > 51 (clamps to 51)
     setTotalSkillLevel(skillName, 100);
     expect(totalSkills.value[skillName]).toBe(51);
-    // Test NaN
     setTotalSkillLevel(skillName, NaN);
-    // Should retain previous value (51)
     expect(totalSkills.value[skillName]).toBe(51);
     expect(logger.warn).toHaveBeenCalledWith(
       expect.stringContaining('Invalid totalLevel "NaN" for skill "Strength"')
     );
-    // Test Infinity
     const previousValue = totalSkills.value[skillName];
     setTotalSkillLevel(skillName, Infinity);
     expect(totalSkills.value[skillName]).toBe(previousValue);

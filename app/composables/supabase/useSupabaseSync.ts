@@ -1,7 +1,7 @@
+import type { Store } from 'pinia';
 import { getCurrentInstance, onUnmounted, ref, toRaw, watch } from 'vue';
 import { debounce } from '@/utils/debounce';
 import { logger } from '@/utils/logger';
-import type { Store } from 'pinia';
 import type { UserProgressData } from '~/stores/progressState';
 export interface SupabaseSyncConfig {
   store: Store;

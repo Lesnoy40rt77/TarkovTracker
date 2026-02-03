@@ -122,7 +122,6 @@ const setup = async (overrides: SetupOverrides = {}) => {
     sortedTraders: traders,
     editions: [],
     prestigeTaskMap: new Map<string, number>(),
-    prestigeTaskIds: [] as string[],
     getExcludedTaskIdsForEdition: () => new Set<string>(),
   };
   const progressStore = overrides.progressStore ?? createProgressStore();

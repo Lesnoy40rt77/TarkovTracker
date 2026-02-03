@@ -1,3 +1,4 @@
+import type { AbstractGraph } from 'graphology-types';
 import type {
   HideoutModule,
   HideoutStation,
@@ -20,7 +21,6 @@ import {
 } from '@/utils/graphHelpers';
 import { logger } from '@/utils/logger';
 import { normalizeTaskObjectives } from '@/utils/taskNormalization';
-import type { AbstractGraph } from 'graphology-types';
 /**
  * Composable for building task and hideout dependency graphs
  * Extracts complex graph algorithms from the metadata store

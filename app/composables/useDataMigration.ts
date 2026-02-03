@@ -193,7 +193,7 @@ export function useDataMigration() {
       logger.warn('[useDataMigration] No imported data to confirm');
       return false;
     }
-    const userId = $supabase?.user?.id;
+    const userId = $supabase.user.id;
     if (!userId) {
       apiError.value = 'Please sign in to import data.';
       logger.warn('[useDataMigration] Missing user ID for import');
