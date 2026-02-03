@@ -145,7 +145,7 @@
                   <UIcon
                     name="i-mdi-clock-outline"
                     class="text-surface-500 h-3.5 w-3.5"
-                    :aria-label="lastUsedTooltip(token.lastUsedAt)"
+                    aria-hidden="true"
                   />
                 </UTooltip>
               </div>

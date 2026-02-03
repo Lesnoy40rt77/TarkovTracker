@@ -100,9 +100,8 @@
     }
     isSavingDisplayName.value = true;
     try {
-      const sanitized = trimmed;
-      tarkovStore.setDisplayName(sanitized);
-      localDisplayName.value = sanitized;
+      tarkovStore.setDisplayName(trimmed);
+      localDisplayName.value = trimmed;
       toast.add({
         title: t('settings.display_name.saved_title', 'Display Name Saved'),
         description: t('settings.display_name.saved_description', {
@@ -331,7 +330,7 @@
   };
 </script>
 <template>
-  <div class="account-deletion-card" :class="$attrs.class">
+  <div :class="$attrs.class">
     <GenericCard
       icon="mdi-database-cog"
       icon-color="warning"

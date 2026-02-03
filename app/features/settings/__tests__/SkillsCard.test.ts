@@ -1,3 +1,4 @@
+import { mockNuxtImport } from '@nuxt/test-utils/runtime';
 import { mount } from '@vue/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { computed, ref } from 'vue';
@@ -35,8 +36,7 @@ vi.mock('@vueuse/core', async (importOriginal) => {
     breakpointsTailwind: {},
   };
 });
-// Mock Nuxt UI useToast (placeholder to prevent errors if invoked, though we don't verify call due to auto-import mocking complexity)
-vi.stubGlobal('useToast', () => ({
+mockNuxtImport('useToast', () => () => ({
   add: vi.fn(),
 }));
 // Mock components
@@ -53,6 +53,7 @@ const _UBadge = { template: '<div />' };
 describe('SkillsCard', () => {
   it('prevents invalid characters on keydown', async () => {
     // Setup mock
+    const setTotalSkillLevel = vi.fn();
     vi.mocked(useSkillCalculation).mockReturnValue({
       calculatedQuestSkills: computed(() => ({})),
       totalSkills: computed(() => ({})),
@@ -70,7 +71,7 @@ describe('SkillsCard', () => {
       getSkillOffset: () => 5,
       getSkillMetadata: () => null,
       setSkillOffset: vi.fn(),
-      setTotalSkillLevel: vi.fn(),
+      setTotalSkillLevel,
       resetSkillOffset: vi.fn(),
     });
     const wrapper = mount(SkillsCard, {
@@ -94,37 +95,40 @@ describe('SkillsCard', () => {
       },
     });
     const input = wrapper.find('input');
-    const customEvent = {
-      key: '-',
-      preventDefault: vi.fn(),
-    };
-    await input.trigger('keydown', customEvent);
-    expect(customEvent.preventDefault).toHaveBeenCalled();
-    // Test 'e'
-    const customEventE = {
-      key: 'e',
-      preventDefault: vi.fn(),
-    };
-    await input.trigger('keydown', customEventE);
-    expect(customEventE.preventDefault).toHaveBeenCalled();
-    // Test '.'
-    const customEventDot = {
-      key: '.',
-      preventDefault: vi.fn(),
-    };
-    await input.trigger('keydown', customEventDot);
-    expect(customEventDot.preventDefault).toHaveBeenCalled();
-    // Test valid key (e.g., '1')
     const inputEl = input.element as HTMLInputElement;
-    inputEl.value = '1';
-    inputEl.selectionStart = 1;
-    inputEl.selectionEnd = 1;
-    const customEvent1 = {
-      key: '1',
-      preventDefault: vi.fn(),
+    const dispatchKey = async (key: string, nextValue: string) => {
+      const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+      inputEl.dispatchEvent(event);
+      if (!event.defaultPrevented) {
+        inputEl.value = nextValue;
+        await input.trigger('input');
+      }
     };
-    await input.trigger('keydown', customEvent1);
-    expect(customEvent1.preventDefault).not.toHaveBeenCalled();
+    inputEl.value = '10';
+    inputEl.selectionStart = 2;
+    inputEl.selectionEnd = 2;
+    await dispatchKey('-', '10-');
+    expect(inputEl.value).toBe('10');
+    expect(setTotalSkillLevel).not.toHaveBeenCalled();
+    inputEl.value = '10';
+    inputEl.selectionStart = 2;
+    inputEl.selectionEnd = 2;
+    await dispatchKey('e', '10e');
+    expect(inputEl.value).toBe('10');
+    expect(setTotalSkillLevel).not.toHaveBeenCalled();
+    inputEl.value = '10';
+    inputEl.selectionStart = 2;
+    inputEl.selectionEnd = 2;
+    await dispatchKey('.', '10.');
+    expect(inputEl.value).toBe('10');
+    expect(setTotalSkillLevel).not.toHaveBeenCalled();
+    setTotalSkillLevel.mockClear();
+    inputEl.value = '';
+    inputEl.selectionStart = 0;
+    inputEl.selectionEnd = 0;
+    await dispatchKey('1', '1');
+    expect(inputEl.value).toBe('1');
+    expect(setTotalSkillLevel).toHaveBeenCalledWith('Strength', 1);
   });
   it('prevents input resulting in value > 51', async () => {
     vi.mocked(useSkillCalculation).mockReturnValue({
