@@ -1,6 +1,6 @@
-import type { H3Event } from 'h3';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { edgeCache } from '@/server/utils/edgeCache';
+import type { H3Event } from 'h3';
 let appUrl: string | undefined;
 vi.mock('#imports', () => ({
   useRuntimeConfig: () => ({

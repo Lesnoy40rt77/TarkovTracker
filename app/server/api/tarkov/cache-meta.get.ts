@@ -7,11 +7,29 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
   const supabaseUrl = config.supabaseUrl;
   const supabaseServiceKey = config.supabaseServiceKey;
-  if (!supabaseUrl || !supabaseServiceKey) {
-    logger.debug('[CacheMeta] Supabase not configured - skipping cache meta lookup');
+  if (
+    !supabaseUrl ||
+    typeof supabaseUrl !== 'string' ||
+    !supabaseUrl.trim() ||
+    !supabaseServiceKey ||
+    typeof supabaseServiceKey !== 'string' ||
+    !supabaseServiceKey.trim()
+  ) {
+    logger.warn('[CacheMeta] Supabase not configured - skipping cache meta lookup');
     return { data: { lastPurgeAt: null } };
   }
-  const url = new URL(`${supabaseUrl}/rest/v1/admin_audit_log`);
+  const supabaseUrlValue = supabaseUrl.trim();
+  const supabaseServiceKeyValue = supabaseServiceKey.trim();
+  let url: URL;
+  try {
+    url = new URL(`${supabaseUrlValue}/rest/v1/admin_audit_log`);
+  } catch (error) {
+    logger.error('[CacheMeta] Invalid Supabase URL for cache meta lookup.', {
+      supabaseUrl: supabaseUrlValue,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return { data: { lastPurgeAt: null } };
+  }
   url.searchParams.set('select', 'created_at,details');
   url.searchParams.set('action', 'eq.cache_purge');
   url.searchParams.set('order', 'created_at.desc');
@@ -20,8 +38,8 @@ export default defineEventHandler(async (event) => {
   try {
     response = await fetch(url.toString(), {
       headers: {
-        apikey: supabaseServiceKey,
-        Authorization: `Bearer ${supabaseServiceKey}`,
+        apikey: supabaseServiceKeyValue,
+        Authorization: `Bearer ${supabaseServiceKeyValue}`,
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },

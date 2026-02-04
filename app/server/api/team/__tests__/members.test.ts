@@ -7,8 +7,8 @@
  * - Authentication context and manual validation fallback
  */
 import { mockNuxtImport } from '@nuxt/test-utils/runtime';
-import type { H3Event } from 'h3';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { H3Event } from 'h3';
 const { mockGetQuery, mockGetRequestHeader, mockFetch } = vi.hoisted(() => ({
   mockGetQuery: vi.fn(),
   mockGetRequestHeader: vi.fn(),

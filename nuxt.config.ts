@@ -14,10 +14,10 @@ export default defineNuxtConfig({
   ignore: ['**/__tests__/**', '**/*.test.*', '**/*.spec.*'],
   runtimeConfig: {
     // Server-only (private) runtime config
-    supabaseUrl: process.env.SB_URL || process.env.SUPABASE_URL || '',
-    supabaseServiceKey:
-      process.env.SB_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-    supabaseAnonKey: process.env.SB_ANON_KEY || process.env.SUPABASE_ANON_KEY || '',
+    supabaseUrl: process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '',
+    supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+    supabaseAnonKey: process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '',
+    githubToken: process.env.GITHUB_TOKEN || '',
     // API protection configuration (server-only)
     apiProtection: {
       // Comma-separated list of allowed hosts (e.g., "tarkovtracker.org,www.tarkovtracker.org")
@@ -35,11 +35,13 @@ export default defineNuxtConfig({
       trustProxy: process.env.API_TRUST_PROXY === 'true',
     },
     public: {
+      NODE_ENV: process.env.NODE_ENV || 'production',
+      VITE_LOG_LEVEL: process.env.VITE_LOG_LEVEL || '',
       appUrl: process.env.NUXT_PUBLIC_APP_URL || 'http://localhost:3000',
       appVersion: process.env.NUXT_PUBLIC_APP_VERSION || appVersion,
+      tarkovVersion: process.env.NUXT_PUBLIC_TARKOV_VERSION || '1.0.1.1.42751',
       teamGatewayUrl: process.env.NUXT_PUBLIC_TEAM_GATEWAY_URL || '',
       tokenGatewayUrl: process.env.NUXT_PUBLIC_TOKEN_GATEWAY_URL || '',
-      // Admin middleware watch timeout (milliseconds)
       adminWatchTimeoutMs: Number(process.env.ADMIN_WATCH_TIMEOUT_MS || '5000') || 5000,
     },
   },
@@ -148,7 +150,7 @@ export default defineNuxtConfig({
   ].filter(Boolean) as string[],
   i18n: {
     bundle: {
-      compositionOnly: false,
+      compositionOnly: true,
       runtimeOnly: false,
     },
     compilation: {

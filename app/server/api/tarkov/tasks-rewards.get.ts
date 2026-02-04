@@ -1,3 +1,4 @@
+import type { TarkovTaskRewardsQueryResult } from '~/types/tarkov';
 import { createTarkovFetcher, edgeCache, shouldBypassCache } from '~/server/utils/edgeCache';
 import { GraphQLResponseError, validateGraphQLResponse } from '~/server/utils/graphql-validation';
 import { createLogger } from '~/server/utils/logger';
@@ -5,7 +6,6 @@ import { applyOverlay } from '~/server/utils/overlay';
 import { CACHE_TTL_DEFAULT, validateGameMode } from '~/server/utils/tarkov-cache-config';
 import { TARKOV_TASKS_REWARDS_QUERY } from '~/server/utils/tarkov-queries';
 import { sanitizeTaskRewards } from '~/server/utils/tarkov-sanitization';
-import type { TarkovTaskRewardsQueryResult } from '~/types/tarkov';
 import { API_SUPPORTED_LANGUAGES } from '~/utils/constants';
 const logger = createLogger('TarkovTaskRewards');
 export default defineEventHandler(async (event) => {

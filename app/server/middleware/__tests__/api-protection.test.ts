@@ -8,8 +8,8 @@
  * - Add targeted tests for different runtime config scenarios
  */
 import { mockNuxtImport } from '@nuxt/test-utils/runtime';
-import type { H3Event } from 'h3';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { H3Event } from 'h3';
 const {
   mockGetRequestURL,
   mockGetRequestHeader,

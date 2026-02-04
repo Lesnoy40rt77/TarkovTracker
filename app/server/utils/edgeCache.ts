@@ -5,10 +5,10 @@
  * with fallback for development environments where caches might not be available.
  */
 import { getQuery } from 'h3';
-import type { H3Event } from 'h3';
 import { $fetch } from 'ofetch';
 import { useRuntimeConfig } from '#imports';
 import { createLogger } from '@/server/utils/logger';
+import type { H3Event } from 'h3';
 const logger = createLogger('EdgeCache');
 interface CacheOptions {
   ttl?: number;
@@ -198,24 +198,56 @@ const SENSITIVE_VARIABLE_KEYS = [
   'apikey',
   'auth',
   'authorization',
+  'bearer',
+  'card',
+  'ccnum',
+  'client_secret',
+  'credential',
+  'credit_card',
+  'cvv',
+  'dob',
   'email',
+  'otp',
+  'passwd',
   'password',
+  'phone',
+  'pin',
+  'private_key',
+  'pwd',
+  'refresh',
   'secret',
   'session',
+  'signature',
   'ssn',
   'token',
   'user_id',
   'userid',
 ];
+const isPlainObject = (value: unknown): value is Record<string, unknown> => {
+  if (!value || typeof value !== 'object') return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+};
 function sanitizeVariables(variables: Record<string, unknown>): Record<string, unknown> {
-  const sanitized: Record<string, unknown> = { ...variables };
-  for (const key of Object.keys(sanitized)) {
-    const normalizedKey = key.toLowerCase();
-    if (SENSITIVE_VARIABLE_KEYS.some((sensitiveKey) => normalizedKey.includes(sensitiveKey))) {
-      sanitized[key] = REDACTED_PLACEHOLDER;
+  const sanitizeValue = (value: unknown): unknown => {
+    if (Array.isArray(value)) {
+      return value.map((entry) => sanitizeValue(entry));
     }
-  }
-  return sanitized;
+    if (isPlainObject(value)) {
+      const sanitized: Record<string, unknown> = {};
+      for (const [key, entry] of Object.entries(value)) {
+        const normalizedKey = key.toLowerCase();
+        if (SENSITIVE_VARIABLE_KEYS.some((sensitiveKey) => normalizedKey.includes(sensitiveKey))) {
+          sanitized[key] = REDACTED_PLACEHOLDER;
+        } else {
+          sanitized[key] = sanitizeValue(entry);
+        }
+      }
+      return sanitized;
+    }
+    return value;
+  };
+  return sanitizeValue(variables) as Record<string, unknown>;
 }
 export function createTarkovFetcher<T = unknown>(
   query: string,
@@ -223,9 +255,11 @@ export function createTarkovFetcher<T = unknown>(
   options: { maxRetries?: number; timeoutMs?: number } = {}
 ): () => Promise<T> {
   const { maxRetries = 3, timeoutMs = 30000 } = options;
+  const safeMaxRetries = Number.isFinite(maxRetries) ? Math.max(1, Math.floor(maxRetries)) : 3;
+  const safeTimeoutMs = Number.isFinite(timeoutMs) ? Math.max(1000, Math.floor(timeoutMs)) : 30000;
   return async () => {
     let lastError: Error | null = null;
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    for (let attempt = 1; attempt <= safeMaxRetries; attempt++) {
       try {
         const response = await $fetch<T>('https://api.tarkov.dev/graphql', {
           method: 'POST' as const,
@@ -236,22 +270,22 @@ export function createTarkovFetcher<T = unknown>(
             query,
             variables,
           },
-          timeout: timeoutMs,
+          timeout: safeTimeoutMs,
           retry: 0,
         });
         return response;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        const isLastAttempt = attempt === maxRetries;
+        const isLastAttempt = attempt === safeMaxRetries;
         if (isLastAttempt) {
-          logger.error(`[TarkovFetcher] All ${maxRetries} attempts failed`, {
+          logger.error(`[TarkovFetcher] All ${safeMaxRetries} attempts failed`, {
             error: lastError.message,
             variables: sanitizeVariables(variables),
           });
         } else {
           const delayMs = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
           logger.warn(
-            `[TarkovFetcher] Attempt ${attempt}/${maxRetries} failed, retrying in ${delayMs}ms`,
+            `[TarkovFetcher] Attempt ${attempt}/${safeMaxRetries} failed, retrying in ${delayMs}ms`,
             { error: lastError.message }
           );
           await new Promise((resolve) => setTimeout(resolve, delayMs));

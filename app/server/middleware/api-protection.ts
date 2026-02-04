@@ -19,6 +19,8 @@ import {
 } from 'h3';
 import ipaddr from 'ipaddr.js';
 import { useRuntimeConfig } from '#imports';
+import { createLogger } from '@/server/utils/logger';
+const logger = createLogger('ApiProtection');
 // Type for runtime config API protection settings
 interface ApiProtectionConfig {
   allowedHosts: string;
@@ -60,29 +62,36 @@ function ipInRange(clientIp: string, range: string): boolean {
   try {
     const addr = ipaddr.process(clientIp);
     const parts = range.split('/');
+    if (parts.length > 2) {
+      return false;
+    }
     const rangeIp = parts[0];
     const cidrStr = parts[1];
     if (!rangeIp) {
       return false;
     }
     if (!cidrStr) {
-      // Single IP exact match
       const rangeAddr = ipaddr.process(rangeIp);
       return addr.toString() === rangeAddr.toString();
     }
+    if (!/^\d+$/.test(cidrStr)) {
+      return false;
+    }
     const rangeAddr = ipaddr.parse(rangeIp);
     const cidr = parseInt(cidrStr, 10);
-    // Families must match for CIDR check
+    const maxPrefix = rangeAddr.kind() === 'ipv4' ? 32 : 128;
+    if (cidr < 0 || cidr > maxPrefix) {
+      return false;
+    }
     if (addr.kind() !== rangeAddr.kind()) {
       return false;
     }
-    // Perform CIDR match using the library
     if (addr.kind() === 'ipv4') {
       return (addr as ipaddr.IPv4).match(rangeAddr as ipaddr.IPv4, cidr);
     }
     return (addr as ipaddr.IPv6).match(rangeAddr as ipaddr.IPv6, cidr);
-  } catch {
-    // Return false for any parsing errors
+  } catch (err) {
+    logger.error('Failed to parse IP', { err, clientIp, range });
     return false;
   }
 }
@@ -153,7 +162,7 @@ function isHostAllowed(
     // No Host header - fail closed
     return false;
   }
-  const host = hostHeader.split(':')[0]!.toLowerCase();
+  const host = (hostHeader.split(':')[0] ?? '').toLowerCase();
   return allowedHosts.some((allowed) => {
     const allowedLower = allowed.toLowerCase();
     // Exact match or subdomain match (e.g., "tarkovtracker.org" matches "www.tarkovtracker.org")
@@ -173,7 +182,7 @@ async function validateAuthToken(
     return null;
   }
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('[API Protection] Supabase configuration missing for auth validation');
+    logger.error('Supabase configuration missing for auth validation');
     return null;
   }
   const controller = new AbortController();
@@ -187,15 +196,16 @@ async function validateAuthToken(
       signal: controller.signal,
     });
     if (!response.ok) {
+      logger.debug('Auth validation failed', { status: response.status });
       return null;
     }
     const user = (await response.json()) as { id: string };
     return user?.id ? user : null;
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
-      console.warn('[API Protection] Auth validation timed out after 5000ms');
+      logger.warn('Auth validation timed out after 5000ms');
     } else {
-      console.error('[API Protection] Auth validation error:', error);
+      logger.error({ error, message: 'Auth validation error' });
     }
     return null;
   } finally {
@@ -215,9 +225,9 @@ function logSecurityEvent(
     ...details,
   };
   if (level === 'warn') {
-    console.warn(`[API Protection] ${message}`, JSON.stringify(logData));
+    logger.warn(message, logData);
   } else {
-    console.info(`[API Protection] ${message}`, JSON.stringify(logData));
+    logger.info(message, logData);
   }
 }
 export default defineEventHandler(async (event) => {
@@ -311,11 +321,13 @@ export default defineEventHandler(async (event) => {
         setResponseHeader(event, 'Access-Control-Allow-Credentials', 'true');
         setResponseHeader(event, 'Access-Control-Max-Age', 86400); // 24 hours
       }
-    } catch {
+    } catch (error) {
       logSecurityEvent('warn', 'Invalid CORS origin header', {
         pathname,
         origin,
         clientIp: clientIp || 'unknown',
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack : undefined,
       });
     }
   }

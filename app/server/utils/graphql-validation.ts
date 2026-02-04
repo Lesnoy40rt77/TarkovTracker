@@ -20,6 +20,9 @@ export class GraphQLResponseError extends Error {
     Object.setPrototypeOf(this, GraphQLResponseError.prototype);
   }
 }
+function formatGraphQLErrorMessages(errors: Array<{ message: string }>): string {
+  return errors.map((e) => e.message).join('; ');
+}
 /**
  * Type guard to validate GraphQL response structure
  */
@@ -50,8 +53,10 @@ export function validateGraphQLResponse<T>(
   if (response.data === null || response.data === undefined) {
     const errors = Array.isArray(response.errors) ? response.errors : [];
     if (errors.length > 0) {
-      const errorMessages = errors.map((e) => e.message).join('; ');
-      throw new GraphQLResponseError(`GraphQL API error: ${errorMessages}`, errors);
+      throw new GraphQLResponseError(
+        `GraphQL API error: ${formatGraphQLErrorMessages(errors)}`,
+        errors
+      );
     }
     throw new GraphQLResponseError('GraphQL response missing data field');
   }
@@ -59,8 +64,7 @@ export function validateGraphQLResponse<T>(
   const hasErrors = errors.length > 0;
   // Check for GraphQL errors (only throw if not allowing partial data)
   if (!allowPartialData && hasErrors) {
-    const errorMessages = errors.map((e) => e.message).join('; ');
-    throw new GraphQLResponseError(`GraphQL errors: ${errorMessages}`, errors);
+    throw new GraphQLResponseError(`GraphQL errors: ${formatGraphQLErrorMessages(errors)}`, errors);
   }
   // If we have partial data and errors, log them but don't throw
   if (allowPartialData && hasErrors) {
