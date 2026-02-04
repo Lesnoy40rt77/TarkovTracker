@@ -138,7 +138,7 @@
   import GenericCard from '@/components/ui/GenericCard.vue';
   import { usePreferencesStore } from '@/stores/usePreferences';
   const preferencesStore = usePreferencesStore();
-  const { t } = useI18n();
+  const { t } = useI18n({ useScope: 'global' });
   const { $supabase } = useNuxtApp();
   const streamerModeCooldown = ref(false);
   let streamerModeTimeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -183,29 +183,29 @@
     get: () => preferencesStore.getTaskCardDensity,
     set: (val) => preferencesStore.setTaskCardDensity(val),
   });
-  const DENSITY_OPTIONS = [
+  const DENSITY_OPTIONS = computed(() => [
     { label: t('settings.density.compact', 'Compact'), value: 'compact' },
     { label: t('settings.density.comfortable', 'Comfortable'), value: 'comfortable' },
-  ];
+  ]);
   const taskDefaultView = computed({
     get: () => preferencesStore.getTaskPrimaryView,
     set: (val) => preferencesStore.setTaskPrimaryView(val),
   });
-  const TASK_VIEW_OPTIONS = [
+  const TASK_VIEW_OPTIONS = computed(() => [
     { label: t('tasks.view.all', 'List'), value: 'all' },
     { label: t('tasks.view.map', 'Map'), value: 'maps' },
     { label: t('tasks.view.traders', 'Traders'), value: 'traders' },
-  ];
+  ]);
   const hideoutDefaultView = computed({
     get: () => preferencesStore.getHideoutPrimaryView,
     set: (val) => preferencesStore.setHideoutPrimaryView(val),
   });
-  const HIDEOUT_VIEW_OPTIONS = [
+  const HIDEOUT_VIEW_OPTIONS = computed(() => [
     { label: t('hideout.view.available', 'Available'), value: 'available' },
     { label: t('hideout.view.all', 'All'), value: 'all' },
     { label: t('hideout.view.maxed', 'Maxed'), value: 'maxed' },
     { label: t('hideout.view.locked', 'Locked'), value: 'locked' },
-  ];
+  ]);
   const showMapExtracts = computed({
     get: () => preferencesStore.getShowMapExtracts,
     set: (val) => preferencesStore.setShowMapExtracts(val),

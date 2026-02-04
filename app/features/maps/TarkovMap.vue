@@ -50,9 +50,8 @@
 </template>
 <script setup lang="ts">
   import { select, xml } from 'd3';
-  import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue';
-  import type { TarkovMap } from '@/types/tarkov';
   import { logger } from '@/utils/logger';
+  import type { TarkovMap } from '@/types/tarkov';
   interface Props {
     map: TarkovMap;
     marks?: MapMark[];

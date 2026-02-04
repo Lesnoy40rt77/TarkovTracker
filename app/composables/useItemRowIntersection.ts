@@ -1,4 +1,3 @@
-import { onMounted, onUnmounted, type Ref, ref } from 'vue';
 /**
  * Tracks whether a row element is visible so callers can lazily render heavy content.
  * Uses bidirectional visibility with debounced hiding to prevent flicker during fast scrolling.

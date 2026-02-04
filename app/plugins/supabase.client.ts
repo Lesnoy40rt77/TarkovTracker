@@ -1,5 +1,4 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { reactive } from 'vue';
 import { logger } from '@/utils/logger';
 import { STORAGE_KEYS } from '@/utils/storageKeys';
 import { hydrateUserFromSession } from '@/utils/userHydration';
@@ -35,16 +34,38 @@ export default defineNuxtPlugin(() => {
       provider: null,
       providers: null,
     });
-    // Extremely small surface area stub — only the bits we call in-app
-    const noopPromise = async () => ({}) as unknown as Promise<unknown>;
+    const noopPromise = async () => {
+      logger.debug('[Supabase Stub] Operation called in offline mode');
+      return {} as unknown;
+    };
     const stubClient = {
-      from: () => ({ upsert: noopPromise }),
-      functions: { invoke: noopPromise },
+      from: (table: string) => {
+        logger.debug(`[Supabase Stub] from('${table}') called in offline mode`);
+        return { upsert: noopPromise };
+      },
+      functions: {
+        invoke: async (fnName: string) => {
+          logger.debug(`[Supabase Stub] functions.invoke('${fnName}') called in offline mode`);
+          return {};
+        },
+      },
       auth: {
-        getSession: async () => ({ data: { session: null } }),
-        onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
-        signInWithOAuth: async () => ({ url: undefined }),
-        signOut: async () => ({}),
+        getSession: async () => {
+          logger.debug('[Supabase Stub] auth.getSession called in offline mode');
+          return { data: { session: null } };
+        },
+        onAuthStateChange: () => {
+          logger.debug('[Supabase Stub] auth.onAuthStateChange called in offline mode');
+          return { data: { subscription: { unsubscribe() {} } } };
+        },
+        signInWithOAuth: async () => {
+          logger.debug('[Supabase Stub] auth.signInWithOAuth called in offline mode');
+          return { url: undefined };
+        },
+        signOut: async () => {
+          logger.debug('[Supabase Stub] auth.signOut called in offline mode');
+          return {};
+        },
       },
     } as unknown as SupabaseClient;
     return {
@@ -55,6 +76,10 @@ export default defineNuxtPlugin(() => {
         _provider: OAuthProvider,
         _options?: { skipBrowserRedirect?: boolean; redirectTo?: string }
       ) => {
+        logger.error('[Supabase] Offline OAuth sign-in attempted', {
+          provider: _provider,
+          options: _options,
+        });
         throw new Error('Supabase not configured - login unavailable in offline mode');
       },
       signOut: async () => {},

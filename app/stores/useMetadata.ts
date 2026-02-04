@@ -1,37 +1,9 @@
-import type { AbstractGraph } from 'graphology-types';
 import { defineStore } from 'pinia';
-import { markRaw } from 'vue';
 import { extractLanguageCode, useSafeLocale } from '@/composables/i18nHelpers';
 import { useGraphBuilder } from '@/composables/useGraphBuilder';
 import mapsData from '@/data/maps.json';
 import { useProgressStore } from '@/stores/useProgress';
 import { useTarkovStore } from '@/stores/useTarkov';
-import type {
-  FinishRewards,
-  GameEdition,
-  HideoutModule,
-  HideoutStation,
-  NeededItemHideoutModule,
-  NeededItemTaskObjective,
-  ObjectiveGPSInfo,
-  ObjectiveMapInfo,
-  PlayerLevel,
-  PrestigeLevel,
-  StaticMapData,
-  TarkovBootstrapQueryResult,
-  TarkovDataQueryResult,
-  TarkovHideoutQueryResult,
-  TarkovItem,
-  TarkovItemsQueryResult,
-  TarkovMap,
-  TarkovPrestigeQueryResult,
-  TarkovTaskObjectivesQueryResult,
-  TarkovTaskRewardsQueryResult,
-  TarkovTasksCoreQueryResult,
-  Task,
-  TaskObjective,
-  Trader,
-} from '@/types/tarkov';
 import {
   API_GAME_MODES,
   API_SUPPORTED_LANGUAGES,
@@ -59,6 +31,33 @@ import {
   setCachedData,
 } from '@/utils/tarkovCache';
 import { normalizeTaskObjectives } from '@/utils/taskNormalization';
+import type {
+  FinishRewards,
+  GameEdition,
+  HideoutModule,
+  HideoutStation,
+  NeededItemHideoutModule,
+  NeededItemTaskObjective,
+  ObjectiveGPSInfo,
+  ObjectiveMapInfo,
+  PlayerLevel,
+  PrestigeLevel,
+  StaticMapData,
+  TarkovBootstrapQueryResult,
+  TarkovDataQueryResult,
+  TarkovHideoutQueryResult,
+  TarkovItem,
+  TarkovItemsQueryResult,
+  TarkovMap,
+  TarkovPrestigeQueryResult,
+  TarkovTaskObjectivesQueryResult,
+  TarkovTaskRewardsQueryResult,
+  TarkovTasksCoreQueryResult,
+  Task,
+  TaskObjective,
+  Trader,
+} from '@/types/tarkov';
+import type { AbstractGraph } from 'graphology-types';
 type IdleCallback = (deadline: { didTimeout: boolean; timeRemaining: () => number }) => void;
 type IdleTask = {
   task: () => void | Promise<void>;

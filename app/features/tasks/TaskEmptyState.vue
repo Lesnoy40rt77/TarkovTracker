@@ -5,6 +5,12 @@
       color="primary"
       variant="soft"
       :title="t('page.tasks.notasksfound')"
+      :description="
+        t(
+          'page.tasks.notasksfound_description',
+          'Try adjusting your filters, selecting a different map, or checking other task categories.'
+        )
+      "
     />
   </div>
 </template>

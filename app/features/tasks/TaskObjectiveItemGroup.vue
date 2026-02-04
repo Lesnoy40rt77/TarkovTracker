@@ -99,7 +99,7 @@
   import { useTarkovStore } from '@/stores/useTarkov';
   import type { TaskObjective } from '@/types/tarkov';
   const jumpToMapObjective = inject<((id: string) => void) | null>('jumpToMapObjective', null);
-  const isMapView = inject('isMapView', ref(false));
+  const isMapView = inject<Ref<boolean>>('isMapView', ref(false));
   const props = defineProps<{
     title: string;
     iconName: string;

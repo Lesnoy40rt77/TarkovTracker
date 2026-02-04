@@ -67,7 +67,6 @@
   </div>
 </template>
 <script setup>
-  import { defineAsyncComponent } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { usePreferencesStore } from '@/stores/usePreferences';
   import { useLocaleNumberFormatter } from '@/utils/formatters';

@@ -2,12 +2,15 @@
   <aside
     ref="drawerRef"
     tabindex="-1"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="task-settings-drawer-title"
     class="bg-surface-800/95 fixed top-1/2 right-4 z-40 h-fit max-h-[calc(100vh-6rem)] w-72 -translate-y-1/2 overflow-y-auto rounded-lg border border-white/10 p-4 shadow-xl backdrop-blur-sm"
     @keydown="handleKeydown"
     @keydown.escape="handleClose"
   >
     <div class="mb-3 flex items-center justify-between">
-      <h2 class="text-sm font-semibold text-white">
+      <h2 id="task-settings-drawer-title" class="text-sm font-semibold text-white">
         {{ t('page.tasks.settings.title', 'Task Settings') }}
       </h2>
       <UButton
@@ -263,7 +266,6 @@
   </aside>
 </template>
 <script setup lang="ts">
-  import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useTaskSettingsDrawer } from '@/composables/useTaskSettingsDrawer';
   import { useMetadataStore } from '@/stores/useMetadata';
@@ -468,17 +470,22 @@
     if (!confirmed) return;
     const alternativeSources = buildAlternativeSources();
     let repaired = 0;
+    const taskIds: string[] = [];
+    const objectiveIds: string[] = [];
     metadataStore.tasks.forEach((task) => {
       if (!tarkovStore.isTaskFailed(task.id)) return;
       if (shouldTaskBeFailed(task, alternativeSources)) return;
-      tarkovStore.setTaskUncompleted(task.id);
+      taskIds.push(task.id);
       task.objectives?.forEach((objective) => {
         if (objective?.id) {
-          tarkovStore.setTaskObjectiveUncomplete(objective.id);
+          objectiveIds.push(objective.id);
         }
       });
       repaired += 1;
     });
+    if (taskIds.length || objectiveIds.length) {
+      tarkovStore.setTasksAndObjectivesUncompleted(taskIds, objectiveIds);
+    }
     toast.add({
       title: t(
         'page.tasks.settings.advanced.repairFailedDone',

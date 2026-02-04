@@ -1,4 +1,3 @@
-import { computed, onMounted, ref } from 'vue';
 import { useMetadataStore } from '@/stores/useMetadata';
 import { API_GAME_MODES, GAME_MODES } from '@/utils/constants';
 import { logger } from '@/utils/logger';

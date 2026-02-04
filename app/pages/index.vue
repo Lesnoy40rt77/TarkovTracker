@@ -35,6 +35,7 @@
     <div class="mb-8">
       <button
         class="group mb-4 flex w-full cursor-pointer items-center text-2xl font-bold text-white"
+        :aria-expanded="!progressSectionCollapsed"
         @click="progressSectionCollapsed = !progressSectionCollapsed"
       >
         <UIcon name="i-mdi-chart-line" class="text-primary-500 mr-2 h-6 w-6" />
@@ -108,6 +109,7 @@
     <div class="mb-8">
       <button
         class="group mb-4 flex w-full cursor-pointer items-center text-2xl font-bold text-white"
+        :aria-expanded="!tradersSectionCollapsed"
         @click="tradersSectionCollapsed = !tradersSectionCollapsed"
       >
         <UIcon name="i-mdi-account-group" class="text-primary-500 mr-2 h-6 w-6" />
@@ -135,6 +137,7 @@
     <div>
       <button
         class="group mb-4 flex w-full cursor-pointer items-center text-2xl font-bold text-white"
+        :aria-expanded="!milestonesSectionCollapsed"
         @click="milestonesSectionCollapsed = !milestonesSectionCollapsed"
       >
         <UIcon name="i-mdi-star-circle" class="text-primary-500 mr-2 h-6 w-6" />
@@ -194,9 +197,7 @@
 </template>
 <script setup lang="ts">
   import { usePreferencesStore } from '@/stores/usePreferences';
-  import { useTarkovStore } from '@/stores/useTarkov';
   import { calculatePercentageNum } from '@/utils/formatters';
-  import { logger } from '@/utils/logger';
   const progressSectionCollapsed = ref(false);
   const tradersSectionCollapsed = ref(false);
   const milestonesSectionCollapsed = ref(false);
@@ -208,42 +209,14 @@
   });
   // Dashboard statistics composable
   const dashboardStats = useDashboardStats();
-  const tarkovStore = useTarkovStore();
   const router = useRouter();
   const preferencesStore = usePreferencesStore();
-  const xpCalculation = useXpCalculation();
   const dismissDashboardNotice = () => {
     preferencesStore.setDashboardNoticeDismissed(true);
   };
   const showDashboardNotice = () => {
     preferencesStore.setDashboardNoticeDismissed(false);
   };
-  // Get current level - respect automatic calculation setting
-  const useAutomaticLevel = computed(() => preferencesStore.getUseAutomaticLevelCalculation);
-  // Watch for invalid manual level values
-  watch(
-    () => tarkovStore.playerLevel(),
-    (manualLevel) => {
-      if (!Number.isFinite(manualLevel)) {
-        logger.warn('[Dashboard] manualLevel is not finite', { manualLevel });
-      } else if (manualLevel < 0) {
-        logger.warn('[Dashboard] manualLevel is negative', { manualLevel });
-      }
-    }
-  );
-  // Watch for invalid derived level values (only relevant in automatic mode)
-  watch(
-    () => xpCalculation?.derivedLevel?.value,
-    (derivedLevel) => {
-      // Skip if automatic level calculation is disabled or derivedLevel ref is not yet available
-      if (!useAutomaticLevel.value || derivedLevel === undefined) return;
-      if (!Number.isFinite(derivedLevel)) {
-        logger.warn('[Dashboard] derivedLevel is not finite', { derivedLevel });
-      } else if (derivedLevel < 0) {
-        logger.warn('[Dashboard] derivedLevel is negative', { derivedLevel });
-      }
-    }
-  );
   // Unwrap trader stats for template usage
   const traderStats = computed(() => dashboardStats.traderStats.value || []);
   // Percentage calculations (numeric)

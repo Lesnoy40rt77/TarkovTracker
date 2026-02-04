@@ -18,7 +18,6 @@ const i18n = createI18n({
     zh: {},
   },
 });
-// Mock dependencies
 vi.mock('@/composables/useSkillCalculation');
 vi.mock('@/stores/usePreferences', () => ({
   usePreferencesStore: () => ({
@@ -39,7 +38,6 @@ vi.mock('@vueuse/core', async (importOriginal) => {
 mockNuxtImport('useToast', () => () => ({
   add: vi.fn(),
 }));
-// Mock components
 const _GenericCard = { template: '<div><slot name="content" /></div>' };
 const UInput = {
   template:
@@ -52,7 +50,6 @@ const _UTooltip = { template: '<div><slot /></div>' };
 const _UBadge = { template: '<div />' };
 describe('SkillsCard', () => {
   it('prevents invalid characters on keydown', async () => {
-    // Setup mock
     const setTotalSkillLevel = vi.fn();
     vi.mocked(useSkillCalculation).mockReturnValue({
       calculatedQuestSkills: computed(() => ({})),
@@ -78,13 +75,12 @@ describe('SkillsCard', () => {
       global: {
         plugins: [i18n],
         stubs: {
-          GenericCard: _GenericCard, // We want to render GenericCard's slots
+          GenericCard: _GenericCard,
           UInput: UInput,
           UButton: _UButton,
           UIcon: _UIcon,
           UTooltip: _UTooltip,
           UBadge: _UBadge,
-          // Stub any other Nuxt UI components that might cause issues
           ULink: true,
           NuxtLink: true,
           Icon: true,
@@ -165,7 +161,6 @@ describe('SkillsCard', () => {
     });
     const input = wrapper.find('input');
     const inputEl = input.element as HTMLInputElement;
-    // Case 1: Value is '5', typing '2' -> '52' (should block)
     inputEl.value = '5';
     inputEl.selectionStart = 1;
     inputEl.selectionEnd = 1;
@@ -175,7 +170,6 @@ describe('SkillsCard', () => {
     };
     await input.trigger('keydown', eventBlock);
     expect(eventBlock.preventDefault).toHaveBeenCalled();
-    // Case 2: Value is '5', typing '1' -> '51' (should allow)
     inputEl.value = '5';
     inputEl.selectionStart = 1;
     inputEl.selectionEnd = 1;
@@ -185,7 +179,6 @@ describe('SkillsCard', () => {
     };
     await input.trigger('keydown', eventAllow);
     expect(eventAllow.preventDefault).not.toHaveBeenCalled();
-    // Case 3: Value is '51', typing '0' -> '510' (should block)
     inputEl.value = '51';
     inputEl.selectionStart = 2;
     inputEl.selectionEnd = 2;

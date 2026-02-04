@@ -100,7 +100,7 @@ const defaultGlobalStubs = {
   },
   InterfaceSettingsCard: {
     template:
-      '<div data-testid="interface-settings-card"><input type="checkbox" data-testid="u-switch" /></div>',
+      '<div data-testid="interface-settings-card"><input type="checkbox" data-testid="interface-settings-card-switch" /></div>',
   },
   ImportConfirmDialog: true,
   MigrationSteps: true,
@@ -123,7 +123,7 @@ const defaultGlobalStubs = {
     props: ['modelValue', 'items', 'options'],
     emits: ['update:modelValue'],
     template:
-      '<select data-testid="u-select" @change="$emit(\'update:modelValue\', Number($event.target.value))"><option v-for="opt in (items || options || [])" :key="opt.value || opt" :value="opt.value || opt">{{ opt.label || opt.title || opt }}</option></select>',
+      '<select data-testid="u-select" @change="$emit(\'update:modelValue\', Number($event.target.value))"><option v-for="opt in (items || options || [])" :key="opt.value ?? opt" :value="opt.value ?? opt">{{ opt.label || opt.title || opt }}</option></select>',
   },
   USwitch: {
     props: ['modelValue', 'disabled'],
@@ -222,7 +222,7 @@ describe('settings page', () => {
       const wrapper = await mountSuspended(SettingsPage, {
         global: { stubs: defaultGlobalStubs },
       });
-      const toggle = wrapper.find('[data-testid="u-switch"]');
+      const toggle = wrapper.find('[data-testid="interface-settings-card-switch"]');
       expect(toggle.exists()).toBe(true);
     });
     it('renders with streamer mode enabled', async () => {

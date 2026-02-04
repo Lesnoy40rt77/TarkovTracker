@@ -298,7 +298,6 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed, ref, type Ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import GenericCard from '@/components/ui/GenericCard.vue';
   import AccountDeletionCard from '@/features/settings/AccountDeletionCard.vue';
@@ -316,7 +315,7 @@
     description:
       'Customize your TarkovTracker experience. Manage preferences, game mode, and account settings.',
   });
-  const { t } = useI18n();
+  const { t } = useI18n({ useScope: 'global' });
   const { $supabase } = useNuxtApp();
   const toast = useToast();
   const metadataStore = useMetadataStore();

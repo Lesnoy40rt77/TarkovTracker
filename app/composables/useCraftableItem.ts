@@ -1,4 +1,3 @@
-import { computed, toValue, type ComputedRef, type MaybeRefOrGetter } from 'vue';
 import { useMetadataStore, type CraftSource } from '@/stores/useMetadata';
 import { useProgressStore } from '@/stores/useProgress';
 import { logger } from '@/utils/logger';

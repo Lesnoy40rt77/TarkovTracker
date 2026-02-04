@@ -13,7 +13,6 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed } from 'vue';
   import type { TaskObjective } from '@/types/tarkov';
   const props = defineProps<{
     objectives: TaskObjective[];

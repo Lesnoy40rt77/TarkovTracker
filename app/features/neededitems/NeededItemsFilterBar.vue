@@ -2,11 +2,15 @@
   <div class="mb-6 space-y-3">
     <!-- Primary Filter: ALL / TASKS / HIDEOUT (Centered) -->
     <div
+      role="tablist"
+      :aria-label="$t('neededItems.filterTypeLabel', 'Filter by item type')"
       class="bg-surface-900 flex flex-wrap items-center justify-center gap-1 overflow-x-auto rounded-lg border border-white/12 px-3 py-2.5 shadow-sm sm:gap-2 sm:px-4 sm:py-3"
     >
-      <!-- ALL tab (rendered separately for divider) -->
       <UButton
         v-if="allTab"
+        role="tab"
+        :aria-selected="modelValue === allTab.value"
+        :tabindex="modelValue === allTab.value ? 0 : -1"
         :variant="'ghost'"
         :color="'neutral'"
         size="sm"
@@ -29,7 +33,6 @@
           {{ allTab.count }}
         </span>
       </UButton>
-      <!-- Divider between ALL and other tabs -->
       <span
         v-if="showAllDivider"
         aria-hidden="true"
@@ -39,6 +42,9 @@
       <UButton
         v-for="tab in otherTabs"
         :key="tab.value"
+        role="tab"
+        :aria-selected="modelValue === tab.value"
+        :tabindex="modelValue === tab.value ? 0 : -1"
         :variant="'ghost'"
         :color="'neutral'"
         size="sm"
@@ -317,6 +323,7 @@
   </div>
 </template>
 <script setup lang="ts">
+  import type { UInputInstance } from '@/types/ui';
   type FilterType = 'all' | 'tasks' | 'hideout' | 'completed';
   type ViewMode = 'list' | 'grid';
   type FirFilter = 'all' | 'fir' | 'non-fir';
@@ -360,7 +367,7 @@
     'update:hideOwned': [value: boolean];
     'update:cardStyle': [value: CardStyle];
   }>();
-  const { t } = useI18n();
+  const { t } = useI18n({ useScope: 'global' });
   const allTab = computed(() => props.filterTabs.find((tab) => tab.value === 'all'));
   const otherTabs = computed(() =>
     props.filterTabs.filter((tab) => {
@@ -430,13 +437,14 @@
     emit('update:groupByItem', false);
     emit('update:viewMode', mode);
   };
-  const searchInput = ref<{ inputRef?: HTMLInputElement | null } | null>(null);
+  const searchInput = ref<UInputInstance | null>(null);
   const focusSearch = () => {
     if (typeof document === 'undefined') return;
     const active = document.activeElement as HTMLElement | null;
     if (active?.tagName === 'INPUT' || active?.tagName === 'TEXTAREA') return;
     if (active?.isContentEditable) return;
-    searchInput.value?.inputRef?.focus();
+    const inputRef = searchInput.value?.inputRef;
+    inputRef?.focus();
   };
   onMounted(() => {
     nextTick(() => {

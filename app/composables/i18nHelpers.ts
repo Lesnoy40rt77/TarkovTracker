@@ -1,4 +1,3 @@
-import { getCurrentInstance, readonly, ref, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { logger } from '@/utils/logger';
 import { STORAGE_KEYS } from '@/utils/storageKeys';

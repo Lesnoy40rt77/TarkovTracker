@@ -86,11 +86,11 @@
         </span>
       </div>
       <div
-        v-if="showExperienceRewards && experience"
+        v-if="showExperienceRewards && experienceValue > 0"
         class="bg-warning-900 inline-flex items-center gap-1 rounded px-1.5 py-0.5"
       >
         <UIcon name="i-mdi-star" aria-hidden="true" class="text-warning-400 h-3.5 w-3.5" />
-        <span class="text-warning-300 font-medium">{{ formatNumber(experience) }} XP</span>
+        <span class="text-warning-300 font-medium">{{ formatNumber(experienceValue) }} XP</span>
       </div>
       <div class="flex-1"></div>
       <AppTooltip
@@ -154,7 +154,7 @@
               {{ t('page.tasks.questcard.previousTasks', 'Previous Tasks:') }}
             </div>
             <div class="flex flex-col gap-1.5">
-              <router-link
+              <NuxtLink
                 v-for="parent in parentTasks"
                 :key="parent.id"
                 :to="`/tasks?task=${parent.id}`"
@@ -162,7 +162,7 @@
               >
                 <UIcon name="i-mdi-arrow-left" aria-hidden="true" class="h-3 w-3 shrink-0" />
                 <span class="truncate">{{ parent.name }}</span>
-              </router-link>
+              </NuxtLink>
             </div>
           </div>
           <div class="space-y-3">
@@ -244,7 +244,7 @@
               {{ t('page.tasks.questcard.nextTasks', 'Next Tasks:') }}
             </div>
             <div class="flex flex-col gap-1.5">
-              <router-link
+              <NuxtLink
                 v-for="child in childTasks"
                 :key="child.id"
                 :to="`/tasks?task=${child.id}`"
@@ -252,7 +252,7 @@
               >
                 <UIcon name="i-mdi-arrow-right" aria-hidden="true" class="h-3 w-3 shrink-0" />
                 <span class="truncate">{{ child.name }}</span>
-              </router-link>
+              </NuxtLink>
             </div>
           </div>
         </div>
@@ -261,11 +261,9 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
   import { usePreferencesStore } from '@/stores/usePreferences';
-  import type { Task } from '@/types/tarkov';
   import { useLocaleNumberFormatter } from '@/utils/formatters';
+  import type { Task } from '@/types/tarkov';
   const preferencesStore = usePreferencesStore();
   const showNextTasks = computed(() => preferencesStore.getShowNextQuests);
   const showPreviousTasks = computed(() => preferencesStore.getShowPreviousQuests);
@@ -330,9 +328,10 @@
   const hasDetailedRewards = computed(() => {
     return props.itemRewards.length > 0 || props.offerUnlockRewards.length > 0;
   });
+  const experienceValue = computed(() => props.experience ?? 0);
   const hasExpandableDetails = computed(() => {
     const hasVisibleNextTasks = showNextTasks.value && props.childTasks.length > 0;
-    const hasVisiblePreviousTasks = showPreviousTasks.value;
+    const hasVisiblePreviousTasks = showPreviousTasks.value && props.parentTasks.length > 0;
     return hasDetailedRewards.value || hasVisibleNextTasks || hasVisiblePreviousTasks;
   });
   const getItemTooltip = (item?: { shortName?: string; name?: string }) => {

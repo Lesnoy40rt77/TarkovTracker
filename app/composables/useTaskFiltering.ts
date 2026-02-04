@@ -1,17 +1,8 @@
-import { ref, shallowRef } from 'vue';
 import { useMetadataStore } from '@/stores/useMetadata';
 import { usePreferencesStore } from '@/stores/usePreferences';
 import { useProgressStore } from '@/stores/useProgress';
 import { useTarkovStore } from '@/stores/useTarkov';
-import type { Task, TaskObjective } from '@/types/tarkov';
 import { isAllUsersView } from '@/types/taskFilter';
-import type {
-  MergedMap,
-  TaskFilterAndSortOptions,
-  TaskPrimaryView,
-  TaskSecondaryView,
-} from '@/types/taskFilter';
-import type { TaskSortDirection, TaskSortMode } from '@/types/taskSort';
 import { TRADER_ORDER } from '@/utils/constants';
 import { logger } from '@/utils/logger';
 import { perfEnabled, perfEnd, perfNow, perfStart } from '@/utils/perf';
@@ -19,6 +10,14 @@ import {
   buildTaskTypeFilterOptions,
   filterTasksByTypeSettings as filterTasksByTypeSettingsUtil,
 } from '@/utils/taskTypeFilters';
+import type { Task, TaskObjective } from '@/types/tarkov';
+import type {
+  MergedMap,
+  TaskFilterAndSortOptions,
+  TaskPrimaryView,
+  TaskSecondaryView,
+} from '@/types/taskFilter';
+import type { TaskSortDirection, TaskSortMode } from '@/types/taskSort';
 const RAID_RELEVANT_OBJECTIVE_TYPES = [
   'shoot',
   'extract',
@@ -575,7 +574,6 @@ export function useTaskFiltering() {
     sortDirection: TaskSortDirection
   ): Task[] => {
     const pinnedIds = preferencesStore.getPinnedTaskIds;
-    // Partition tasks into pinned and unpinned
     const pinnedTasks: Task[] = [];
     const unpinnedTasks: Task[] = [];
     for (const task of taskList) {
@@ -606,10 +604,6 @@ export function useTaskFiltering() {
     };
     return [...applySort(pinnedTasks), ...applySort(unpinnedTasks)];
   };
-  /**
-   * Main function to update visible tasks based on all filters.
-   * Uses TaskFilterAndSortOptions parameter object for cleaner API.
-   */
   const updateVisibleTasks = (options: TaskFilterAndSortOptions, tasksLoading: boolean): void => {
     const {
       primaryView,

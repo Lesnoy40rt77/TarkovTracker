@@ -13,13 +13,25 @@
     error_loading: 'Ошибка загрузки данных Tarkov',
     loading: 'Загрузка данных Tarkov',
     logout_failed: 'Не удалось выйти. Повторите попытку.',
+    user_label: 'Пользователь',
+    user_avatar_alt: 'Аватар пользователя',
     overflow_menu: {
       language: 'Язык',
     },
   },
   common: {
+    cancel: 'Отмена',
     close: 'Закрыть',
     refreshbutton: 'Попробовать снова',
+  },
+  importConfirm: {
+    title: 'Подтвердите импорт данных',
+    description: 'Это импортирует ваши данные прогресса в ваш PvP-профиль:',
+    targetMode: 'Целевой режим игры: PvP',
+    notice: 'Данные будут импортированы в ваш PvP-прогресс (стандартный мультиплеер)',
+    listTitle: 'Данные для импорта:',
+    warning: 'Предупреждение: это действие нельзя отменить!',
+    confirm: 'Подтвердить импорт',
   },
   offlineMode: {
     title: 'Работа в автономном режиме',
@@ -121,6 +133,7 @@
         tasks: 'заданий',
         loyaltyLevel: 'Уровень лояльности',
         reputation: 'Репутация',
+        scavKarma: 'Карма Дикого',
       },
       stats: {
         available: {
@@ -147,6 +160,23 @@
           stat: 'Задания Каппа',
           details: 'Задания необходимые для контейнера Каппа.',
         },
+      },
+    },
+    changelog: {
+      title: 'История изменений',
+      description: 'Просматривайте последние обновления и изменения TarkovTracker.',
+      back: 'Назад к приборной панели',
+      loading: 'Загрузка истории изменений...',
+      error: 'Не удалось загрузить историю изменений.',
+      retry: 'Повторить',
+      empty: 'Пока нет записей истории изменений.',
+      loadMore: 'Загрузить ещё',
+      types: {
+        added: 'Добавлено',
+        fixed: 'Исправлено',
+        improved: 'Улучшено',
+        updated: 'Обновлено',
+        changed: 'Изменено',
       },
     },
     tasks: {
@@ -198,6 +228,7 @@
         },
       },
       notasksfound: 'Задания не найдены. Попробуйте изменить фильтры или обновить уровень.',
+      notasksfound_description: 'Измените фильтры или требования к уровню, чтобы увидеть доступные задания.',
       showing_all_sources: 'Показать все источники',
       loading: 'Загружаем задания',
       selectedTask: 'Выбранное задание',
@@ -209,6 +240,10 @@
         pinTask: 'Закрепить задание',
         unpinTask: 'Открепить задание',
         level: 'Требуемый уровень: {count}',
+        levelBadge: 'Ур. {count}',
+        fenceRepBadge: 'Fence {rep}',
+        fenceRepTooltip: 'Требуется репутация у Fence {rep}',
+        traderLevelTooltip: 'Требуется уровень лояльности {level} у {trader}',
         traderLevelBadge: '{trader} LL{level}',
         wiki: 'Wiki страница',
         lockedbefore: 'Заданий до: {count}',
@@ -216,6 +251,7 @@
         reportDataIssue: 'Сообщить об ошибке данных',
         viewOnTarkovDev: 'Открыть на Tarkov.dev',
         viewOnWiki: 'Открыть в вики',
+        viewTaskOnWiki: 'Открыть {name} в вики',
         completebutton: 'Завершено',
         availablebutton: 'Отметить Доступным',
         uncompletebutton: 'Отметить Не Завершенным',
@@ -252,6 +288,7 @@
         itemsCount: '{count} предметов',
         kappaTooltip: 'Это задание необходимо для получения контейнера Kappa',
         kapparequired: 'KAPPA ТРЕБУЕТСЯ',
+        blockedTooltip: 'Это задание навсегда заблокировано и никогда не может быть выполнено из-за решений, принятых в других заданиях',
         levelBadgeTooltip: 'Минимальный уровень игрока {level} для открытия этого задания',
         lightkeeperTooltip: 'Это задание необходимо для открытия торговца Lightkeeper',
         lightkeeperrequired: 'LIGHTKEEPER ТРЕБУЕТСЯ',
@@ -359,6 +396,12 @@
         close: 'Закрыть',
         items_hide_non_fir: 'Скрыть необходимые предметы которые не должны быть найдены в рейде',
         items_show_non_fir: 'Показать необходимые предметы которые не должны быть найдены в рейде',
+      },
+      aria: {
+        decreaseFir: 'Уменьшить количество НВР',
+        increaseFir: 'Увеличить количество НВР',
+        decreaseNonFir: 'Уменьшить количество не-НВР',
+        increaseNonFir: 'Увеличить количество не-НВР',
       },
     },
     settings: {
@@ -735,6 +778,14 @@
     danger_zone: {
       title: 'Опасная зона',
     },
+  },
+  hideout: {
+    collapse: 'Свернуть',
+    expand: 'Развернуть',
+  },
+  skills: {
+    requiredFor: 'Требуется для: {items}',
+    requiredLevels: 'Требуемые уровни: {items}',
   },
   generic: {
     item: 'Предмет',

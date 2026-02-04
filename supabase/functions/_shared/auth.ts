@@ -1,19 +1,17 @@
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeadersFor } from './cors.ts';
 
-// Supabase prohibits secrets starting with SUPABASE_, so support non-reserved names first.
 const supabaseUrl =
-  Deno.env.get('SB_URL') ||
   Deno.env.get('SUPABASE_URL') ||
+  Deno.env.get('VITE_SUPABASE_URL') ||
   (() => {
-    throw new Error('Missing SB_URL/SUPABASE_URL env');
+    throw new Error('Missing VITE_SUPABASE_URL/SUPABASE_URL env');
   })();
 
 const supabaseServiceKey =
-  Deno.env.get('SB_SERVICE_ROLE_KEY') ||
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ||
   (() => {
-    throw new Error('Missing SB_SERVICE_ROLE_KEY/SUPABASE_SERVICE_ROLE_KEY env');
+    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY env');
   })();
 /**
  * Response type for authentication errors

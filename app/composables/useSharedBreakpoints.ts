@@ -1,5 +1,4 @@
 import { useBreakpoints } from '@vueuse/core';
-import type { ComputedRef } from 'vue';
 /**
  * Shared breakpoints composable to avoid per-component listeners
  *

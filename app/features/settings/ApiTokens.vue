@@ -142,11 +142,13 @@
                   }}
                 </span>
                 <UTooltip :text="lastUsedTooltip(token.lastUsedAt)">
-                  <UIcon
-                    name="i-mdi-clock-outline"
-                    class="text-surface-500 h-3.5 w-3.5"
-                    aria-hidden="true"
-                  />
+                  <button
+                    type="button"
+                    class="inline-flex items-center justify-center"
+                    :aria-label="lastUsedTooltip(token.lastUsedAt)"
+                  >
+                    <UIcon name="i-mdi-clock-outline" class="text-surface-500 h-3.5 w-3.5" />
+                  </button>
                 </UTooltip>
               </div>
             </div>
@@ -300,12 +302,11 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useEdgeFunctions } from '@/composables/api/useEdgeFunctions';
-  import type { RawTokenRow, TokenPermission, TokenRow } from '@/types/api';
   import { API_PERMISSIONS, GAME_MODE_OPTIONS, GAME_MODES, type GameMode } from '@/utils/constants';
   import { logger } from '@/utils/logger';
+  import type { RawTokenRow, TokenPermission, TokenRow } from '@/types/api';
   interface SupabaseTable {
     select: (query: string) => SupabaseTable;
     insert: (data: Record<string, unknown>) => SupabaseTable;
@@ -317,7 +318,7 @@
       onfulfilled?: ((value: { data: unknown; error: unknown }) => unknown) | null
     ) => Promise<unknown>;
   }
-  const { t } = useI18n();
+  const { t } = useI18n({ useScope: 'global' });
   const toast = useToast();
   const { $supabase } = useNuxtApp();
   const edgeFunctions = useEdgeFunctions();

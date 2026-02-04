@@ -13,7 +13,6 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed } from 'vue';
   export type ProgressBarColor =
     | 'primary'
     | 'neutral'

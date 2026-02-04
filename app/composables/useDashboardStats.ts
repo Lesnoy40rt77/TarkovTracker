@@ -1,12 +1,11 @@
-import { computed, type ComputedRef } from 'vue';
 import { useMetadataStore } from '@/stores/useMetadata';
 import { usePreferencesStore } from '@/stores/usePreferences';
 import { useProgressStore } from '@/stores/useProgress';
 import { useTarkovStore } from '@/stores/useTarkov';
-import type { TaskObjective, Trader } from '@/types/tarkov';
 import { CURRENCY_ITEM_IDS } from '@/utils/constants';
 import { isTaskAvailableForEdition as checkTaskEdition } from '@/utils/editionHelpers';
 import { buildTaskTypeFilterOptions, filterTasksByTypeSettings } from '@/utils/taskTypeFilters';
+import type { TaskObjective, Trader } from '@/types/tarkov';
 type TraderStats = {
   id: Trader['id'];
   name: Trader['name'];
@@ -46,11 +45,9 @@ export function useDashboardStats(): {
   const relevantTasks = computed(() => {
     if (!metadataStore.tasks) return [];
     const currentFaction = tarkovStore.getPMCFaction();
-    // First filter by faction
     const factionFiltered = metadataStore.tasks.filter(
       (task) => task && (task.factionName === 'Any' || task.factionName === currentFaction)
     );
-    // Then apply type settings (Kappa, Lightkeeper, non-special, edition, prestige)
     const options = buildTaskTypeFilterOptions(preferencesStore, tarkovStore, metadataStore);
     return filterTasksByTypeSettings(factionFiltered, options);
   });

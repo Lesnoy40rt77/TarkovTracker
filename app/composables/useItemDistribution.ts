@@ -12,7 +12,25 @@ export interface DistributionResult {
   remainingFir: number;
   remainingNonFir: number;
 }
-export function useItemDistribution() {
+export type UseItemDistributionReturn = {
+  distributeItems: (
+    firCount: number,
+    nonFirCount: number,
+    taskObjectives: NeededItemTaskObjective[],
+    hideoutModules: NeededItemHideoutModule[]
+  ) => DistributionResult;
+  applyDistribution: (result: DistributionResult) => void;
+  resetObjectives: (
+    taskObjectives: NeededItemTaskObjective[],
+    hideoutModules: NeededItemHideoutModule[]
+  ) => void;
+  getObjectiveCurrentCount: (
+    objective: NeededItemTaskObjective | NeededItemHideoutModule
+  ) => number;
+  sortTaskObjectives: (objectives: NeededItemTaskObjective[]) => NeededItemTaskObjective[];
+  sortHideoutModules: (modules: NeededItemHideoutModule[]) => NeededItemHideoutModule[];
+};
+export function useItemDistribution(): UseItemDistributionReturn {
   const metadataStore = useMetadataStore();
   const tarkovStore = useTarkovStore();
   function getObjectiveCurrentCount(
@@ -128,32 +146,81 @@ export function useItemDistribution() {
     return { updates, remainingFir, remainingNonFir };
   }
   function applyDistribution(result: DistributionResult): void {
+    if (result.updates.length === 0) return;
+    const taskObjectiveUpdates: Record<
+      string,
+      { count: number; complete: boolean; timestamp?: number }
+    > = {};
+    const hideoutPartUpdates: Record<
+      string,
+      { count: number; complete: boolean; timestamp?: number }
+    > = {};
+    const now = Date.now();
     for (const update of result.updates) {
+      const isComplete = update.count >= update.needed;
+      const entry = {
+        count: Math.max(0, update.count),
+        complete: isComplete,
+        ...(isComplete && { timestamp: now }),
+      };
       if (update.type === 'task') {
-        tarkovStore.setObjectiveCount(update.id, update.count);
-        if (update.count >= update.needed) {
-          tarkovStore.setTaskObjectiveComplete(update.id);
-        }
+        taskObjectiveUpdates[update.id] = entry;
       } else {
-        tarkovStore.setHideoutPartCount(update.id, update.count);
-        if (update.count >= update.needed) {
-          tarkovStore.setHideoutPartComplete(update.id);
-        }
+        hideoutPartUpdates[update.id] = entry;
       }
     }
+    tarkovStore.$patch((state) => {
+      const currentData = state.currentGameMode === 'pve' ? state.pve : state.pvp;
+      if (!currentData.taskObjectives) {
+        currentData.taskObjectives = {};
+      }
+      if (!currentData.hideoutParts) {
+        currentData.hideoutParts = {};
+      }
+      for (const [id, updates] of Object.entries(taskObjectiveUpdates)) {
+        currentData.taskObjectives[id] = {
+          ...currentData.taskObjectives[id],
+          ...updates,
+        };
+      }
+      for (const [id, updates] of Object.entries(hideoutPartUpdates)) {
+        currentData.hideoutParts[id] = {
+          ...currentData.hideoutParts[id],
+          ...updates,
+        };
+      }
+    });
   }
   function resetObjectives(
     taskObjectives: NeededItemTaskObjective[],
     hideoutModules: NeededItemHideoutModule[]
   ): void {
-    for (const obj of taskObjectives) {
-      tarkovStore.setObjectiveCount(obj.id, 0);
-      tarkovStore.setTaskObjectiveUncomplete(obj.id);
-    }
-    for (const mod of hideoutModules) {
-      tarkovStore.setHideoutPartCount(mod.id, 0);
-      tarkovStore.setHideoutPartUncomplete(mod.id);
-    }
+    if (taskObjectives.length === 0 && hideoutModules.length === 0) return;
+    tarkovStore.$patch((state) => {
+      const currentData = state.currentGameMode === 'pve' ? state.pve : state.pvp;
+      if (!currentData.taskObjectives) {
+        currentData.taskObjectives = {};
+      }
+      if (!currentData.hideoutParts) {
+        currentData.hideoutParts = {};
+      }
+      for (const obj of taskObjectives) {
+        currentData.taskObjectives[obj.id] = {
+          ...currentData.taskObjectives[obj.id],
+          count: 0,
+          complete: false,
+          timestamp: undefined,
+        };
+      }
+      for (const mod of hideoutModules) {
+        currentData.hideoutParts[mod.id] = {
+          ...currentData.hideoutParts[mod.id],
+          count: 0,
+          complete: false,
+          timestamp: undefined,
+        };
+      }
+    });
   }
   return {
     distributeItems,

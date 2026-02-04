@@ -120,7 +120,16 @@ const createProgressStore = () => ({
   },
   visibleTeamStores: { self: {} },
 });
-const setup = async (view: string) => {
+type HideoutTestSetupOptions = {
+  view: string;
+  sortReadyFirst?: boolean;
+  skillLevels?: Record<string, number>;
+};
+const initHideoutTest = async ({
+  view,
+  sortReadyFirst = false,
+  skillLevels = { Strength: 1 },
+}: HideoutTestSetupOptions) => {
   const hideoutStations = createStations();
   const metadataStore = {
     hideoutStations: ref(hideoutStations),
@@ -130,15 +139,15 @@ const setup = async (view: string) => {
   const progressStore = createProgressStore();
   const tarkovStore = {
     getCurrentProgressData: () => ({
-      skills: { Strength: 1 },
+      skills: skillLevels,
     }),
-    getSkillLevel: (_name: string) => 0,
+    getSkillLevel: (name: string) => skillLevels[name as keyof typeof skillLevels] ?? 0,
     getTraderLevel: (_id: string) => 1,
   };
   const preferencesStore = {
     getHideoutPrimaryView: view,
     setHideoutPrimaryView: vi.fn(),
-    getHideoutSortReadyFirst: false,
+    getHideoutSortReadyFirst: sortReadyFirst,
     getHideoutRequireStationLevels: true,
     getHideoutRequireSkillLevels: true,
     getHideoutRequireTraderLoyalty: true,
@@ -172,8 +181,13 @@ const setup = async (view: string) => {
   const { useHideoutFiltering } = await import('@/composables/useHideoutFiltering');
   return {
     hideoutFiltering: useHideoutFiltering(),
+    metadataStore,
+    preferencesStore,
+    progressStore,
+    tarkovStore,
   };
 };
+const setup = async (view: string) => initHideoutTest({ view });
 describe('useHideoutFiltering', () => {
   it('calculates station counts', async () => {
     const { hideoutFiltering } = await setup('all');
@@ -211,5 +225,31 @@ describe('useHideoutFiltering', () => {
       'station-maxed',
       'station-locked',
     ]);
+  });
+  describe('sortStationsByReadiness', () => {
+    const setupWithReadyFirst = async (view: string, sortReadyFirst: boolean) =>
+      initHideoutTest({ view, sortReadyFirst });
+    it('places ready-to-build stations first when sortReadyFirst is enabled', async () => {
+      const { hideoutFiltering } = await setupWithReadyFirst('available', true);
+      const ids = hideoutFiltering.visibleStations.value.map((s) => s.id);
+      expect(ids[0]).toBe('station-available');
+    });
+    it('preserves original order when sortReadyFirst is disabled', async () => {
+      const { hideoutFiltering } = await setupWithReadyFirst('all', false);
+      const ids = hideoutFiltering.visibleStations.value.map((s) => s.id);
+      expect(ids).toEqual([
+        'station-available',
+        'station-skill-locked',
+        'station-maxed',
+        'station-locked',
+      ]);
+    });
+    it('considers station requirements for readiness', async () => {
+      const { hideoutFiltering } = await setupWithReadyFirst('all', true);
+      const ids = hideoutFiltering.visibleStations.value.map((s) => s.id);
+      const availableIdx = ids.indexOf('station-available');
+      const lockedIdx = ids.indexOf('station-locked');
+      expect(availableIdx).toBeLessThan(lockedIdx);
+    });
   });
 });

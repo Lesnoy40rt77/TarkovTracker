@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import type { Task } from '@/types/tarkov';
 import {
   buildImpactScores,
   buildTeammateAvailableCounts,
@@ -10,6 +9,7 @@ import {
   sortTasksByTeammatesAvailable,
   sortTasksByTrader,
 } from '@/utils/taskSorter';
+import type { Task } from '@/types/tarkov';
 describe('taskSorter', () => {
   const createTask = (overrides: Partial<Task> = {}): Task => {
     const { id = 'task1', name = 'Test Task', ...rest } = overrides;

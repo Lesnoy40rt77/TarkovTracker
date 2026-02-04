@@ -13,6 +13,8 @@
     error_loading: 'Fehler beim Laden der Tarkov-Daten',
     loading: 'Tarkov-Daten werden geladen',
     logout_failed: 'Abmelden fehlgeschlagen. Bitte erneut versuchen.',
+    user_label: 'Benutzer',
+    user_avatar_alt: 'Benutzer-Avatar',
     overflow_menu: {
       game_mode: 'Spielmodus',
       display_name: 'Anzeigename',
@@ -35,8 +37,18 @@
     },
   },
   common: {
+    cancel: 'Abbrechen',
     close: 'Schließen',
     refreshbutton: 'Erneut versuchen',
+  },
+  importConfirm: {
+    title: 'Datenimport bestätigen',
+    description: 'Dies importiert deine Fortschrittsdaten in dein PvP-Profil:',
+    targetMode: 'Ziel-Spielmodus: PvP',
+    notice: 'Daten werden in deinen PvP-Fortschritt (Standard-Mehrspieler) importiert',
+    listTitle: 'Zu importierende Daten:',
+    warning: 'Warnung: Diese Aktion kann nicht rückgängig gemacht werden!',
+    confirm: 'Import bestätigen',
   },
   offlineMode: {
     title: 'Offline-Modus aktiv',
@@ -138,6 +150,7 @@
         tasks: 'Aufgaben',
         loyaltyLevel: 'Loyalitätsstufe',
         reputation: 'Ruf',
+        scavKarma: 'Scav-Karma',
       },
       stats: {
         available: {
@@ -164,6 +177,23 @@
           stat: 'Kappa Aufgaben',
           details: 'Aufgaben für den Kappa Container erforderlich.',
         },
+      },
+    },
+    changelog: {
+      title: 'Änderungsprotokoll',
+      description: 'Sieh dir die neuesten Updates und Änderungen an TarkovTracker an.',
+      back: 'Zurück zum Dashboard',
+      loading: 'Änderungsprotokoll wird geladen...',
+      error: 'Änderungsprotokoll konnte nicht geladen werden.',
+      retry: 'Erneut versuchen',
+      empty: 'Noch keine Einträge im Änderungsprotokoll.',
+      loadMore: 'Mehr laden',
+      types: {
+        added: 'Hinzugefügt',
+        fixed: 'Behoben',
+        improved: 'Verbessert',
+        updated: 'Aktualisiert',
+        changed: 'Geändert',
       },
     },
     tasks: {
@@ -215,6 +245,7 @@
         },
       },
       notasksfound: 'Keine Aufgaben gefunden. Ändere deine Filter oder passe dein Level an.',
+      notasksfound_description: 'Passe deine Filter oder Levelanforderungen an, um verfügbare Aufgaben zu sehen.',
       showing_all_sources: 'Zeige alle Quellen',
       loading: 'Lade Aufgaben',
       selectedTask: 'Ausgewählte Aufgabe',
@@ -227,6 +258,9 @@
         unpinTask: 'Aufgabe lösen',
         level: 'Level: {count}',
         levelBadge: 'Lv {count}',
+        fenceRepBadge: 'Fence {rep}',
+        fenceRepTooltip: 'Erfordert Fence-Ruf von {rep}',
+        traderLevelTooltip: 'Erfordert Loyalitätsstufe {level} bei {trader}',
         traderLevelBadge: '{trader} LL{level}',
         wiki: 'Wikiseite',
         lockedbefore: 'Aufgaben davor: {count}',
@@ -244,6 +278,7 @@
         reportDataIssue: 'Datenproblem melden',
         viewOnTarkovDev: 'Auf Tarkov.dev ansehen',
         viewOnWiki: 'Im Wiki ansehen',
+        viewTaskOnWiki: '{name} im Wiki ansehen',
         showChainDetails: 'Kettendetails anzeigen',
         hideChainDetails: 'Kettendetails ausblenden',
         handOver: 'Abgeben',
@@ -253,6 +288,9 @@
         complete: 'Abschließen',
         markComplete: 'Als abgeschlossen markieren',
         uncomplete: 'Nicht abgeschlossen',
+        completed: 'Abgeschlossen',
+        notCompleted: 'Nicht abgeschlossen',
+        of: 'von',
         item: 'Gegenstand',
         completebutton: 'Abgeschlossen',
         availablebutton: 'Als verfügbar markieren',
@@ -293,6 +331,7 @@
         unlocksPurchase: 'Schaltet Kauf frei:',
         traderRep: '+{standing} {trader}',
         skillReward: '+{level} {skill}',
+        blockedTooltip: 'Diese Aufgabe ist dauerhaft blockiert und kann aufgrund von Entscheidungen in anderen Aufgaben niemals abgeschlossen werden',
         anyMap: 'Beliebig',
         globalTask: 'Beliebige Karte',
         globalTaskTooltip: 'Diese Aufgabe kann auf jeder Karte abgeschlossen werden',
@@ -416,6 +455,12 @@
         items_hide_non_fir: 'Gegenstände ausblenden, die nicht im Raid gefunden werden müssen',
         items_show_non_fir: 'Gegenstände anzeigen, die nicht im Raid gefunden werden müssen',
         empty: 'Keine Gegenstände entsprechen deiner Suche.',
+      },
+      aria: {
+        decreaseFir: 'FIR-Anzahl verringern',
+        increaseFir: 'FIR-Anzahl erhöhen',
+        decreaseNonFir: 'Nicht-FIR-Anzahl verringern',
+        increaseNonFir: 'Nicht-FIR-Anzahl erhöhen',
       },
     },
     settings: {
@@ -800,6 +845,14 @@
     danger_zone: {
       title: 'Gefahrenzone',
     },
+  },
+  hideout: {
+    collapse: 'Einklappen',
+    expand: 'Ausklappen',
+  },
+  skills: {
+    requiredFor: 'Benötigt für: {items}',
+    requiredLevels: 'Benötigte Stufen: {items}',
   },
   generic: {
     item: 'Gegenstand',

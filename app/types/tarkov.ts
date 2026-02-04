@@ -1,7 +1,6 @@
+import type { UserState } from '@/stores/progressState';
 import type Graph from 'graphology';
 import type { _GettersTree, StateTree, Store } from 'pinia';
-import type { ComputedRef, Ref } from 'vue';
-import type { UserState } from '@/stores/progressState';
 /**
  * Type definitions for Tarkov data structures
  * This file defines the structure for:
@@ -100,10 +99,7 @@ export interface TaskTraderLevelRequirement {
   trader: { id: string; name: string };
   level: number;
 }
-export interface TraderLevelRequirementWithMet {
-  id: string;
-  trader: { id: string; name: string };
-  level: number;
+export interface TraderLevelRequirementWithMet extends TaskTraderLevelRequirement {
   met: boolean;
 }
 export interface Craft {
@@ -278,10 +274,8 @@ export interface MapSvgConfig {
   defaultFloor: string;
   coordinateRotation: number;
   transform?: [number, number, number, number];
-  bounds: number[][];
-  /** Separate bounds for SVG overlay (if different from marker bounds) */
-  svgBounds?: number[][];
-  /** Whether lower floors should remain visible when a higher floor is selected */
+  bounds: [[number, number], [number, number]];
+  svgBounds?: [[number, number], [number, number]];
   stackFloors?: boolean;
   minZoom?: number;
   maxZoom?: number;
@@ -290,7 +284,7 @@ export interface MapTileConfig {
   tilePath: string;
   coordinateRotation: number;
   transform?: [number, number, number, number];
-  bounds: number[][];
+  bounds: [[number, number], [number, number]];
   minZoom?: number;
   maxZoom?: number;
 }
@@ -391,6 +385,7 @@ export interface NeededItemBase {
 export interface NeededItemTaskObjective extends NeededItemBase {
   needType: 'taskObjective';
   taskId: string;
+  teamId?: string | null;
   type?: string;
   markerItem?: TarkovItem;
 }

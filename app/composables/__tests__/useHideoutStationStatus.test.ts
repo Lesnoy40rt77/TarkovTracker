@@ -129,6 +129,24 @@ describe('useHideoutStationStatus', () => {
     expect(isSkillReqMet(skillRequirement)).toBe(false);
     expect(getStationStatus(station)).toBe('locked');
   });
+  it('returns locked when a trader requirement is unmet', () => {
+    const { stationRequirement, skillRequirement, traderRequirement } = createRequirements();
+    mockState.hideoutLevels = {
+      'station-main': { self: 0 },
+      'station-prereq': { self: 1 },
+    };
+    mockState.skills = { Strength: 3 };
+    mockState.traderLevels = { 'trader-1': 1 };
+    const level = createLevel(1, {
+      stationLevelRequirements: [stationRequirement],
+      skillRequirements: [skillRequirement],
+      traderRequirements: [traderRequirement],
+    });
+    const station = createStation([level]);
+    const { getStationStatus, isTraderReqMet } = useHideoutStationStatus();
+    expect(isTraderReqMet(traderRequirement)).toBe(false);
+    expect(getStationStatus(station)).toBe('locked');
+  });
   it('ignores skill requirements when disabled', () => {
     const { stationRequirement, skillRequirement, traderRequirement } = createRequirements();
     mockState.requireSkillLevels = false;

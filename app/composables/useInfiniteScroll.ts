@@ -1,14 +1,3 @@
-import {
-  type ComputedRef,
-  computed,
-  nextTick,
-  onMounted,
-  onUnmounted,
-  type Ref,
-  ref,
-  toValue,
-  watch,
-} from 'vue';
 import { logger } from '@/utils/logger';
 export interface UseInfiniteScrollOptions {
   rootMargin?: string;

@@ -36,7 +36,13 @@ export const API_GAME_MODES = {
   [GAME_MODES.PVP]: 'regular',
   [GAME_MODES.PVE]: 'pve',
 } as const;
-export const GAME_MODE_OPTIONS = [
+export interface GameModeOption {
+  label: string;
+  value: GameMode;
+  icon: string;
+  description: string;
+}
+export const GAME_MODE_OPTIONS: GameModeOption[] = [
   {
     label: 'PvP',
     value: GAME_MODES.PVP,
@@ -51,12 +57,13 @@ export const GAME_MODE_OPTIONS = [
   },
 ];
 export const TASK_STATE = {
-  LOCKED: 0,
-  AVAILABLE: 1,
-  ACTIVE: 2,
-  COMPLETE: 3,
-  FAILED: 4,
+  LOCKED: 'LOCKED',
+  AVAILABLE: 'AVAILABLE',
+  ACTIVE: 'ACTIVE',
+  COMPLETE: 'COMPLETE',
+  FAILED: 'FAILED',
 } as const;
+export type TaskState = (typeof TASK_STATE)[keyof typeof TASK_STATE];
 // Currency item IDs to exclude from quest item tracking
 // These represent in-game currencies that are always obtainable and don't need to be tracked
 export const CURRENCY_ITEM_IDS = [
@@ -140,28 +147,34 @@ export const CACHE_CONSTANTS = {
 // Traders that don't have traditional loyalty levels (LL1-4)
 // Uses normalizedName for language-independent, stable identification
 export const TRADERS_WITHOUT_LOYALTY_LEVELS = [
-  'fence', // Scav karma (reputation) based only
-  'lightkeeper', // In-raid trader, quest-gated only
-  'btr-driver', // In-raid service, quest-gated only
-  'mr-kerman', // Arena trader
-  'taran', // Arena trader
-  'voevoda', // Arena trader
-  'radio-station', // Not a traditional trader
+  'fence',
+  'lightkeeper',
+  'btr-driver',
+  'mr-kerman',
+  'taran',
+  'voevoda',
+  'radio-station',
 ] as const;
 // Traders with non-standard or no reputation tracking (hide rep input entirely)
 export const TRADERS_WITHOUT_REPUTATION = [
-  'lightkeeper', // In-raid trader with special unlock system
-  'btr-driver', // Service-based, uses scav karma for access
-  'mr-kerman', // Arena trader
-  'taran', // Arena trader
-  'voevoda', // Arena trader
-  'radio-station', // Not a traditional trader
+  'lightkeeper',
+  'btr-driver',
+  'mr-kerman',
+  'taran',
+  'voevoda',
+  'radio-station',
 ] as const;
+export const TASK_ID_REGISTRY = {
+  GETTING_ACQUAINTED: '625d700cc48e6c62a440fab5',
+  A_HELPING_HAND: '6752f6d83038f7df520c83e8',
+  EASY_MONEY_PART_1: '66058cb22cee99303f1ba067',
+  HOT_WHEELS: '673f4e956f1b89c7bc0f56ef',
+} as const;
 // Traders that require a specific task to unlock
 export const TRADER_UNLOCK_TASKS: Record<string, string> = {
-  lightkeeper: '625d700cc48e6c62a440fab5', // Getting Acquainted (Mechanic)
-  'btr-driver': '6752f6d83038f7df520c83e8', // A Helping Hand (Mechanic)
-  ref: '66058cb22cee99303f1ba067', // Easy Money - Part 1 (Skier)
+  lightkeeper: TASK_ID_REGISTRY.GETTING_ACQUAINTED,
+  'btr-driver': TASK_ID_REGISTRY.A_HELPING_HAND,
+  ref: TASK_ID_REGISTRY.EASY_MONEY_PART_1,
 } as const;
 // Trader display order (matches in-game order)
 // Uses normalizedName for language-independent, stable identification
@@ -182,10 +195,10 @@ export const TRADER_ORDER = [
   'voevoda', // Arena trader
   'radio-station', // Radio operator
 ] as const;
-export const HOT_WHEELS_TASK_ID = '673f4e956f1b89c7bc0f56ef';
+export const HOT_WHEELS_TASK_ID = TASK_ID_REGISTRY.HOT_WHEELS;
 export const MANUAL_FAIL_TASK_IDS: readonly string[] = [HOT_WHEELS_TASK_ID];
 // Skill display order (matches in-game character screen order)
-export const SKILL_ORDER = [
+export const SKILL_ORDER_ID = [
   'Strength',
   'Vitality',
   'Health',
@@ -196,39 +209,43 @@ export const SKILL_ORDER = [
   'Intellect',
   'Attention',
   'Charisma',
-  'Pistols',
-  'Revolvers',
-  'SubmachineGuns',
-  'AssaultRifles',
-  'Shotguns',
-  'BoltActionRifles',
-  'LightMachineGuns',
-  'HeavyMachineGuns',
-  'GrenadeLaunchers',
-  'UnderbarrelLaunchers',
-  'Throwables',
+  'Pistol',
+  'Revolver',
+  'SMG',
+  'Assault',
+  'Shotgun',
+  'Sniper',
+  'LMG',
+  'HMG',
+  'Launcher',
+  'AttachedLauncher',
+  'Throwing',
   'Melee',
-  'DMRs',
+  'DMR',
   'AimDrills',
-  'Troubleshooting',
+  'TroubleShooting',
   'Surgery',
   'CovertMovement',
   'Search',
   'MagDrills',
   'LightVests',
   'HeavyVests',
-  'WeaponMaintenance',
+  'WeaponTreatment',
   'Crafting',
   'HideoutManagement',
 ] as const;
 export const SKILL_SORT_MODES = ['priority', 'ingame'] as const;
 export type SkillSortMode = (typeof SKILL_SORT_MODES)[number];
 // Sort skills by in-game order
-// Skills not in SKILL_ORDER are placed at the end, sorted alphabetically
-export function sortSkillsByGameOrder<T extends { name: string }>(skills: T[]): T[] {
+// Skills not in SKILL_ORDER_ID are placed at the end, sorted alphabetically
+export function sortSkillsByGameOrder<T extends { name: string; id?: string; key?: string }>(
+  skills: T[]
+): T[] {
   return [...skills].sort((a, b) => {
-    const aIndex = SKILL_ORDER.indexOf(a.name as (typeof SKILL_ORDER)[number]);
-    const bIndex = SKILL_ORDER.indexOf(b.name as (typeof SKILL_ORDER)[number]);
+    const aId = a.id ?? a.key;
+    const bId = b.id ?? b.key;
+    const aIndex = aId ? SKILL_ORDER_ID.indexOf(aId as (typeof SKILL_ORDER_ID)[number]) : -1;
+    const bIndex = bId ? SKILL_ORDER_ID.indexOf(bId as (typeof SKILL_ORDER_ID)[number]) : -1;
     if (aIndex === -1 && bIndex === -1) return a.name.localeCompare(b.name);
     if (aIndex === -1) return 1;
     if (bIndex === -1) return -1;

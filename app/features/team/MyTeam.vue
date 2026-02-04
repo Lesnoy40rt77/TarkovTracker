@@ -89,18 +89,17 @@
   </GenericCard>
 </template>
 <script setup lang="ts">
-  import { computed, nextTick, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import GenericCard from '@/components/ui/GenericCard.vue';
   import { useEdgeFunctions } from '@/composables/api/useEdgeFunctions';
   import { getTeamIdFromState, useSystemStoreWithSupabase } from '@/stores/useSystemStore';
   import { useTarkovStore } from '@/stores/useTarkov';
   import { useTeamStoreWithSupabase } from '@/stores/useTeamStore';
-  import type { SystemState, TeamState } from '@/types/tarkov';
-  import type { CreateTeamResponse, LeaveTeamResponse } from '@/types/team';
   import { delay } from '@/utils/async';
   import { GAME_MODES, LIMITS } from '@/utils/constants';
   import { logger } from '@/utils/logger';
+  import type { SystemState, TeamState } from '@/types/tarkov';
+  import type { CreateTeamResponse, LeaveTeamResponse } from '@/types/team';
   const { t } = useI18n({ useScope: 'global' });
   const { teamStore } = useTeamStoreWithSupabase();
   const { systemStore, hasInitiallyLoaded } = useSystemStoreWithSupabase();

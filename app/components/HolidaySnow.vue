@@ -45,30 +45,3 @@
     };
   };
 </script>
-<style scoped>
-  .snowflake {
-    animation: snowfall linear infinite;
-    will-change: transform;
-  }
-  .snowflake-inner {
-    display: inline-block;
-    animation: sway ease-in-out infinite;
-  }
-  @keyframes snowfall {
-    0% {
-      transform: translateY(0) rotate(0deg);
-    }
-    100% {
-      transform: translateY(105vh) rotate(360deg);
-    }
-  }
-  @keyframes sway {
-    0%,
-    100% {
-      transform: translateX(0);
-    }
-    50% {
-      transform: translateX(20px);
-    }
-  }
-</style>

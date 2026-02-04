@@ -132,11 +132,8 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
-  import ContextMenu from '@/components/ui/ContextMenu.vue';
-  import ContextMenuItem from '@/components/ui/ContextMenuItem.vue';
   import InfoRow from '@/features/tasks/InfoRow.vue';
   import TaskLink from '@/features/tasks/TaskLink.vue';
   import { useMetadataStore } from '@/stores/useMetadata';

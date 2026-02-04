@@ -5,7 +5,6 @@
 </template>
 <script setup>
   import { storeToRefs } from 'pinia';
-  import { ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
   import { useMetadataStore } from '@/stores/useMetadata';

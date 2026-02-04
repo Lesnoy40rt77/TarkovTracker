@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Task, TaskObjective } from '@/types/tarkov';
 import { computeInvalidProgress } from '@/utils/progressInvalidation';
+import type { Task, TaskObjective } from '@/types/tarkov';
 describe('computeInvalidProgress', () => {
   it('treats empty requirement status as completion-required', () => {
     const objectiveA: TaskObjective = { id: 'A1' };

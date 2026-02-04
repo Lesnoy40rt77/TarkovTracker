@@ -96,28 +96,35 @@
         </div>
       </div>
     </div>
-    <UModal v-model:open="showPrereqConfirm" prevent-close>
-      <div class="space-y-4 p-4">
-        <div class="text-lg font-semibold text-white">
-          {{ $t('page.hideout.prereqfilters.confirm_title') || 'Enable availability requirement?' }}
-        </div>
-        <p class="text-surface-300 text-sm">
-          {{
-            $t('page.hideout.prereqfilters.confirm_description', {
-              requirement: pendingPrereqLabel,
-            }) ||
-            'Enabling this requirement may remove hideout upgrades that no longer meet prerequisites.'
-          }}
-        </p>
-        <div class="flex justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="cancelPrereqToggle">
-            {{ $t('page.hideout.prereqfilters.confirm_cancel') || 'Cancel' }}
-          </UButton>
-          <UButton color="warning" variant="solid" @click="confirmPrereqToggle">
-            {{ $t('page.hideout.prereqfilters.confirm_confirm') || 'Enable' }}
-          </UButton>
-        </div>
-      </div>
+    <UModal
+      v-model:open="showPrereqConfirm"
+      :title="prereqConfirmTitle"
+      :description="prereqConfirmDescription"
+      :ui="{ content: 'bg-transparent border-0 p-0 shadow-none ring-0 outline-none' }"
+      prevent-close
+    >
+      <template #content>
+        <UCard class="w-full max-w-sm">
+          <template #header>
+            <div class="px-4 py-3 text-lg font-semibold text-white">
+              {{ prereqConfirmTitle }}
+            </div>
+          </template>
+          <div class="text-surface-300 px-4 pb-4 text-sm">
+            {{ prereqConfirmDescription }}
+          </div>
+          <template #footer>
+            <div class="flex justify-end gap-2 px-4 pb-4">
+              <UButton color="neutral" variant="ghost" @click="cancelPrereqToggle">
+                {{ $t('page.hideout.prereqfilters.confirm_cancel') || 'Cancel' }}
+              </UButton>
+              <UButton color="warning" variant="solid" @click="confirmPrereqToggle">
+                {{ $t('page.hideout.prereqfilters.confirm_confirm') || 'Enable' }}
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
     </UModal>
     <div>
       <div v-if="isStoreLoading" class="text-surface-200 flex flex-col items-center gap-3 py-10">
@@ -155,7 +162,6 @@
 </template>
 <script setup lang="ts">
   import { storeToRefs } from 'pinia';
-  import { computed, defineAsyncComponent, nextTick, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRoute, useRouter } from 'vue-router';
   import { useHideoutFiltering } from '@/composables/useHideoutFiltering';
@@ -225,16 +231,32 @@
     if (!pendingPrereqToggle.value) return '';
     return prereqLabels.value[pendingPrereqToggle.value];
   });
+  const shouldEnforcePrereqs = computed(
+    () =>
+      preferencesStore.hideoutRequireStationLevels ||
+      preferencesStore.hideoutRequireSkillLevels ||
+      preferencesStore.hideoutRequireTraderLoyalty
+  );
+  const hasEnforcedPrereqs = ref(false);
+  const prereqConfirmTitle = computed(
+    () => t('page.hideout.prereqfilters.confirm_title') || 'Enable availability requirement?'
+  );
+  const prereqConfirmDescription = computed(
+    () =>
+      t('page.hideout.prereqfilters.confirm_description', {
+        requirement: pendingPrereqLabel.value,
+      }) ||
+      'Enabling this requirement may remove hideout upgrades that no longer meet prerequisites.'
+  );
+  const prereqPreferenceSetters = {
+    station: (value: boolean) => preferencesStore.setHideoutRequireStationLevels(value),
+    skill: (value: boolean) => preferencesStore.setHideoutRequireSkillLevels(value),
+    trader: (value: boolean) => preferencesStore.setHideoutRequireTraderLoyalty(value),
+  } satisfies Record<'station' | 'skill' | 'trader', (value: boolean) => void>;
   const setPrereqPreference = (key: 'station' | 'skill' | 'trader', enabled: boolean) => {
-    if (key === 'station') {
-      preferencesStore.setHideoutRequireStationLevels(enabled);
-      return;
-    }
-    if (key === 'skill') {
-      preferencesStore.setHideoutRequireSkillLevels(enabled);
-      return;
-    }
-    preferencesStore.setHideoutRequireTraderLoyalty(enabled);
+    const setter = prereqPreferenceSetters[key];
+    if (!setter) return;
+    setter(enabled);
   };
   const handlePrereqToggle = (key: 'station' | 'skill' | 'trader', value: boolean) => {
     if (!value) {
@@ -258,6 +280,20 @@
     showPrereqConfirm.value = false;
     pendingPrereqToggle.value = null;
   };
+  watch(
+    [isStoreLoading, shouldEnforcePrereqs],
+    ([loading, shouldEnforce]) => {
+      if (loading) return;
+      if (!shouldEnforce) {
+        hasEnforcedPrereqs.value = false;
+        return;
+      }
+      if (hasEnforcedPrereqs.value) return;
+      tarkovStore.enforceHideoutPrereqsNow();
+      hasEnforcedPrereqs.value = true;
+    },
+    { immediate: true }
+  );
   // Handle deep linking to a specific station via ?station=stationId query param
   const getStationStatus = (stationId: string): 'available' | 'maxed' | 'locked' => {
     const station = hideoutStations.value?.find((s) => s.id === stationId);

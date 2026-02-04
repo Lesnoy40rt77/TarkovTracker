@@ -2,9 +2,9 @@
   import { useI18n } from 'vue-i18n';
   import { useEdgeFunctions } from '@/composables/api/useEdgeFunctions';
   import { useSystemStoreWithSupabase } from '@/stores/useSystemStore';
-  import type { PurgeCacheResponse } from '@/types/edge';
   import { logger } from '@/utils/logger';
   import { STORAGE_KEYS } from '@/utils/storageKeys';
+  import type { PurgeCacheResponse } from '@/types/edge';
   const { purgeCache } = useEdgeFunctions();
   const toast = useToast();
   const { $supabase } = useNuxtApp();

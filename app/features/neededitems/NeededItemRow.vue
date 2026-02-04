@@ -69,146 +69,153 @@
                   {{ formatNumber(currentCount) }}/{{ formatNumber(neededCount) }}
                 </template>
               </UButton>
-              <UModal v-model="smallDialog" :ui="{ content: 'w-11/12' }">
-                <UCard>
-                  <div class="flex h-full flex-col items-end">
-                    <!-- Item image -->
-                    <div class="flex aspect-video min-h-25 self-stretch">
-                      <GameItem
-                        v-if="resolvedImageItem"
-                        :image-item="resolvedImageItem"
-                        :src="resolvedImageItem?.image512pxLink"
-                        :is-visible="true"
-                        :item-name="item?.name ?? null"
-                        :wiki-link="item?.wikiLink ?? null"
-                        :dev-link="item?.link ?? null"
-                        :task-wiki-link="relatedTask?.wikiLink"
-                        size="large"
-                        simple-mode
-                      />
-                    </div>
-                    <div class="mx-2 mt-2 flex items-center self-center">
-                      <div class="px-2 text-center">
-                        {{ item?.name ?? '' }}
+              <UModal
+                v-model:open="smallDialog"
+                :ui="{
+                  content: 'w-11/12 bg-transparent border-0 p-0 shadow-none ring-0 outline-none',
+                }"
+              >
+                <template #content>
+                  <UCard>
+                    <div class="flex h-full flex-col items-end">
+                      <!-- Item image -->
+                      <div class="flex aspect-video min-h-25 self-stretch">
+                        <GameItem
+                          v-if="resolvedImageItem"
+                          :image-item="resolvedImageItem"
+                          :src="resolvedImageItem?.image512pxLink"
+                          :is-visible="true"
+                          :item-name="item?.name ?? null"
+                          :wiki-link="item?.wikiLink ?? null"
+                          :dev-link="item?.link ?? null"
+                          :task-wiki-link="relatedTask?.wikiLink"
+                          size="large"
+                          simple-mode
+                        />
                       </div>
-                      <ItemIndicators
-                        :found-in-raid="isFoundInRaid"
-                        fir-icon-class="ml-1 h-4 w-4"
-                        :is-craftable="isCraftable"
-                        :craftable-title="craftableTitle"
-                        craftable-icon-base-class="ml-1 h-4 w-4"
-                        :craftable-icon-class="craftableIconClass"
-                        :kappa-required="isKappaRequired"
-                        :kappa-title="$t('task.kappa_req', 'Required for Kappa quest')"
-                        kappa-icon-class="ml-1 h-4 w-4 text-warning-400"
-                        @craft="goToCraftStation"
-                      />
-                    </div>
-                    <!-- Item need details -->
-                    <div class="mx-2 mt-2 flex w-full flex-col self-center">
-                      <template v-if="props.need.needType == 'taskObjective'">
-                        <task-link v-if="relatedTask" :task="relatedTask" />
-                        <span v-else class="text-surface-300 text-sm">
-                          {{ $t('neededItems.unknown_task', 'Unknown Task') }}
-                        </span>
-                        <RequirementInfo
-                          :need-type="props.need.needType"
-                          :level-required="levelRequired"
-                          :locked-before="lockedBefore"
-                          :player-level="tarkovStore.playerLevel()"
-                        />
-                      </template>
-                      <template v-else-if="props.need.needType == 'hideoutModule'">
-                        <div class="mt-1 mb-1 flex justify-center">
-                          <div class="text-center">
-                            <template v-if="relatedStation">
-                              <station-link
-                                :station="relatedStation"
-                                :module-id="props.need.hideoutModule.id"
-                                class="justify-center"
-                              />
-                            </template>
-                            <template v-else>
-                              <span class="text-surface-300 text-sm">
-                                {{ $t('neededItems.unknown_station', 'Unknown Station') }}
-                              </span>
-                            </template>
-                          </div>
-                          <div class="ml-1">
-                            {{ props.need.hideoutModule.level }}
-                          </div>
+                      <div class="mx-2 mt-2 flex items-center self-center">
+                        <div class="px-2 text-center">
+                          {{ item?.name ?? '' }}
                         </div>
-                        <RequirementInfo
-                          :need-type="props.need.needType"
-                          :level-required="levelRequired"
-                          :locked-before="lockedBefore"
-                          :player-level="tarkovStore.playerLevel()"
-                          :related-station="relatedStation"
-                          :hideout-level="props.need.hideoutModule.level"
-                          :hideout-module-id="props.need.hideoutModule.id"
+                        <ItemIndicators
+                          :found-in-raid="isFoundInRaid"
+                          fir-icon-class="ml-1 h-4 w-4"
+                          :is-craftable="isCraftable"
+                          :craftable-title="craftableTitle"
+                          craftable-icon-base-class="ml-1 h-4 w-4"
+                          :craftable-icon-class="craftableIconClass"
+                          :kappa-required="isKappaRequired"
+                          :kappa-title="$t('task.kappa_req', 'Required for Kappa quest')"
+                          kappa-icon-class="ml-1 h-4 w-4 text-warning-400"
+                          @craft="goToCraftStation"
                         />
-                      </template>
-                    </div>
-                    <!-- Item count actions -->
-                    <div
-                      v-if="!selfCompletedNeed"
-                      class="mx-2 mt-2 mb-2 flex h-full flex-col items-center justify-center self-stretch"
-                    >
-                      <template v-if="!isSingleItem">
-                        <ItemCountControls
-                          :current-count="currentCount"
-                          :needed-count="neededCount"
-                          @decrease="$emit('decreaseCount')"
-                          @increase="$emit('increaseCount')"
-                          @toggle="$emit('toggleCount')"
-                          @set-count="(count) => $emit('setCount', count)"
-                        />
-                      </template>
-                      <template v-else>
-                        <AppTooltip
-                          :text="
-                            isCollected
-                              ? $t('neededItems.collected', 'Collected')
-                              : $t('neededItems.mark_collected', 'Mark as collected')
-                          "
-                        >
-                          <CollectedToggleButton
-                            :is-collected="isCollected"
-                            class="flex h-10 w-10 items-center justify-center rounded-lg border transition-colors"
-                            :class="
-                              isCollected
-                                ? 'bg-success-600 border-success-500 hover:bg-success-500 text-white'
-                                : 'bg-surface-700 text-surface-200 hover:bg-surface-600 border-white/20 hover:text-white'
-                            "
-                            :aria-label="
+                      </div>
+                      <!-- Item need details -->
+                      <div class="mx-2 mt-2 flex w-full flex-col self-center">
+                        <template v-if="props.need.needType == 'taskObjective'">
+                          <TaskLink v-if="relatedTask" :task="relatedTask" />
+                          <span v-else class="text-surface-300 text-sm">
+                            {{ $t('neededItems.unknown_task', 'Unknown Task') }}
+                          </span>
+                          <RequirementInfo
+                            :need-type="props.need.needType"
+                            :level-required="levelRequired"
+                            :locked-before="lockedBefore"
+                            :player-level="tarkovStore.playerLevel()"
+                          />
+                        </template>
+                        <template v-else-if="props.need.needType == 'hideoutModule'">
+                          <div class="mt-1 mb-1 flex justify-center">
+                            <div class="text-center">
+                              <template v-if="relatedStation">
+                                <StationLink
+                                  :station="relatedStation"
+                                  :module-id="props.need.hideoutModule.id"
+                                  class="justify-center"
+                                />
+                              </template>
+                              <template v-else>
+                                <span class="text-surface-300 text-sm">
+                                  {{ $t('neededItems.unknown_station', 'Unknown Station') }}
+                                </span>
+                              </template>
+                            </div>
+                            <div class="ml-1">
+                              {{ props.need.hideoutModule.level }}
+                            </div>
+                          </div>
+                          <RequirementInfo
+                            :need-type="props.need.needType"
+                            :level-required="levelRequired"
+                            :locked-before="lockedBefore"
+                            :player-level="tarkovStore.playerLevel()"
+                            :related-station="relatedStation"
+                            :hideout-level="props.need.hideoutModule.level"
+                            :hideout-module-id="props.need.hideoutModule.id"
+                          />
+                        </template>
+                      </div>
+                      <!-- Item count actions -->
+                      <div
+                        v-if="!selfCompletedNeed"
+                        class="mx-2 mt-2 mb-2 flex h-full flex-col items-center justify-center self-stretch"
+                      >
+                        <template v-if="!isSingleItem">
+                          <ItemCountControls
+                            :current-count="currentCount"
+                            :needed-count="neededCount"
+                            @decrease="$emit('decreaseCount')"
+                            @increase="$emit('increaseCount')"
+                            @toggle="$emit('toggleCount')"
+                            @set-count="(count) => $emit('setCount', count)"
+                          />
+                        </template>
+                        <template v-else>
+                          <AppTooltip
+                            :text="
                               isCollected
                                 ? $t('neededItems.collected', 'Collected')
                                 : $t('neededItems.mark_collected', 'Mark as collected')
                             "
-                            icon-class="h-6 w-6"
-                            @toggle="$emit('toggleCount')"
-                          />
-                        </AppTooltip>
-                      </template>
-                      <!-- Show team needs alongside controls -->
-                      <TeamNeedsDisplay
-                        v-if="teamNeeds.length > 0"
-                        :team-needs="teamNeeds"
-                        :needed-count="neededCount"
-                        class="mt-2"
-                      />
+                          >
+                            <CollectedToggleButton
+                              :is-collected="isCollected"
+                              class="flex h-10 w-10 items-center justify-center rounded-lg border transition-colors"
+                              :class="
+                                isCollected
+                                  ? 'bg-success-600 border-success-500 hover:bg-success-500 text-white'
+                                  : 'bg-surface-700 text-surface-200 hover:bg-surface-600 border-white/20 hover:text-white'
+                              "
+                              :aria-label="
+                                isCollected
+                                  ? $t('neededItems.collected', 'Collected')
+                                  : $t('neededItems.mark_collected', 'Mark as collected')
+                              "
+                              icon-class="h-6 w-6"
+                              @toggle="$emit('toggleCount')"
+                            />
+                          </AppTooltip>
+                        </template>
+                        <!-- Show team needs alongside controls -->
+                        <TeamNeedsDisplay
+                          v-if="teamNeeds.length > 0"
+                          :team-needs="teamNeeds"
+                          :needed-count="neededCount"
+                          class="mt-2"
+                        />
+                      </div>
+                      <!-- Show static count for completed parent items (Completed tab) -->
+                      <div
+                        v-else
+                        class="mx-2 mt-2 mb-2 flex h-full items-center justify-center self-stretch"
+                      >
+                        <span class="text-success-400 text-sm font-semibold">
+                          {{ formatNumber(currentCount) }}/{{ formatNumber(neededCount) }}
+                        </span>
+                      </div>
                     </div>
-                    <!-- Show static count for completed parent items (Completed tab) -->
-                    <div
-                      v-else
-                      class="mx-2 mt-2 mb-2 flex h-full items-center justify-center self-stretch"
-                    >
-                      <span class="text-success-400 text-sm font-semibold">
-                        {{ formatNumber(currentCount) }}/{{ formatNumber(neededCount) }}
-                      </span>
-                    </div>
-                  </div>
-                </UCard>
+                  </UCard>
+                </template>
               </UModal>
             </div>
             <div v-else class="flex flex-row">
@@ -302,8 +309,8 @@
   import RequirementInfo from '@/features/neededitems/RequirementInfo.vue';
   import TeamNeedsDisplay from '@/features/neededitems/TeamNeedsDisplay.vue';
   import { useTarkovStore } from '@/stores/useTarkov';
-  import type { NeededItemHideoutModule, NeededItemTaskObjective } from '@/types/tarkov';
   import { useLocaleNumberFormatter } from '@/utils/formatters';
+  import type { NeededItemHideoutModule, NeededItemTaskObjective } from '@/types/tarkov';
   const TaskLink = defineAsyncComponent(() => import('@/features/tasks/TaskLink.vue'));
   const StationLink = defineAsyncComponent(() => import('@/features/hideout/StationLink.vue'));
   const props = withDefaults(

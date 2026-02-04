@@ -1,8 +1,7 @@
-import { ref, computed, onUnmounted } from 'vue';
 import { useMetadataStore } from '@/stores/useMetadata';
-import type { TarkovItem } from '@/types/tarkov';
 import { logger } from '@/utils/logger';
 import { buildItemImageUrl, buildItemPageUrl } from '@/utils/tarkovUrls';
+import type { TarkovItem } from '@/types/tarkov';
 export type LootState = 'idle' | 'searching' | 'found';
 export interface LootItem {
   name: string;
@@ -126,7 +125,7 @@ function getRarityFromColor(color?: string) {
       return { label: 'Common', color: 'text-rarity-common-400', text: 'text-rarity-common-200' };
   }
 }
-export function getRarityBadgeClass(rarity: string) {
+export function getRarityBadgeClass(rarity: string): string {
   switch (rarity.toLowerCase()) {
     case 'legendary':
     case 'easter egg':

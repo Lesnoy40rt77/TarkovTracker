@@ -53,13 +53,25 @@ vi.mock('@/stores/useMetadata', () => ({
     hideoutStations: ref([station]),
   }),
 }));
-vi.mock('pinia', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('pinia')>();
+vi.mock('pinia', async () => {
+  const actualPinia = await vi.importActual('pinia');
   return {
-    ...actual,
-    storeToRefs: (store: Record<string, unknown>) => store,
+    ...actualPinia,
+    storeToRefs: vi.fn((store: Record<string, unknown>) => store),
   };
 });
+vi.mock('@/stores/usePreferences', () => ({
+  usePreferencesStore: () => ({
+    hideoutCollapseCompleted: false,
+    hideoutSortReadyFirst: false,
+    hideoutRequireStationLevels: false,
+    hideoutRequireSkillLevels: false,
+    hideoutRequireTraderLoyalty: false,
+    setHideoutRequireStationLevels: vi.fn(),
+    setHideoutRequireSkillLevels: vi.fn(),
+    setHideoutRequireTraderLoyalty: vi.fn(),
+  }),
+}));
 vi.mock('@/stores/useProgress', () => ({
   useProgressStore: () => ({
     hideoutLevels: { 'station-1': { self: 1 } },

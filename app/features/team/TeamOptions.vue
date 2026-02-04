@@ -9,18 +9,14 @@
           <div class="text-sm font-medium">{{ $t(taskHideAllLabel) }}</div>
           <label class="relative inline-flex cursor-pointer items-center">
             <input v-model="taskHideAll" type="checkbox" class="peer sr-only" />
-            <div
-              class="peer bg-surface-700 peer-checked:bg-error-600 peer-focus:ring-error-300 after:border-surface-300 h-6 w-11 rounded-full peer-focus:ring-2 peer-focus:outline-none after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
-            ></div>
+            <div :class="toggleClasses"></div>
           </label>
         </div>
         <div class="flex items-center justify-between">
           <div class="text-sm font-medium">{{ $t(itemsHideAllLabel) }}</div>
           <label class="relative inline-flex cursor-pointer items-center">
             <input v-model="itemsHideAll" type="checkbox" class="peer sr-only" />
-            <div
-              class="peer bg-surface-700 peer-checked:bg-error-600 peer-focus:ring-error-300 after:border-surface-300 h-6 w-11 rounded-full peer-focus:ring-2 peer-focus:outline-none after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
-            ></div>
+            <div :class="toggleClasses"></div>
           </label>
         </div>
         <div class="flex items-center justify-between">
@@ -34,9 +30,7 @@
               :disabled="itemsHideAll"
               class="peer sr-only"
             />
-            <div
-              class="peer bg-surface-700 peer-checked:bg-error-600 peer-focus:ring-error-300 after:border-surface-300 h-6 w-11 rounded-full peer-focus:ring-2 peer-focus:outline-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50 after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
-            ></div>
+            <div :class="toggleClassesDisabled"></div>
           </label>
         </div>
         <div class="flex items-center justify-between">
@@ -50,18 +44,14 @@
               :disabled="itemsHideAll"
               class="peer sr-only"
             />
-            <div
-              class="peer bg-surface-700 peer-checked:bg-error-600 peer-focus:ring-error-300 after:border-surface-300 h-6 w-11 rounded-full peer-focus:ring-2 peer-focus:outline-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50 after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
-            ></div>
+            <div :class="toggleClassesDisabled"></div>
           </label>
         </div>
         <div class="flex items-center justify-between">
           <div class="text-sm font-medium">{{ $t(mapHideAllLabel) }}</div>
           <label class="relative inline-flex cursor-pointer items-center">
             <input v-model="mapHideAll" type="checkbox" class="peer sr-only" />
-            <div
-              class="peer bg-surface-700 peer-checked:bg-error-600 peer-focus:ring-error-300 after:border-surface-300 h-6 w-11 rounded-full peer-focus:ring-2 peer-focus:outline-none after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
-            ></div>
+            <div :class="toggleClasses"></div>
           </label>
         </div>
       </div>
@@ -69,9 +59,11 @@
   </GenericCard>
 </template>
 <script setup>
-  import { computed } from 'vue';
   import GenericCard from '@/components/ui/GenericCard.vue';
   import { usePreferencesStore } from '@/stores/usePreferences';
+  const toggleClasses =
+    "peer bg-surface-700 peer-checked:bg-error-600 peer-focus:ring-error-300 after:border-surface-300 h-6 w-11 rounded-full peer-focus:ring-2 peer-focus:outline-none after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white";
+  const toggleClassesDisabled = `${toggleClasses} peer-disabled:cursor-not-allowed peer-disabled:opacity-50`;
   const preferencesStore = usePreferencesStore();
   const taskHideAll = computed({
     get: () => preferencesStore.taskTeamAllHidden,

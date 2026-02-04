@@ -106,13 +106,6 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
-  import {
-    useInfiniteScroll,
-    type UseInfiniteScrollOptions,
-  } from '@/composables/useInfiniteScroll';
-  import { useNeededItems } from '@/composables/useNeededItems';
-  import { useSharedBreakpoints } from '@/composables/useSharedBreakpoints';
   import NeededItem from '@/features/neededitems/NeededItem.vue';
   import NeededItemGroupedCard from '@/features/neededitems/NeededItemGroupedCard.vue';
   import {
@@ -124,13 +117,19 @@
     SCREEN_SIZE_MULTIPLIERS,
   } from '@/features/neededitems/neededitems-constants';
   import NeededItemsFilterBar from '@/features/neededitems/NeededItemsFilterBar.vue';
+  import type { UseInfiniteScrollOptions } from '@/composables/useInfiniteScroll';
   definePageMeta({
     usesWindowScroll: true,
   });
-  useSeoMeta({
+  useHead({
     title: 'Needed Items',
-    description:
-      'View all items needed for your active quests and hideout upgrades. Filter by quest, craft, and find-in-raid requirements.',
+    meta: [
+      {
+        name: 'description',
+        content:
+          'View all items needed for your active quests and hideout upgrades. Filter by quest, craft, and find-in-raid requirements.',
+      },
+    ],
   });
   const props = defineProps({
     baseRenderCount: {

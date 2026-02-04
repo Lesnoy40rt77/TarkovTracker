@@ -1,7 +1,4 @@
 <script setup lang="ts">
-  import { computed, ref, watch } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import GenericCard from '@/components/ui/GenericCard.vue';
   import { usePreferencesStore } from '@/stores/usePreferences';
   import { useSystemStore } from '@/stores/useSystemStore';
   import { resetTarkovSync, useTarkovStore } from '@/stores/useTarkov';
@@ -20,7 +17,7 @@
     resetAll: [];
   }>();
   const { $supabase } = useNuxtApp();
-  const { t } = useI18n();
+  const { t } = useI18n({ useScope: 'global' });
   const toast = useToast();
   const preferencesStore = usePreferencesStore();
   const systemStore = useSystemStore();
@@ -37,9 +34,8 @@
   const showUsername = ref(false);
   const showEmail = ref(false);
   const showAccountId = ref(false);
-  const displayNameMaxLength = LIMITS.DISPLAY_NAME_MAX_LENGTH;
+  const DISPLAY_NAME_MAX_LENGTH = LIMITS.DISPLAY_NAME_MAX_LENGTH;
   const localDisplayName = ref(tarkovStore.getDisplayName() || '');
-  const isSavingDisplayName = ref(false);
   const displayName = computed(() => tarkovStore.getDisplayName());
   const currentModeLabel = computed(() =>
     (tarkovStore.getCurrentGameMode() || 'pvp').toUpperCase()
@@ -80,7 +76,7 @@
   const isLoggedIn = computed(() => {
     return Boolean($supabase?.user?.loggedIn);
   });
-  const saveDisplayName = async () => {
+  const saveDisplayName = () => {
     const trimmed = localDisplayName.value.trim();
     if (!trimmed) {
       toast.add({
@@ -90,15 +86,14 @@
       });
       return;
     }
-    if (trimmed.length > displayNameMaxLength) {
+    if (trimmed.length > DISPLAY_NAME_MAX_LENGTH) {
       toast.add({
         title: t('settings.display_name.validation_error', 'Validation Error'),
-        description: t('settings.display_name.max_error', { max: displayNameMaxLength }),
+        description: t('settings.display_name.max_error', { max: DISPLAY_NAME_MAX_LENGTH }),
         color: 'error',
       });
       return;
     }
-    isSavingDisplayName.value = true;
     try {
       tarkovStore.setDisplayName(trimmed);
       localDisplayName.value = trimmed;
@@ -119,8 +114,6 @@
         ),
         color: 'error',
       });
-    } finally {
-      isSavingDisplayName.value = false;
     }
   };
   type AuthProvider = 'discord' | 'twitch' | 'google' | 'github';
@@ -363,7 +356,7 @@
               <div class="flex flex-wrap items-center gap-2">
                 <UInput
                   v-model="localDisplayName"
-                  :maxlength="displayNameMaxLength"
+                  :maxlength="DISPLAY_NAME_MAX_LENGTH"
                   :placeholder="
                     $t('settings.display_name.placeholder', 'Enter your display name...')
                   "
@@ -375,8 +368,7 @@
                   color="primary"
                   variant="soft"
                   size="sm"
-                  :disabled="!hasDisplayNameChanges || isSavingDisplayName"
-                  :loading="isSavingDisplayName"
+                  :disabled="!hasDisplayNameChanges"
                   :aria-label="$t('settings.display_name.save', 'Save')"
                   @click="saveDisplayName"
                 />

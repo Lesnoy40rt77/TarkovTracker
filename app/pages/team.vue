@@ -27,7 +27,6 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed, defineAsyncComponent, watch } from 'vue';
   import { useRoute } from 'vue-router';
   import { useSystemStoreWithSupabase } from '@/stores/useSystemStore';
   import { logger } from '@/utils/logger';

@@ -41,7 +41,6 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed, defineAsyncComponent } from 'vue';
   import { useTarkovTime } from '@/composables/useTarkovTime';
   import { usePreferencesStore } from '@/stores/usePreferences';
   import type { TarkovMap } from '@/types/tarkov';

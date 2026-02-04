@@ -1,20 +1,39 @@
 import 'pinia-plugin-persistedstate';
 import { defineStore } from 'pinia';
-import { watch } from 'vue';
 import { useSupabaseSync } from '@/composables/supabase/useSupabaseSync';
+import { pinia as pluginPinia } from '@/plugins/01.pinia.client';
+import { logger } from '@/utils/logger';
+import { STORAGE_KEYS } from '@/utils/storageKeys';
 import type {
   NeededItemsFirFilter,
   NeededItemsFilterType,
 } from '@/features/neededitems/neededitems-constants';
-import { pinia as pluginPinia } from '@/plugins/01.pinia.client';
+import type { TaskPrimaryView, TaskSecondaryView } from '@/types/taskFilter';
 import type { TaskSortDirection, TaskSortMode } from '@/types/taskSort';
 import type { SkillSortMode } from '@/utils/constants';
-import { logger } from '@/utils/logger';
-import { STORAGE_KEYS } from '@/utils/storageKeys';
+export type TaskFilterSettings = {
+  taskPrimaryView: TaskPrimaryView | null;
+  taskMapView: string | null;
+  taskTraderView: string | null;
+  taskSecondaryView: TaskSecondaryView | null;
+  taskUserView: string | null;
+  taskSortMode: TaskSortMode | null;
+  taskSortDirection: TaskSortDirection | null;
+  taskSharedByAllOnly: boolean;
+  hideGlobalTasks: boolean;
+  hideNonKappaTasks: boolean;
+  showNonSpecialTasks: boolean;
+  showLightkeeperTasks: boolean;
+  showAllFilter: boolean;
+  showAvailableFilter: boolean;
+  showLockedFilter: boolean;
+  showCompletedFilter: boolean;
+  showFailedFilter: boolean;
+};
 export type TaskFilterPreset = {
   id: string;
   name: string;
-  settings: Record<string, unknown>;
+  settings: TaskFilterSettings;
 };
 // Define the state structure
 export interface PreferencesState {
@@ -579,7 +598,7 @@ export const usePreferencesStore = defineStore('preferences', {
         );
         return;
       }
-      this.taskFilterPresets.push(preset);
+      this.taskFilterPresets = [...this.taskFilterPresets, preset];
     },
     removeTaskFilterPreset(id: string) {
       if (!this.taskFilterPresets) return;
@@ -768,7 +787,9 @@ if (shouldInitPreferencesWatchers) {
                       show_previous_quests: preferencesState.showPreviousQuests,
                       task_card_density: preferencesState.taskCardDensity,
                       enable_holiday_effects: preferencesState.enableHolidayEffects,
+                      dashboard_notice_dismissed: preferencesState.dashboardNoticeDismissed,
                       show_map_extracts: preferencesState.showMapExtracts,
+                      map_zoom_speed: preferencesState.mapZoomSpeed,
                       pinned_task_ids: preferencesState.pinnedTaskIds,
                       neededitems_style: preferencesState.neededitemsStyle,
                       hideout_primary_view: preferencesState.hideoutPrimaryView,

@@ -1,7 +1,6 @@
-import { computed, type Ref, toValue, type MaybeRefOrGetter } from 'vue';
 import { useProgressStore } from '@/stores/useProgress';
 import { useTarkovStore } from '@/stores/useTarkov';
-export type TaskState = {
+type TaskStateFlags = {
   isComplete: Ref<boolean>;
   isFailed: Ref<boolean>;
   isSuccessful: Ref<boolean>;
@@ -26,7 +25,7 @@ export function isTaskSuccessful(taskId: string): boolean {
  * @param taskId - A reactive getter or ref for the task ID
  * @returns An object with reactive task state properties
  */
-export function useTaskState(taskId: MaybeRefOrGetter<string>): TaskState {
+export function useTaskState(taskId: MaybeRefOrGetter<string>): TaskStateFlags {
   const tarkovStore = useTarkovStore();
   const progressStore = useProgressStore();
   const isComplete = computed(() => tarkovStore.isTaskComplete(toValue(taskId)));

@@ -29,7 +29,6 @@ export default defineProject(async () => {
         poolOptions: {
           threads: {
             singleThread: false,
-            isolate: false,
           },
         },
         watchExclude: ['**/.nuxt/**', '**/.output/**', '**/dist/**'],

@@ -1,5 +1,8 @@
 <template>
   <div class="flex items-center gap-1">
+    <span class="sr-only" aria-live="polite" aria-atomic="true">
+      {{ currentCount }} {{ t('page.tasks.questcard.of', 'of') }} {{ neededCount }}
+    </span>
     <div class="flex items-center rounded-md border border-white/10 bg-white/5">
       <AppTooltip :text="t('page.tasks.questcard.decrease', 'Decrease')">
         <span class="inline-flex">
@@ -14,7 +17,6 @@
           </button>
         </span>
       </AppTooltip>
-      <!-- Editable count display -->
       <div
         v-if="!isEditing"
         class="text-surface-100 flex h-7 min-w-14 items-center justify-center px-2 text-[11px] font-semibold tabular-nums hover:bg-white/10"
@@ -23,7 +25,6 @@
       >
         {{ currentCount }}/{{ neededCount }}
       </div>
-      <!-- Input for editing -->
       <div v-else class="flex h-7 min-w-14 items-center justify-center px-1">
         <input
           ref="inputRef"
@@ -82,8 +83,8 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { ref, nextTick } from 'vue';
   import { useI18n } from 'vue-i18n';
+  import { useCountEditController } from '@/composables/useCountEditController';
   const props = defineProps<{
     currentCount: number;
     neededCount: number;
@@ -96,41 +97,26 @@
     'set-count': [value: number];
   }>();
   const { t } = useI18n({ useScope: 'global' });
-  // Editing state
-  const isEditing = ref(false);
-  const editValue = ref('');
-  const inputRef = ref<HTMLInputElement | null>(null);
-  /**
-   * Start editing mode - show input and focus it
-   */
+  const toast = useToast();
+  const { isEditing, editValue, inputRef, startEdit, commitEdit, cancelEdit } =
+    useCountEditController({
+      current: () => props.currentCount,
+      max: () => props.neededCount,
+      onUpdate: (value) => {
+        if (value !== props.currentCount) {
+          emit('set-count', value);
+        }
+      },
+      onExternalChange: (value) => {
+        toast.add({
+          title: t('toast.countEditUpdated.title'),
+          description: t('toast.countEditUpdated.description', { value }),
+          color: 'warning',
+        });
+      },
+    });
   const startEditing = () => {
     if (props.disabled) return;
-    editValue.value = String(props.currentCount);
-    isEditing.value = true;
-    nextTick(() => {
-      inputRef.value?.focus();
-      inputRef.value?.select();
-    });
-  };
-  /**
-   * Commit the edit - validate and emit the new value
-   */
-  const commitEdit = () => {
-    const parsed = parseInt(editValue.value, 10);
-    // Validate: must be a number between 0 and neededCount
-    if (!isNaN(parsed)) {
-      const clamped = Math.max(0, Math.min(props.neededCount, parsed));
-      // Only emit if value actually changed
-      if (clamped !== props.currentCount) {
-        emit('set-count', clamped);
-      }
-    }
-    isEditing.value = false;
-  };
-  /**
-   * Cancel editing - revert to original value
-   */
-  const cancelEdit = () => {
-    isEditing.value = false;
+    startEdit();
   };
 </script>

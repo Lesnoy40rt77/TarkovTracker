@@ -22,7 +22,6 @@
   </router-link>
 </template>
 <script setup lang="ts">
-  import { computed } from 'vue';
   import type { HideoutStation } from '@/types/tarkov';
   const props = defineProps<{
     station: Pick<HideoutStation, 'id' | 'name' | 'imageLink'>;

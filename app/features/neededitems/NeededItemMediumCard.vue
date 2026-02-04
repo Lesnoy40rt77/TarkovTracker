@@ -106,7 +106,6 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed, defineAsyncComponent, inject } from 'vue';
   import ItemCountControls from '@/features/neededitems/ItemCountControls.vue';
   import {
     createDefaultNeededItemContext,

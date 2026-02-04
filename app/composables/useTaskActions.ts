@@ -1,4 +1,3 @@
-import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMetadataStore } from '@/stores/useMetadata';
 import { usePreferencesStore } from '@/stores/usePreferences';

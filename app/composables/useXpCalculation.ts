@@ -6,7 +6,6 @@
  *
  * @module composables/useXpCalculation
  */
-import { computed, watch } from 'vue';
 import { useMetadataStore } from '@/stores/useMetadata';
 import { usePreferencesStore } from '@/stores/usePreferences';
 import { useTarkovStore } from '@/stores/useTarkov';

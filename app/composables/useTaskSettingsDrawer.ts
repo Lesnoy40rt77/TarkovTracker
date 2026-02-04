@@ -1,11 +1,10 @@
-import { ref, type Ref } from 'vue';
-const isOpen = ref(false);
 export function useTaskSettingsDrawer(): {
   isOpen: Ref<boolean>;
   open: () => void;
   close: () => void;
   toggle: () => void;
 } {
+  const isOpen = useState<boolean>('taskSettingsDrawer:isOpen', () => false);
   const open = () => {
     isOpen.value = true;
   };

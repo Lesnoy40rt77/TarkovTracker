@@ -47,7 +47,7 @@
           dataLoading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
         ]"
         :disabled="dataLoading"
-        @click="!dataLoading && setFaction(faction)"
+        @click="setFaction(faction)"
       >
         {{ faction }}
       </button>
@@ -56,7 +56,6 @@
 </template>
 <script setup lang="ts">
   import { storeToRefs } from 'pinia';
-  import { useI18n } from 'vue-i18n';
   import { useMetadataStore } from '@/stores/useMetadata';
   import { useTarkovStore } from '@/stores/useTarkov';
   import { GAME_MODES, PMC_FACTIONS, type GameMode, type PMCFaction } from '@/utils/constants';

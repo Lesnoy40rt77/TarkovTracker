@@ -9,20 +9,29 @@
       title: 'Objets Nécessaires',
     },
   },
-  navigation_drawer: {
-    toggle: 'Basculer le menu',
-  },
   app_bar: {
     error_loading: 'Erreur de chargement des données Tarkov',
     loading: 'Chargement des données Tarkov',
     logout_failed: 'Échec de la déconnexion. Veuillez réessayer.',
+    user_label: 'Utilisateur',
+    user_avatar_alt: "Avatar de l'utilisateur",
     overflow_menu: {
       language: 'Langue',
     },
   },
   common: {
+    cancel: 'Annuler',
     close: 'Fermer',
     refreshbutton: 'Actualiser',
+  },
+  importConfirm: {
+    title: "Confirmer l'importation des données",
+    description: 'Cela importera vos données de progression dans votre profil PvP :',
+    targetMode: 'Mode de jeu cible : PvP',
+    notice: 'Les données seront importées dans votre progression PvP (multijoueur standard)',
+    listTitle: 'Données à importer :',
+    warning: 'Avertissement : cette action est irréversible !',
+    confirm: "Confirmer l'importation",
   },
   offlineMode: {
     title: 'Mode hors ligne activé',
@@ -124,6 +133,7 @@
         tasks: 'quêtes',
         loyaltyLevel: 'Niveau de fidélité',
         reputation: 'Réputation',
+        scavKarma: 'Karma de Scav',
       },
       stats: {
         available: {
@@ -152,6 +162,23 @@
         },
       },
     },
+    changelog: {
+      title: 'Journal des modifications',
+      description: 'Consultez les dernières mises à jour et modifications de TarkovTracker.',
+      back: 'Retour au tableau de bord',
+      loading: 'Chargement du journal des modifications...',
+      error: 'Impossible de charger le journal des modifications.',
+      retry: 'Réessayer',
+      empty: 'Aucune entrée dans le journal des modifications pour le moment.',
+      loadMore: 'Charger plus',
+      types: {
+        added: 'Ajouté',
+        fixed: 'Corrigé',
+        improved: 'Amélioré',
+        updated: 'Mis à jour',
+        changed: 'Modifié',
+      },
+    },
     tasks: {
       title: 'Quêtes',
       primaryviews: {
@@ -162,7 +189,7 @@
       secondaryviews: {
         available: 'Disponible',
         completed: 'Terminée',
-        locked: 'Vérrouillée',
+        locked: 'Verrouillée',
         failed: 'Échouée',
       },
       userviews: {
@@ -201,6 +228,7 @@
         },
       },
       notasksfound: 'Aucune quête trouvée. Essayez de modifier vos filtres ou de mettre à jour votre niveau.',
+      notasksfound_description: 'Ajustez vos filtres ou les exigences de niveau pour voir les quêtes disponibles.',
       showing_all_sources: 'Afficher toutes les sources',
       loading: 'Chargement des quêtes',
       selectedTask: 'Tâche sélectionnée',
@@ -212,6 +240,10 @@
         pinTask: 'Épingler la quête',
         unpinTask: 'Désépingler la quête',
         level: 'Niveau requis : {count}',
+        levelBadge: 'Niv {count}',
+        fenceRepBadge: 'Fence {rep}',
+        fenceRepTooltip: 'Nécessite une réputation Fence de {rep}',
+        traderLevelTooltip: 'Nécessite le niveau de loyauté {level} de {trader}',
         traderLevelBadge: '{trader} LL{level}',
         wiki: 'Wiki',
         lockedbefore: 'Quêtes avant : {count}',
@@ -219,6 +251,7 @@
         reportDataIssue: 'Signaler un problème de données',
         viewOnTarkovDev: 'Voir sur Tarkov.dev',
         viewOnWiki: 'Voir sur le wiki',
+        viewTaskOnWiki: 'Voir {name} sur le wiki',
         completebutton: 'Terminer',
         availablebutton: 'Disponible',
         uncompletebutton: 'Annuler',
@@ -256,6 +289,7 @@
         itemsCount: '{count} objets',
         kappaTooltip: 'Cette quête est requise pour obtenir le Conteneur Sécurisé Kappa',
         kapparequired: 'KAPPA REQUIS',
+        blockedTooltip: "Cette quête est définitivement bloquée et ne peut jamais être terminée en raison de choix faits dans d'autres quêtes",
         levelBadgeTooltip: 'Niveau minimum du joueur {level} requis pour débloquer cette quête',
         lightkeeperTooltip: 'Cette quête est requise pour débloquer le marchand Lightkeeper',
         lightkeeperrequired: 'LIGHTKEEPER REQUIS',
@@ -286,13 +320,13 @@
         skill_levels: 'Exiger les niveaux de compétence',
         trader_loyalty: 'Exiger la fidélité du marchand',
         confirm_title: "Activer l'exigence de disponibilité ?",
-        confirm_description: 'L’activation de {requirement} peut supprimer des améliorations de planque qui ne respectent plus les prérequis.',
+        confirm_description: "L'activation de {requirement} peut supprimer des améliorations de planque qui ne respectent plus les prérequis.",
         confirm_cancel: 'Annuler',
         confirm_confirm: 'Activer',
       },
       primaryviews: {
         all: 'Toutes',
-        locked: 'Vérrouillées',
+        locked: 'Verrouillées',
         available: 'Disponibles',
         maxed: 'Niveau max',
       },
@@ -364,6 +398,12 @@
         close: 'Fermer',
         items_hide_non_fir: "Cacher les items requis qui n'ont pas besoin d'être trouvés en raid",
         items_show_non_fir: "Afficher les items requis qui n'ont pas besoin d'être trouvés en raid",
+      },
+      aria: {
+        decreaseFir: 'Diminuer le nombre TER',
+        increaseFir: 'Augmenter le nombre TER',
+        decreaseNonFir: 'Diminuer le nombre Non-TER',
+        increaseNonFir: 'Augmenter le nombre Non-TER',
       },
     },
     settings: {
@@ -594,6 +634,7 @@
   },
   navigation_drawer: {
     brand_name: 'TarkovTracker.org',
+    toggle: 'Basculer le menu',
     home: 'Tableau de bord',
     api: 'API',
     login: 'Connexion',
@@ -732,7 +773,7 @@
       team_transfer_description: 'Si vous possédez des équipes, la propriété sera automatiquement transférée au membre le plus ancien de chaque équipe. Les équipes sans autres membres seront supprimées.',
       security_confirmation_title: 'Confirmation de sécurité',
       security_confirmation_description: 'La suppression du compte nécessite de saisir exactement la phrase de confirmation ci-dessous. Cette action est permanente et ne peut pas être annulée.',
-      confirm_phrase_value: 'DELETE MY ACCOUNT',
+      confirm_phrase_value: 'SUPPRIMER MON COMPTE',
       confirm_phrase_label: 'Saisissez \"{phrase}\" pour confirmer :',
       confirm_phrase_error: 'Veuillez saisir exactement : {phrase}',
       delete_forever: 'Supprimer le compte définitivement',
@@ -757,6 +798,14 @@
     danger_zone: {
       title: 'Zone de danger',
     },
+  },
+  hideout: {
+    collapse: 'Réduire',
+    expand: 'Développer',
+  },
+  skills: {
+    requiredFor: 'Requis pour : {items}',
+    requiredLevels: 'Niveaux requis : {items}',
   },
   generic: {
     item: 'Objet',

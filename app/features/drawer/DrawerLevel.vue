@@ -115,7 +115,7 @@
             class="flex shrink-0 flex-col overflow-hidden rounded-md border border-white/10 bg-white/5"
           >
             <button
-              :class="[stepperButtonClass, 'border-b border-white/10']"
+              :class="[STEPPER_BUTTON_CLASS, 'border-b border-white/10']"
               :disabled="displayedLevel >= maxPlayerLevel"
               :aria-label="t('navigation_drawer.increment_level', 'Increase level')"
               @click="incrementLevel"
@@ -123,7 +123,7 @@
               <UIcon name="i-heroicons-plus" class="h-3.5 w-3.5" />
             </button>
             <button
-              :class="stepperButtonClass"
+              :class="STEPPER_BUTTON_CLASS"
               :disabled="displayedLevel <= minPlayerLevel"
               :aria-label="t('navigation_drawer.decrement_level', 'Decrease level')"
               @click="decrementLevel"
@@ -155,7 +155,6 @@
   </div>
 </template>
 <script setup>
-  import { computed, nextTick, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
   import { useXpCalculation } from '@/composables/useXpCalculation';
@@ -181,9 +180,8 @@
   const maxPlayerLevel = computed(() => metadataStore.maxPlayerLevel);
   const playerLevels = computed(() => metadataStore.playerLevels);
   const useAutomaticLevel = computed(() => preferencesStore.getUseAutomaticLevelCalculation);
-  const stepperButtonClass = computed(() => {
-    return 'flex h-5.5 w-5.5 items-center justify-center p-0 text-white/70 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40';
-  });
+  const STEPPER_BUTTON_CLASS =
+    'flex h-5.5 w-5.5 items-center justify-center p-0 text-white/70 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40';
   const displayedLevel = computed(() => {
     return useAutomaticLevel.value ? xpCalculation.derivedLevel.value : tarkovStore.playerLevel();
   });

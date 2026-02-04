@@ -3,16 +3,15 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeadersFor } from '../_shared/cors.ts';
 
 const supabaseUrl =
-  Deno.env.get('SB_URL') ||
   Deno.env.get('SUPABASE_URL') ||
+  Deno.env.get('VITE_SUPABASE_URL') ||
   (() => {
-    throw new Error('Missing SB_URL/SUPABASE_URL env');
+    throw new Error('Missing SUPABASE_URL/VITE_SUPABASE_URL env');
   })();
 const supabaseServiceKey =
-  Deno.env.get('SB_SERVICE_ROLE_KEY') ||
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ||
   (() => {
-    throw new Error('Missing SB_SERVICE_ROLE_KEY/SUPABASE_SERVICE_ROLE_KEY env');
+    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY env');
   })();
 // UUID format check (case-insensitive) for token identifiers.
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

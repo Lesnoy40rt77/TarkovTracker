@@ -1,5 +1,14 @@
 import { mount } from '@vue/test-utils';
 import { describe, expect, it, vi } from 'vitest';
+import type { ProgressCardColor } from '@/features/dashboard/DashboardProgressCard.vue';
+const colorVariants: Array<{ color: ProgressCardColor; barClass: string }> = [
+  { color: 'primary', barClass: 'bg-primary-500/60' },
+  { color: 'neutral', barClass: 'bg-surface-400/60' },
+  { color: 'info', barClass: 'bg-info-500/60' },
+  { color: 'success', barClass: 'bg-success-500/60' },
+  { color: 'kappa', barClass: 'bg-kappa-500/60' },
+  { color: 'lightkeeper', barClass: 'bg-lightkeeper-500/60' },
+];
 const setup = async () => {
   vi.resetModules();
   vi.doMock('@/stores/usePreferences', () => ({
@@ -11,7 +20,6 @@ const setup = async () => {
     await import('@/features/dashboard/DashboardProgressCard.vue');
   return DashboardProgressCard;
 };
-type ProgressCardColor = 'primary' | 'neutral' | 'info' | 'success' | 'kappa' | 'lightkeeper';
 interface MountProps {
   icon?: string;
   label?: string;
@@ -40,6 +48,12 @@ const mountWithProps = async (props: MountProps = {}) => {
   });
 };
 describe('DashboardProgressCard', () => {
+  it.each(colorVariants)('renders color $color variant', async ({ color, barClass }) => {
+    const wrapper = await mountWithProps({ color });
+    expect(wrapper.text()).toContain('Tasks');
+    const progressbar = wrapper.get('[role="progressbar"]');
+    expect(progressbar.classes()).toContain(barClass);
+  });
   it('renders progress values and emits click', async () => {
     const wrapper = await mountWithProps();
     expect(wrapper.text()).toContain('Tasks');

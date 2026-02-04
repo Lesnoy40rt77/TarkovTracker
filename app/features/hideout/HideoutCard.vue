@@ -16,7 +16,13 @@
       <div class="flex items-center justify-between pb-2 text-xl">
         <div class="flex items-center gap-3">
           <span :class="highlightClasses" class="inline-block rounded-br-lg px-3 py-1 shadow-lg">
-            <img :src="stationAvatar" :height="50" :style="{ height: '50px' }" class="block pt-0" />
+            <img
+              :src="stationAvatar"
+              :alt="station.name"
+              :height="50"
+              :style="{ height: '50px' }"
+              class="block pt-0"
+            />
           </span>
           <div class="flex items-center gap-2">
             <span class="inline-block text-left leading-6">
@@ -263,13 +269,11 @@
   </GenericCard>
 </template>
 <script setup lang="ts">
-  import { computed, defineAsyncComponent, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import { useHideoutStationStatus } from '@/composables/useHideoutStationStatus';
   import { useProgressStore } from '@/stores/useProgress';
   import { useTarkovStore } from '@/stores/useTarkov';
-  import type { HideoutLevel, HideoutStation, ItemRequirement } from '@/types/tarkov';
   import { SPECIAL_STATIONS } from '@/utils/constants';
+  import type { HideoutLevel, HideoutStation, ItemRequirement } from '@/types/tarkov';
   const GenericCard = defineAsyncComponent(() => import('@/components/ui/GenericCard.vue'));
   const HideoutRequirement = defineAsyncComponent(
     () => import('@/features/hideout/HideoutRequirement.vue')
@@ -410,13 +414,18 @@
   const highlightTargetsModule = computed(() => {
     return highlightMatchesNext.value && hasItemRequirements.value;
   });
+  const HIGHLIGHT_BASE_CLASSES =
+    'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-2 after:ring-primary-400/70 after:ring-offset-2 after:content-[""] after:animate-pulse';
+  const buildHighlightClasses = (offsetClass: string) => {
+    return `${HIGHLIGHT_BASE_CLASSES} ${offsetClass}`;
+  };
   const cardHighlightClasses = computed(() => {
     if (!highlightActive.value || highlightTargetsModule.value) return '';
-    return 'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-2 after:ring-primary-400/70 after:ring-offset-2 after:ring-offset-surface-900 after:content-[""] after:animate-pulse';
+    return buildHighlightClasses('after:ring-offset-surface-900');
   });
   const moduleHighlightClasses = computed(() => {
     if (!highlightActive.value || !highlightTargetsModule.value) return '';
-    return 'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-2 after:ring-primary-400/70 after:ring-offset-2 after:ring-offset-surface-800 after:content-[""] after:animate-pulse';
+    return buildHighlightClasses('after:ring-offset-surface-800');
   });
   const dismissHighlight = () => {
     if (!highlightActive.value) return;

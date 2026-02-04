@@ -9,7 +9,6 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { defineAsyncComponent } from 'vue';
   import { useI18n } from 'vue-i18n';
   import type { Task } from '@/types/tarkov';
   const TaskLink = defineAsyncComponent(() => import('@/features/tasks/TaskLink.vue'));

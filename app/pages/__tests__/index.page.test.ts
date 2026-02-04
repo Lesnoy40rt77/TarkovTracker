@@ -83,7 +83,6 @@ const setup = async (
     enableHolidayEffects = false,
     useAutomaticLevel = false,
   } = storeOverrides;
-  const playerLevelSpy = vi.fn(() => playerLevel);
   vi.resetModules();
   vi.doMock('@/composables/useDashboardStats', () => ({
     useDashboardStats: createDashboardStatsMock(dashboardStatsOptions),
@@ -93,7 +92,7 @@ const setup = async (
   }));
   vi.doMock('@/stores/useTarkov', () => ({
     useTarkovStore: () => ({
-      playerLevel: playerLevelSpy,
+      playerLevel: vi.fn(() => playerLevel),
       getTraderLevel: vi.fn(() => 1),
       getTraderReputation: vi.fn(() => 0),
       setTraderLevel: vi.fn(),
@@ -119,7 +118,7 @@ const setup = async (
     useRouter: () => ({ push: vi.fn() }),
   }));
   const { default: DashboardPage } = await import('@/pages/index.vue');
-  return { DashboardPage, playerLevelSpy };
+  return { DashboardPage };
 };
 const defaultGlobalStubs = {
   AppTooltip: { template: '<span><slot /></span>' },
@@ -138,12 +137,11 @@ const defaultGlobalStubs = {
 };
 describe('dashboard page', () => {
   it('renders dashboard progress cards', async () => {
-    const { DashboardPage, playerLevelSpy } = await setup();
+    const { DashboardPage } = await setup();
     const wrapper = await mountSuspended(DashboardPage, {
       global: { stubs: defaultGlobalStubs },
     });
     expect(wrapper.find('[data-testid="progress-card"]').exists()).toBe(true);
-    expect(playerLevelSpy).toHaveBeenCalled();
   });
   it('renders dashboard milestone cards', async () => {
     const { DashboardPage } = await setup();

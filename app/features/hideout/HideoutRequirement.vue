@@ -144,7 +144,6 @@
   </ContextMenu>
 </template>
 <script setup lang="ts">
-  import { computed, ref, watch } from 'vue';
   import ContextMenu from '@/components/ui/ContextMenu.vue';
   import ContextMenuItem from '@/components/ui/ContextMenuItem.vue';
   import GameItem from '@/components/ui/GameItem.vue';

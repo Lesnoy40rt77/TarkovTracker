@@ -2,6 +2,7 @@
  * Composable for calling Supabase Edge Functions
  * Provides typed methods for common edge function operations
  */
+import { logger } from '@/utils/logger';
 import type { PurgeCacheResponse } from '@/types/edge';
 import type {
   CreateTeamResponse,
@@ -9,7 +10,6 @@ import type {
   KickMemberResponse,
   LeaveTeamResponse,
 } from '@/types/team';
-import { logger } from '@/utils/logger';
 type GameMode = 'pvp' | 'pve';
 export const useEdgeFunctions = () => {
   const { $supabase } = useNuxtApp();
@@ -121,7 +121,7 @@ export const useEdgeFunctions = () => {
         logger.debug('[EdgeFunctions] Gateway call succeeded:', result);
         return result;
       } catch (error) {
-        logger.warn('[EdgeFunctions] Gateway failed, falling back to Supabase:', error);
+        logger.error('[EdgeFunctions] Gateway failed, falling back to Supabase:', error);
       }
     }
     const fnName = `team-${action}`;
@@ -184,7 +184,7 @@ export const useEdgeFunctions = () => {
       try {
         return await callTokenGateway<T>(action, body);
       } catch (error) {
-        logger.warn('[EdgeFunctions] Token gateway failed, falling back to Supabase:', error);
+        logger.error('[EdgeFunctions] Token gateway failed, falling back to Supabase:', error);
       }
     }
     const fnName = action === 'revoke' ? 'token-revoke' : 'token-create';

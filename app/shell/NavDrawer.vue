@@ -7,11 +7,16 @@
   >
     <div
       v-if="belowMd && mobileExpanded"
+      role="button"
+      tabindex="-1"
+      :aria-label="t('navigation_drawer.close_menu', 'Close navigation menu')"
       class="fixed inset-0 z-40 bg-black/60"
       @click="closeMobileDrawer"
     />
   </Transition>
   <aside
+    role="navigation"
+    :aria-label="t('navigation_drawer.main_navigation', 'Main navigation')"
     class="bg-sidebar border-surface-700/50 shadow-nav-drawer fixed inset-y-0 left-0 z-50 flex flex-col border-r transition-all duration-300"
     :class="[sidebarWidth]"
   >
@@ -89,9 +94,7 @@
   </aside>
 </template>
 <script setup lang="ts">
-  import { computed, defineAsyncComponent, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import { useSharedBreakpoints } from '@/composables/useSharedBreakpoints';
   import { useAppStore } from '@/stores/useApp';
   const { t } = useI18n({ useScope: 'global' });
   const { belowMd } = useSharedBreakpoints();

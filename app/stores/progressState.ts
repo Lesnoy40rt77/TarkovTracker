@@ -14,8 +14,8 @@
  *
  * @module stores/userProgressState
  */
-import type { _GettersTree } from 'pinia';
 import { GAME_MODES, type GameMode } from '@/utils/constants';
+import type { _GettersTree } from 'pinia';
 // State interfaces
 interface TaskObjective {
   count?: number;

@@ -1,8 +1,8 @@
 import { setActivePinia, createPinia } from 'pinia';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useSystemStore, getTeamIdFromState, hasTeamInState } from '@/stores/useSystemStore';
-import type { SystemState } from '@/types/tarkov';
 import { GAME_MODES } from '@/utils/constants';
+import type { SystemState } from '@/types/tarkov';
 describe('useSystemStore', () => {
   let pinia: ReturnType<typeof createPinia>;
   beforeEach(() => {

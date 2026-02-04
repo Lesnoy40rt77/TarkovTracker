@@ -22,6 +22,7 @@
             type="number"
             :min="0"
             :max="neededCount"
+            :aria-label="$t('neededItems.enterCount', 'Enter item count')"
             class="bg-surface-900 focus:ring-primary-500 h-full w-full px-0.5 text-center text-[10px] font-semibold text-white focus:ring-2 focus:outline-none focus:ring-inset sm:text-xs lg:px-2 lg:text-sm"
             @blur="submitEdit"
             @keydown.enter="submitEdit"
@@ -71,7 +72,6 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { ref, nextTick, watch } from 'vue';
   import { useLocaleNumberFormatter } from '@/utils/formatters';
   const formatNumber = useLocaleNumberFormatter();
   const props = defineProps<{

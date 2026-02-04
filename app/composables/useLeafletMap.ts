@@ -3,19 +3,6 @@
  * Handles map initialization, SVG overlay loading, floor switching, and layer management.
  */
 import { useDebounceFn } from '@vueuse/core';
-import type L from 'leaflet';
-import {
-  ref,
-  shallowRef,
-  onMounted,
-  onUnmounted,
-  watch,
-  nextTick,
-  type Ref,
-  type ShallowRef,
-  computed,
-} from 'vue';
-import type { TarkovMap } from '@/types/tarkov';
 import { logger } from '@/utils/logger';
 import {
   getLeafletBounds,
@@ -30,6 +17,9 @@ import {
   type MapSvgConfig,
   type MapTileConfig,
 } from '@/utils/mapCoordinates';
+import type { TarkovMap } from '@/types/tarkov';
+import type L from 'leaflet';
+import type { ShallowRef } from 'vue';
 export interface UseLeafletMapOptions {
   /** Container element ref */
   containerRef: Ref<HTMLElement | null>;

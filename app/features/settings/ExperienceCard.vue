@@ -103,7 +103,6 @@
   </GenericCard>
 </template>
 <script setup lang="ts">
-  import { ref, computed } from 'vue';
   import GenericCard from '@/components/ui/GenericCard.vue';
   import { useXpCalculation } from '@/composables/useXpCalculation';
   import { usePreferencesStore } from '@/stores/usePreferences';

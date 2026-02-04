@@ -24,7 +24,6 @@
   </template>
 </template>
 <script setup lang="ts">
-  import { computed, provide } from 'vue';
   import { neededItemKey, type NeededItemTeamNeed } from '@/features/neededitems/neededitem-keys';
   import { useMetadataStore } from '@/stores/useMetadata';
   import { usePreferencesStore } from '@/stores/usePreferences';

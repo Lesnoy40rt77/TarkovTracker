@@ -1,5 +1,4 @@
 import { useNow } from '@vueuse/core';
-import { computed } from 'vue';
 /**
  * Calculates Escape from Tarkov in-game time.
  *

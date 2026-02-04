@@ -14,7 +14,6 @@
   </UTooltip>
 </template>
 <script setup lang="ts">
-  import { computed, useAttrs } from 'vue';
   defineOptions({ inheritAttrs: false });
   type TooltipSide = 'top' | 'bottom' | 'left' | 'right';
   type TooltipContent = {

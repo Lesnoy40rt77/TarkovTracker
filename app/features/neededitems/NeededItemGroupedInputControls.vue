@@ -9,7 +9,7 @@
         <div class="bg-surface-700 flex items-center rounded-lg border border-white/20">
           <button
             class="text-surface-200 hover:bg-surface-600 active:bg-surface-500 flex h-8 w-8 items-center justify-center rounded-l-lg transition-colors hover:text-white"
-            aria-label="Decrease FIR count"
+            :aria-label="$t('neededItems.aria.decreaseFir')"
             @click="decreaseFir"
           >
             <UIcon name="i-mdi-minus" class="h-4 w-4" />
@@ -23,6 +23,7 @@
               v-model.number="firEditValue"
               type="number"
               :min="0"
+              :max="firNeeded"
               step="1"
               class="bg-surface-900 focus:ring-primary-500 h-full w-full px-2 text-center text-sm font-semibold text-white focus:ring-2 focus:outline-none focus:ring-inset"
               @blur="submitFirEdit"
@@ -39,7 +40,7 @@
           </div>
           <button
             class="text-surface-200 hover:bg-surface-600 active:bg-surface-500 flex h-8 w-8 items-center justify-center rounded-r-lg transition-colors hover:text-white"
-            aria-label="Increase FIR count"
+            :aria-label="$t('neededItems.aria.increaseFir')"
             @click="increaseFir"
           >
             <UIcon name="i-mdi-plus" class="h-4 w-4" />
@@ -59,7 +60,7 @@
         <div class="bg-surface-700 flex items-center rounded-lg border border-white/20">
           <button
             class="text-surface-200 hover:bg-surface-600 active:bg-surface-500 flex h-8 w-8 items-center justify-center rounded-l-lg transition-colors hover:text-white"
-            aria-label="Decrease Non-FIR count"
+            :aria-label="$t('neededItems.aria.decreaseNonFir')"
             @click="decreaseNonFir"
           >
             <UIcon name="i-mdi-minus" class="h-4 w-4" />
@@ -73,6 +74,7 @@
               v-model.number="nonFirEditValue"
               type="number"
               :min="0"
+              :max="nonFirNeeded"
               step="1"
               class="bg-surface-900 focus:ring-primary-500 h-full w-full px-2 text-center text-sm font-semibold text-white focus:ring-2 focus:outline-none focus:ring-inset"
               @blur="submitNonFirEdit"
@@ -89,7 +91,7 @@
           </div>
           <button
             class="text-surface-200 hover:bg-surface-600 active:bg-surface-500 flex h-8 w-8 items-center justify-center rounded-r-lg transition-colors hover:text-white"
-            aria-label="Increase Non-FIR count"
+            :aria-label="$t('neededItems.aria.increaseNonFir')"
             @click="increaseNonFir"
           >
             <UIcon name="i-mdi-plus" class="h-4 w-4" />
@@ -103,6 +105,8 @@
   </div>
 </template>
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
+  import { useCountEditController } from '@/composables/useCountEditController';
   const props = defineProps<{
     firNeeded: number;
     firCurrent: number;
@@ -113,78 +117,48 @@
     'update:fir': [count: number];
     'update:nonFir': [count: number];
   }>();
-  const createEditController = (options: {
-    current: () => number;
-    needed: () => number;
-    onUpdate: (value: number) => void;
-  }) => {
-    const isEditing = ref(false);
-    const editValue = ref(0);
-    const inputRef = ref<HTMLInputElement | null>(null);
-    const startEdit = () => {
-      editValue.value = options.current();
-      isEditing.value = true;
-      nextTick(() => {
-        inputRef.value?.focus();
-        inputRef.value?.select();
-      });
-    };
-    const submitEdit = () => {
-      if (isEditing.value) {
-        const value = Math.floor(Math.min(options.needed(), Math.max(0, editValue.value || 0)));
-        options.onUpdate(value);
-        isEditing.value = false;
-      }
-    };
-    const cancelEdit = () => {
-      isEditing.value = false;
-    };
-    const increase = () => {
-      options.onUpdate(Math.min(options.needed(), options.current() + 1));
-    };
-    const decrease = () => {
-      options.onUpdate(Math.max(0, options.current() - 1));
-    };
-    watch(options.current, () => {
-      if (isEditing.value) isEditing.value = false;
-    });
-    return {
-      isEditing,
-      editValue,
-      inputRef,
-      startEdit,
-      submitEdit,
-      cancelEdit,
-      increase,
-      decrease,
-    };
-  };
+  const { t } = useI18n({ useScope: 'global' });
+  const toast = useToast();
   const {
     isEditing: isEditingFir,
     editValue: firEditValue,
     inputRef: firInputRef,
     startEdit: startFirEdit,
-    submitEdit: submitFirEdit,
+    commitEdit: submitFirEdit,
     cancelEdit: cancelFirEdit,
     increase: increaseFir,
     decrease: decreaseFir,
-  } = createEditController({
+  } = useCountEditController({
     current: () => props.firCurrent,
-    needed: () => props.firNeeded,
+    max: () => props.firNeeded,
     onUpdate: (value) => emit('update:fir', value),
+    onExternalChange: (value) => {
+      toast.add({
+        title: t('toast.countEditUpdated.title'),
+        description: t('toast.countEditUpdated.description', { value }),
+        color: 'warning',
+      });
+    },
   });
   const {
     isEditing: isEditingNonFir,
     editValue: nonFirEditValue,
     inputRef: nonFirInputRef,
     startEdit: startNonFirEdit,
-    submitEdit: submitNonFirEdit,
+    commitEdit: submitNonFirEdit,
     cancelEdit: cancelNonFirEdit,
     increase: increaseNonFir,
     decrease: decreaseNonFir,
-  } = createEditController({
+  } = useCountEditController({
     current: () => props.nonFirCurrent,
-    needed: () => props.nonFirNeeded,
+    max: () => props.nonFirNeeded,
     onUpdate: (value) => emit('update:nonFir', value),
+    onExternalChange: (value) => {
+      toast.add({
+        title: t('toast.countEditUpdated.title'),
+        description: t('toast.countEditUpdated.description', { value }),
+        color: 'warning',
+      });
+    },
   });
 </script>

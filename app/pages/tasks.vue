@@ -60,7 +60,6 @@
           <TaskEmptyState />
         </div>
         <div v-else ref="taskListRef" data-testid="task-list">
-          <!-- Pinned Tasks Section -->
           <div v-if="pinnedTasksInSlice.length > 0" class="mb-6">
             <div class="mb-3 flex items-center gap-2">
               <UIcon name="i-mdi-pin" class="text-primary-400 h-4 w-4" />
@@ -72,8 +71,8 @@
             <div
               v-for="task in pinnedTasksInSlice"
               :key="task.id"
-              class="pb-4"
-              style="content-visibility: auto; contain-intrinsic-size: auto 280px"
+              v-memo="[task.id, tasksCompletions?.[task.id], tasksFailed?.[task.id]]"
+              class="content-visibility-auto-280 pb-4"
             >
               <TaskCard :task="task" @on-task-action="onTaskAction" />
             </div>
@@ -82,8 +81,8 @@
           <div
             v-for="task in unpinnedTasksInSlice"
             :key="task.id"
-            class="pb-4"
-            style="content-visibility: auto; contain-intrinsic-size: auto 280px"
+            v-memo="[task.id, tasksCompletions?.[task.id], tasksFailed?.[task.id]]"
+            class="content-visibility-auto-280 pb-4"
           >
             <TaskCard :task="task" @on-task-action="onTaskAction" />
           </div>
@@ -155,15 +154,6 @@
 <script setup lang="ts">
   import { useStorage, useWindowSize } from '@vueuse/core';
   import { storeToRefs } from 'pinia';
-  import {
-    computed,
-    defineAsyncComponent,
-    nextTick,
-    onBeforeUnmount,
-    provide,
-    ref,
-    watch,
-  } from 'vue';
   import { useI18n } from 'vue-i18n';
   import {
     useRoute,
@@ -184,16 +174,16 @@
   import { usePreferencesStore } from '@/stores/usePreferences';
   import { useProgressStore } from '@/stores/useProgress';
   import { useTarkovStore } from '@/stores/useTarkov';
+  import { isValidPrimaryView } from '@/types/taskFilter';
+  import { debounce, isDebounceRejection } from '@/utils/debounce';
+  import { fuzzyMatchScore } from '@/utils/fuzzySearch';
+  import { logger } from '@/utils/logger';
   import type { Task, TaskObjective } from '@/types/tarkov';
   import type {
     TaskFilterAndSortOptions,
     TaskPrimaryView,
     TaskSecondaryView,
   } from '@/types/taskFilter';
-  import { isValidPrimaryView } from '@/types/taskFilter';
-  import { debounce, isDebounceRejection } from '@/utils/debounce';
-  import { fuzzyMatchScore } from '@/utils/fuzzySearch';
-  import { logger } from '@/utils/logger';
   // Route meta for layout behavior
   definePageMeta({
     usesWindowScroll: true,
@@ -315,16 +305,20 @@
     mapHeight.value = Math.round(mapResizeState.value.startHeight + delta);
   };
   const stopMapResize = () => {
-    if (!mapResizeState.value) return;
-    const pointerId = mapResizeState.value.pointerId;
+    const resizeState = mapResizeState.value;
+    if (!resizeState) return;
+    const pointerId = resizeState.pointerId;
+    const resizeHandle = mapResizeHandleRef.value;
     mapResizeState.value = null;
-    if (mapResizeHandleRef.value?.hasPointerCapture?.(pointerId)) {
-      mapResizeHandleRef.value?.releasePointerCapture(pointerId);
+    if (resizeHandle?.hasPointerCapture?.(pointerId)) {
+      resizeHandle.releasePointerCapture(pointerId);
     }
     document.body.style.userSelect = mapResizeUserSelect.value;
     mapResizeUserSelect.value = '';
     window.removeEventListener('pointermove', onMapResizeMove);
     window.removeEventListener('pointerup', stopMapResize);
+    window.removeEventListener('pointercancel', stopMapResize);
+    resizeHandle?.removeEventListener('lostpointercapture', stopMapResize);
   };
   const startMapResize = (event: PointerEvent) => {
     if (event.button !== 0) return;
@@ -339,14 +333,16 @@
     document.body.style.userSelect = 'none';
     window.addEventListener('pointermove', onMapResizeMove);
     window.addEventListener('pointerup', stopMapResize);
+    window.addEventListener('pointercancel', stopMapResize);
+    mapResizeHandleRef.value?.addEventListener('lostpointercapture', stopMapResize);
   };
   const onMapResizeKeydown = (event: KeyboardEvent) => {
     if (event.key === 'ArrowUp') {
-      mapHeight.value = mapHeight.value + MAP_HEIGHT_STEP;
+      mapHeight.value = mapHeight.value - MAP_HEIGHT_STEP;
       event.preventDefault();
     }
     if (event.key === 'ArrowDown') {
-      mapHeight.value = mapHeight.value - MAP_HEIGHT_STEP;
+      mapHeight.value = mapHeight.value + MAP_HEIGHT_STEP;
       event.preventDefault();
     }
     if (event.key === 'Home') {
@@ -441,6 +437,8 @@
     return marks;
   });
   const SCROLL_TO_MAP_POPUP_DELAY = 150;
+  const MAP_POPUP_POST_RERENDER_DELAY = 100;
+  const NEAR_TOP_SCROLL_THRESHOLD = 100;
   const POPUP_ACTIVATE_RETRY_DELAY = 150;
   const POPUP_ACTIVATE_MAX_ATTEMPTS = 6;
   let jumpToMapTimeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -475,12 +473,18 @@
   };
   const activateObjectivePopupWithRetry = (objectiveId: string) => {
     clearPopupActivateTimers();
-    let attempts = 0;
+    let attempts = 1;
     const tryActivate = () => {
       const success = leafletMapRef.value?.activateObjectivePopup(objectiveId);
       if (success) return;
+      if (attempts >= POPUP_ACTIVATE_MAX_ATTEMPTS) {
+        logger.warn(
+          `[Tasks] Failed to activate popup for objective ${objectiveId} after ${attempts} attempts`
+        );
+        clearPopupActivateTimers();
+        return;
+      }
       attempts += 1;
-      if (attempts > POPUP_ACTIVATE_MAX_ATTEMPTS) return;
       const timerId = setTimeout(tryActivate, POPUP_ACTIVATE_RETRY_DELAY);
       popupActivateTimers.value.push(timerId);
     };
@@ -493,6 +497,7 @@
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  const isMounted = ref(true);
   const jumpToMapObjective = async (objectiveId: string) => {
     if (jumpToMapTimeoutId) {
       clearTimeout(jumpToMapTimeoutId);
@@ -503,9 +508,11 @@
     if (targetMapId && targetMapId !== currentMapId) {
       preferencesStore.setTaskMapView(targetMapId);
       await nextTick();
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      if (!isMounted.value) return;
+      await new Promise((resolve) => setTimeout(resolve, MAP_POPUP_POST_RERENDER_DELAY));
+      if (!isMounted.value) return;
     }
-    const isNearTop = window.scrollY < 100;
+    const isNearTop = window.scrollY < NEAR_TOP_SCROLL_THRESHOLD;
     if (!isNearTop) {
       scrollToMap();
     }
@@ -515,6 +522,7 @@
     }
     jumpToMapTimeoutId = setTimeout(() => {
       jumpToMapTimeoutId = null;
+      if (!isMounted.value) return;
       activateObjectivePopupWithRetry(objectiveId);
     }, SCROLL_TO_MAP_POPUP_DELAY);
   };
@@ -687,6 +695,9 @@
       logger.error('[Tasks] Failed to refresh tasks:', error);
     }
   };
+  const debouncedRefreshVisibleTasks = debounce(() => {
+    refreshVisibleTasks();
+  }, 50);
   watch(
     [
       getTaskPrimaryView,
@@ -711,7 +722,10 @@
       editions,
     ],
     () => {
-      refreshVisibleTasks();
+      void debouncedRefreshVisibleTasks().catch((error) => {
+        if (isDebounceRejection(error)) return;
+        logger.error('[Tasks] Debounced refresh failed:', error);
+      });
     },
     { immediate: true }
   );
@@ -783,12 +797,14 @@
   const pinnedTasksInSlice = computed(() => {
     const pinnedIds = getPinnedTaskIds.value;
     if (!pinnedIds.length) return [];
-    return visibleTasksSlice.value.filter((task) => pinnedIds.includes(task.id));
+    const pinnedIdSet = new Set(pinnedIds);
+    return visibleTasksSlice.value.filter((task) => pinnedIdSet.has(task.id));
   });
   const unpinnedTasksInSlice = computed(() => {
     const pinnedIds = getPinnedTaskIds.value;
     if (!pinnedIds.length) return visibleTasksSlice.value;
-    return visibleTasksSlice.value.filter((task) => !pinnedIds.includes(task.id));
+    const pinnedIdSet = new Set(pinnedIds);
+    return visibleTasksSlice.value.filter((task) => !pinnedIdSet.has(task.id));
   });
   const hasMoreTasks = computed(() => visibleTaskCount.value < filteredTasks.value.length);
   const loadMoreTasks = () => {
@@ -883,6 +899,7 @@
     }, 3500);
   };
   onBeforeUnmount(() => {
+    isMounted.value = false;
     updateDebouncedSearch.cancel();
     stopMapResize();
     if (highlightTimeout.value) {

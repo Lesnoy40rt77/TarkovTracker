@@ -1,5 +1,3 @@
-import type { UserProgressData } from '@/stores/progressState';
-import type { GameMode } from '@/utils/constants';
 import {
   DEFAULT_GAME_EDITION,
   DEFAULT_PMC_FACTION,
@@ -9,7 +7,8 @@ import {
 } from '@/utils/constants';
 import { logger } from '@/utils/logger';
 import { STORAGE_KEYS } from '@/utils/storageKeys';
-// import { defaultState, migrateToGameModeStructure } from "@/stores/progressState";
+import type { UserProgressData } from '@/stores/progressState';
+import type { GameMode } from '@/utils/constants';
 // Compute default edition index once at module scope (constant value)
 const DEFAULT_EDITION_INDEX = Math.max(
   0,

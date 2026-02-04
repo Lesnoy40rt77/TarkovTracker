@@ -58,21 +58,21 @@ export function applyRotation(
  * Creates a custom CRS for the map using tarkov.dev's approach.
  * Uses L.Transformation with the map's transform array.
  * @param L Leaflet instance
- * @param svgConfig Map SVG configuration with transform and rotation
+ * @param config Map render configuration with transform and rotation
  * @returns Custom CRS for the map
  */
-export function createMapCRS(L: typeof import('leaflet'), svgConfig: MapRenderConfig): L.CRS {
+export function createMapCRS(L: typeof import('leaflet'), config: MapRenderConfig): L.CRS {
   let scaleX = 1;
   let scaleY = 1;
   let marginX = 0;
   let marginY = 0;
-  if (svgConfig.transform) {
-    scaleX = svgConfig.transform[0];
-    scaleY = svgConfig.transform[2] * -1; // Negate Y scale like tarkov.dev
-    marginX = svgConfig.transform[1];
-    marginY = svgConfig.transform[3];
+  if (config.transform) {
+    scaleX = config.transform[0];
+    scaleY = config.transform[2] * -1; // Negate Y scale like tarkov.dev
+    marginX = config.transform[1];
+    marginY = config.transform[3];
   }
-  const rotation = svgConfig.coordinateRotation || 0;
+  const rotation = config.coordinateRotation || 0;
   // Create custom CRS extending L.CRS.Simple
   return L.Util.extend({}, L.CRS.Simple, {
     transformation: new L.Transformation(scaleX, marginX, scaleY, marginY),
@@ -121,15 +121,13 @@ export function outlineToLatLngArray(
   return outline.map((point) => gameToLatLng(point.x, point.z));
 }
 /**
- * Calculates Leaflet bounds from map SVG configuration.
+ * Calculates Leaflet bounds from map render configuration.
  * Uses tarkov.dev's approach: swap coordinates in bounds.
- * @param svgConfig Map SVG configuration
+ * @param config Map render configuration
  * @returns Leaflet bounds as [[lat1, lng1], [lat2, lng2]]
  */
-export function getLeafletBounds(
-  svgConfig?: MapRenderConfig
-): [[number, number], [number, number]] {
-  if (!svgConfig?.bounds || svgConfig.bounds.length < 2) {
+export function getLeafletBounds(config?: MapRenderConfig): [[number, number], [number, number]] {
+  if (!config?.bounds || config.bounds.length < 2) {
     // Fallback to default bounds
     return [
       [0, 0],
@@ -139,8 +137,8 @@ export function getLeafletBounds(
   // tarkov.dev swaps coordinates: [z, x] format
   // bounds[0] = [x1, z1], bounds[1] = [x2, z2]
   // Convert to [[z1, x1], [z2, x2]]
-  const b0 = svgConfig.bounds[0];
-  const b1 = svgConfig.bounds[1];
+  const b0 = config.bounds[0];
+  const b1 = config.bounds[1];
   if (!b0 || !b1 || b0.length < 2 || b1.length < 2) {
     return [
       [0, 0],
@@ -193,19 +191,19 @@ export function getSvgOverlayBounds(
  * Creates Leaflet map options suitable for game maps.
  * Uses custom CRS with transformation for proper coordinate mapping.
  * @param L Leaflet instance
- * @param svgConfig Map SVG configuration
+ * @param config Map render configuration
  * @returns Map initialization options
  */
 export function getLeafletMapOptions(
   L: typeof import('leaflet'),
-  svgConfig?: MapRenderConfig
+  config?: MapRenderConfig
 ): L.MapOptions {
   // Create custom CRS if we have config, otherwise use Simple
-  const crs = svgConfig ? createMapCRS(L, svgConfig) : L.CRS.Simple;
+  const crs = config ? createMapCRS(L, config) : L.CRS.Simple;
   return {
     crs,
-    minZoom: svgConfig?.minZoom ?? 1,
-    maxZoom: svgConfig?.maxZoom ?? 6,
+    minZoom: config?.minZoom ?? 1,
+    maxZoom: config?.maxZoom ?? 6,
     zoomSnap: 0.25,
     zoomDelta: 0.35,
     // Smoother than default, but faster than ultra-fine
@@ -250,7 +248,7 @@ export function isValidMapTileConfig(tile: unknown): tile is MapTileConfig {
   );
 }
 export function normalizeTileConfig(tileConfig: MapTileConfig): MapTileConfig {
-  if (!tileConfig.transform) return tileConfig;
+  if (!Array.isArray(tileConfig.transform) || tileConfig.transform.length < 4) return tileConfig;
   const [scaleX, marginX, scaleYRaw, marginY] = tileConfig.transform;
   const scaleY = scaleYRaw * -1;
   const bounds = tileConfig.bounds;

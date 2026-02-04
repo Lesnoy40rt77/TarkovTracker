@@ -113,9 +113,15 @@
       <!-- 2) Body: objectives (Full Width) -->
       <div class="border-surface-700/50 border-t">
         <div
-          class="hover:bg-surface-700/20 flex cursor-pointer items-center justify-between transition-colors select-none"
+          class="hover:bg-surface-700/20 focus-visible:ring-primary-500/40 focus-visible:ring-offset-surface-900 flex cursor-pointer items-center justify-between rounded-sm transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           :class="compactClasses.objectivesToggle"
+          role="button"
+          tabindex="0"
+          :aria-expanded="objectivesVisible"
+          :aria-controls="`objectives-content-${task.id}`"
           @click="objectivesVisible = !objectivesVisible"
+          @keydown.enter.prevent="objectivesVisible = !objectivesVisible"
+          @keydown.space.prevent="objectivesVisible = !objectivesVisible"
         >
           <div class="text-surface-400 text-[10px] font-bold tracking-wider uppercase">
             {{ t('page.tasks.questcard.objectives', 'Objectives') }}
@@ -139,6 +145,7 @@
         >
           <div
             v-if="objectivesVisible"
+            :id="`objectives-content-${task.id}`"
             :class="[isCompact ? 'space-y-1.5' : 'space-y-3', compactClasses.objectivesBody]"
           >
             <QuestKeys v-if="task?.neededKeys?.length" :needed-keys="task.neededKeys" />
@@ -247,13 +254,12 @@
   </UCard>
 </template>
 <script setup lang="ts">
-  import { computed, defineAsyncComponent, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import { useRouter } from 'vue-router';
   import ContextMenu from '@/components/ui/ContextMenu.vue';
   import ContextMenuItem from '@/components/ui/ContextMenuItem.vue';
   import { useSharedBreakpoints } from '@/composables/useSharedBreakpoints';
   import { useTaskActions, type TaskActionPayload } from '@/composables/useTaskActions';
+  import { useTaskCardLinks } from '@/composables/useTaskCardLinks';
   import { useTaskFiltering } from '@/composables/useTaskFiltering';
   import { isTaskSuccessful, useTaskState } from '@/composables/useTaskState';
   import QuestObjectivesSkeleton from '@/features/tasks/QuestObjectivesSkeleton.vue';
@@ -261,13 +267,13 @@
   import TaskCardBackground from '@/features/tasks/TaskCardBackground.vue';
   import TaskCardBadges from '@/features/tasks/TaskCardBadges.vue';
   import TaskCardHeader from '@/features/tasks/TaskCardHeader.vue';
-  import type { ActionButtonState } from '@/features/tasks/types';
   import { useMetadataStore } from '@/stores/useMetadata';
   import { usePreferencesStore } from '@/stores/usePreferences';
   import { useTarkovStore } from '@/stores/useTarkov';
-  import type { GameEdition, Task, TaskObjective } from '@/types/tarkov';
   import { HOT_WHEELS_TASK_ID } from '@/utils/constants';
   import { getExclusiveEditionsForTask } from '@/utils/editionHelpers';
+  import type { ActionButtonState } from '@/features/tasks/types';
+  import type { GameEdition, Task, TaskObjective } from '@/types/tarkov';
   type ContextMenuRef = { open: (event: MouseEvent) => void };
   // Module-level constants (moved from reactive scope)
   const MAX_DISPLAYED_NAMES = 3;
@@ -305,7 +311,6 @@
     'on-task-action': [payload: TaskActionPayload];
   }>();
   const { t } = useI18n({ useScope: 'global' });
-  const router = useRouter();
   const { xs } = useSharedBreakpoints();
   const tarkovStore = useTarkovStore();
   const preferencesStore = usePreferencesStore();
@@ -314,22 +319,27 @@
   const isGlobalTask = computed(() => isGlobalTaskFn(props.task));
   const taskContextMenu = ref<ContextMenuRef | null>(null);
   const itemContextMenu = ref<ContextMenuRef | null>(null);
-  const selectedItem = ref<{ id: string; wikiLink?: string } | null>(null);
-  // Consolidated task state using composable (reduces store lookups)
+  const {
+    copyTaskLink,
+    openTaskWiki,
+    openTaskOnTarkovDev,
+    openTaskDataIssue,
+    setSelectedItem,
+    openItemOnTarkovDev,
+    openItemOnWiki,
+  } = useTaskCardLinks({
+    task: () => props.task,
+    objectives: () => taskObjectives.value,
+  });
   const { isComplete, isFailed, isLocked, isInvalid } = useTaskState(() => props.task.id);
-  // Objectives visibility - auto-collapsed if task is completed and setting enabled
   const objectivesVisible = ref(
     !(isComplete.value && preferencesStore.getHideCompletedTaskObjectives)
   );
-  // Update objectives visibility when the preference changes
-  watch(
-    () => preferencesStore.getHideCompletedTaskObjectives,
-    (hideObjectives) => {
-      if (isComplete.value) {
-        objectivesVisible.value = !hideObjectives;
-      }
-    }
-  );
+  watch([isComplete, () => preferencesStore.getHideCompletedTaskObjectives], () => {
+    objectivesVisible.value = !(
+      isComplete.value && preferencesStore.getHideCompletedTaskObjectives
+    );
+  });
   // Use extracted task actions composable
   const { markTaskComplete, markTaskUncomplete, markTaskAvailable, markTaskFailed } =
     useTaskActions(
@@ -561,7 +571,6 @@
     // No objectives yet - show skeleton while loading or not yet hydrated
     return metadataStore.tasksObjectivesPending || !metadataStore.tasksObjectivesHydrated;
   });
-  const tarkovDevTaskUrl = computed(() => `https://tarkov.dev/task/${props.task.id}`);
   const openOverflowMenu = (event: MouseEvent) => {
     taskContextMenu.value?.open(event);
   };
@@ -570,23 +579,8 @@
     item: { id: string; wikiLink?: string } | undefined
   ) => {
     if (!item) return;
-    selectedItem.value = item;
+    setSelectedItem(item);
     itemContextMenu.value?.open(event);
-  };
-  const openItemOnTarkovDev = () => {
-    if (!selectedItem.value) return;
-    window.open(`https://tarkov.dev/item/${selectedItem.value.id}`, '_blank');
-  };
-  const openItemOnWiki = () => {
-    if (selectedItem.value?.wikiLink) {
-      window.open(selectedItem.value.wikiLink, '_blank');
-      return;
-    }
-    if (!selectedItem.value) return;
-    window.open(
-      `https://escapefromtarkov.fandom.com/wiki/Special:Search?query=${selectedItem.value.id}`,
-      '_blank'
-    );
   };
   const confirmMarkFailed = () => {
     const confirmed = window.confirm(
@@ -597,66 +591,5 @@
     );
     if (!confirmed) return;
     markTaskFailed();
-  };
-  const copyTextToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      return;
-    } catch {
-      // ignore and fall back
-    }
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.setAttribute('readonly', 'true');
-    textarea.style.position = 'fixed';
-    textarea.style.left = '-9999px';
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textarea);
-  };
-  const copyTaskLink = () => {
-    const href = router.resolve(`/tasks?task=${props.task.id}`).href;
-    return copyTextToClipboard(`${window.location.origin}${href}`);
-  };
-  const openTaskWiki = () => {
-    if (props.task.wikiLink) {
-      window.open(props.task.wikiLink, '_blank');
-    }
-  };
-  const openTaskOnTarkovDev = () => {
-    window.open(tarkovDevTaskUrl.value, '_blank');
-  };
-  // Builds the data issue report URL with prefilled query params for the issue form.
-  const getTaskDataIssueUrl = () => {
-    const title = `${props.task.name} (${props.task.id})`;
-    const objectiveIds = taskObjectives.value.map((objective) => objective.id).filter(Boolean);
-    const minLevel = props.task.minPlayerLevel ?? 0;
-    const playerLevel = tarkovStore.playerLevel();
-    const gameMode = tarkovStore.getCurrentGameMode().toUpperCase();
-    const descriptionLines = [
-      `Task Name: ${props.task.name}`,
-      `Task ID: ${props.task.id}`,
-      objectiveIds.length ? `Objective IDs: ${objectiveIds.join(', ')}` : '',
-      minLevel > 0 ? `Task Req Level: ${minLevel}` : '',
-      `Dev Link: https://tarkov.dev/task/${props.task.id}`,
-      playerLevel > 0 ? `\nUSER LEVEL: ${playerLevel}` : '',
-      `USER MODE: ${gameMode}`,
-    ].filter(Boolean);
-    // Prompt + padding so the form opens with a clear place to start typing.
-    const description = `>--Describe issue here--<\n\n\n${descriptionLines.join('\n')}`;
-    const params = new URLSearchParams({
-      title,
-      category: 'Overlay - Quests',
-      description,
-    });
-    if (props.task.wikiLink) {
-      params.set('reference', props.task.wikiLink);
-    }
-    return `https://issue.tarkovtracker.org/data?${params.toString()}`;
-  };
-  // Opens the data issue form in a new tab using the prefilled report URL.
-  const openTaskDataIssue = () => {
-    window.open(getTaskDataIssueUrl(), '_blank');
   };
 </script>

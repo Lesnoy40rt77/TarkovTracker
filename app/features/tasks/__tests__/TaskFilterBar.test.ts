@@ -75,6 +75,14 @@ const setup = async () => {
       t: (key: string, fallback?: string) => fallback ?? key.split('.').pop() ?? key,
     }),
   }));
+  vi.doMock('@/composables/useTaskSettingsDrawer', () => ({
+    useTaskSettingsDrawer: () => ({
+      isOpen: { value: false },
+      open: vi.fn(),
+      close: vi.fn(),
+      toggle: vi.fn(),
+    }),
+  }));
   const { default: TaskFilterBar } = await import('@/features/tasks/TaskFilterBar.vue');
   return { TaskFilterBar, preferencesStore };
 };

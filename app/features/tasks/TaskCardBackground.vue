@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="isComplete && !isFailed"
-    class="bg-completed-600/3 pointer-events-none absolute inset-0 z-0"
+    class="bg-completed-600/30 pointer-events-none absolute inset-0 z-0"
   />
   <div
     v-if="showIcon"

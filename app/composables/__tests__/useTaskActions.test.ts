@@ -27,11 +27,20 @@ const createMetadataStore = (tasks: Task[]) => ({
 const setup = async (
   task: Task,
   tasks: Task[],
-  options: Parameters<typeof createTarkovStore>[0]
+  options: Parameters<typeof createTarkovStore>[0],
+  preferencesOverrides: Partial<{
+    getPinnedTaskIds: string[];
+  }> = {}
 ) => {
   const onAction = vi.fn();
   const tarkovStore = createTarkovStore(options);
   const metadataStore = createMetadataStore(tasks);
+  const togglePinnedTask = vi.fn();
+  const preferencesStore = {
+    getPinnedTaskIds: [],
+    togglePinnedTask,
+    ...preferencesOverrides,
+  };
   vi.resetModules();
   vi.doMock('@/stores/useTarkov', () => ({
     useTarkovStore: () => tarkovStore,
@@ -40,10 +49,7 @@ const setup = async (
     useMetadataStore: () => metadataStore,
   }));
   vi.doMock('@/stores/usePreferences', () => ({
-    usePreferencesStore: () => ({
-      getPinnedTaskIds: [],
-      togglePinnedTask: vi.fn(),
-    }),
+    usePreferencesStore: () => preferencesStore,
   }));
   vi.doMock('vue-i18n', () => ({
     useI18n: () => ({
@@ -58,6 +64,7 @@ const setup = async (
     onAction,
     taskRef,
     tarkovStore,
+    togglePinnedTask,
   };
 };
 describe('useTaskActions', () => {
@@ -150,6 +157,42 @@ describe('useTaskActions', () => {
     expect(onAction).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'fail', taskId: 'task-to-fail' })
     );
+  });
+  it('unpins a pinned task when completing', async () => {
+    const task: Task = {
+      id: 'task-pin-complete',
+      name: 'Pinned Task',
+      objectives: [{ id: 'obj-pin', count: 1 }],
+    };
+    const { actions, togglePinnedTask } = await setup(
+      task,
+      [task],
+      {},
+      {
+        getPinnedTaskIds: ['task-pin-complete'],
+      }
+    );
+    actions.markTaskComplete();
+    expect(togglePinnedTask).toHaveBeenCalledTimes(1);
+    expect(togglePinnedTask).toHaveBeenCalledWith('task-pin-complete');
+  });
+  it('unpins a pinned task when failing', async () => {
+    const task: Task = {
+      id: 'task-pin-fail',
+      name: 'Pinned Task',
+      objectives: [{ id: 'obj-pin-fail', count: 1 }],
+    };
+    const { actions, togglePinnedTask } = await setup(
+      task,
+      [task],
+      {},
+      {
+        getPinnedTaskIds: ['task-pin-fail'],
+      }
+    );
+    actions.markTaskFailed();
+    expect(togglePinnedTask).toHaveBeenCalledTimes(1);
+    expect(togglePinnedTask).toHaveBeenCalledWith('task-pin-fail');
   });
   it('marks a task uncompleted and resets objectives', async () => {
     const task: Task = {

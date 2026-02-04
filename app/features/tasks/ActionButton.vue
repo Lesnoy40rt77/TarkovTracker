@@ -24,7 +24,6 @@
   </UButton>
 </template>
 <script setup lang="ts">
-  import { computed } from 'vue';
   const props = defineProps({
     xs: { type: Boolean, required: true },
     color: { type: String, default: 'primary' },

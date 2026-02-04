@@ -11,7 +11,6 @@
   </UApp>
 </template>
 <script setup lang="ts">
-  import { computed } from 'vue';
   import { useAppInitialization } from '@/composables/useAppInitialization';
   // Initialize app (auth, locale, migrations)
   useAppInitialization();

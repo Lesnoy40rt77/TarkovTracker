@@ -23,7 +23,6 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
   import TaskObjective from '@/features/tasks/TaskObjective.vue';
   import TaskObjectiveItemGroup from '@/features/tasks/TaskObjectiveItemGroup.vue';

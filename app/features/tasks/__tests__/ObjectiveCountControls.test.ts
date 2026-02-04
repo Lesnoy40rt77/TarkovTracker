@@ -1,3 +1,4 @@
+import { mockNuxtImport } from '@nuxt/test-utils/runtime';
 import { mount } from '@vue/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { defineComponent } from 'vue';
@@ -9,6 +10,9 @@ vi.mock('vue-i18n', () => ({
       return typeof lastArg === 'string' ? lastArg : key;
     },
   }),
+}));
+mockNuxtImport('useToast', () => () => ({
+  add: vi.fn(),
 }));
 const AppTooltipStub = defineComponent({
   props: ['text'],

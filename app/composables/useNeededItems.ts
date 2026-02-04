@@ -1,25 +1,29 @@
-import { computed, ref, watch, type ComputedRef, type Ref, type WritableComputedRef } from 'vue';
+import { useNeededItemsSorting } from '@/composables/useNeededItemsSorting';
 import {
   getNeededItemData,
   getNeededItemId,
   isNonFirSpecialEquipment,
 } from '@/features/neededitems/neededItemFilters';
-import type {
-  NeededItemsFirFilter,
-  NeededItemsFilterType,
-} from '@/features/neededitems/neededitems-constants';
 import { useMetadataStore } from '@/stores/useMetadata';
 import { usePreferencesStore } from '@/stores/usePreferences';
 import { useProgressStore } from '@/stores/useProgress';
 import { useTarkovStore } from '@/stores/useTarkov';
+import { isTaskAvailableForEdition } from '@/utils/editionHelpers';
+import { fuzzyMatch } from '@/utils/fuzzySearch';
+import { logger } from '@/utils/logger';
+import type {
+  NeededItemsSortBy,
+  NeededItemsSortDirection,
+} from '@/composables/useNeededItemsSorting';
+import type {
+  NeededItemsFirFilter,
+  NeededItemsFilterType,
+} from '@/features/neededitems/neededitems-constants';
 import type {
   GroupedNeededItem,
   NeededItemHideoutModule,
   NeededItemTaskObjective,
 } from '@/types/tarkov';
-import { isTaskAvailableForEdition } from '@/utils/editionHelpers';
-import { fuzzyMatch } from '@/utils/fuzzySearch';
-import { logger } from '@/utils/logger';
 const DEFAULT_FULL_LOAD_TIMEOUT_MS = 5000;
 const DEFAULT_FULL_LOAD_MIN_TIME_MS = 16;
 const DEFAULT_FULL_LOAD_DELAY_MS = 1500;
@@ -29,16 +33,8 @@ type FullItemsLoadOptions = {
   minTime?: number;
   delayMs?: number;
 };
-type NeededItemsSortBy = 'priority' | 'name' | 'category' | 'count';
-type NeededItemsSortDirection = 'asc' | 'desc';
 type NeededItemsViewMode = 'list' | 'grid';
 type NeededItemsCardStyle = 'compact' | 'expanded';
-type SortValues = {
-  priority: number;
-  count: number;
-  name: string;
-  category: string;
-};
 export interface UseNeededItemsOptions {
   search?: Ref<string>;
   t?: (key: string) => string;
@@ -149,69 +145,34 @@ export function useNeededItems(options: UseNeededItemsOptions = {}): UseNeededIt
     () => itemsLoaded.value && !metadataStore.itemsLoading && !itemsError.value
   );
   const fullItemsQueued = ref(false);
-  const getSortComparison = (sort: NeededItemsSortBy, a: SortValues, b: SortValues): number => {
-    switch (sort) {
-      case 'priority':
-        return a.priority - b.priority;
-      case 'count':
-        return a.count - b.count;
-      case 'name':
-        return a.name.localeCompare(b.name);
-      case 'category':
-        return a.category.localeCompare(b.category);
-      default:
-        return 0;
-    }
-  };
-  const createSorter = <T>(getValues: (item: T) => SortValues) => {
-    return (a: T, b: T) => {
-      const cmp = getSortComparison(sortBy.value, getValues(a), getValues(b));
-      return sortDirection.value === 'asc' ? cmp : -cmp;
-    };
-  };
-  const getNeededItemPriority = (
-    item: NeededItemTaskObjective | NeededItemHideoutModule
-  ): number => {
-    if (item.needType === 'taskObjective') {
-      const state = progressStore.tasksState?.[item.taskId];
-      return state === 2 ? 3 : state === 1 ? 1 : 0;
-    }
-    return 2;
-  };
-  const getNeededItemSortValues = (
-    item: NeededItemTaskObjective | NeededItemHideoutModule
-  ): SortValues => {
-    const itemData = getNeededItemData(item);
-    return {
-      priority: getNeededItemPriority(item),
-      count: item.count || 0,
-      name: itemData?.name ?? '',
-      category: itemData?.category?.name ?? '',
-    };
-  };
-  const getGroupedItemSortValues = (item: GroupedNeededItem): SortValues => {
-    const itemData = metadataStore.getItemById(item.item.id);
-    return {
-      priority: item.total,
-      count: item.total,
-      name: item.item.name ?? '',
-      category: itemData?.category?.name ?? '',
-    };
+  const { sortNeededItems, sortGroupedItems } = useNeededItemsSorting({
+    sortBy,
+    sortDirection,
+  });
+  const isNeededWithTeam = (
+    need: NeededItemTaskObjective | NeededItemHideoutModule
+  ): need is
+    | (NeededItemTaskObjective & {
+        teamId?: string | null;
+        team?: { id?: string | null } | string | null;
+      })
+    | (NeededItemHideoutModule & {
+        teamId?: string | null;
+        team?: { id?: string | null } | string | null;
+      }) => {
+    return !!need && typeof need === 'object' && ('teamId' in need || 'team' in need);
   };
   const getNeedTeamId = (
     need: NeededItemTaskObjective | NeededItemHideoutModule
   ): string | null => {
-    const teamData = need as {
-      teamId?: string | null;
-      team?: { id?: string | null } | string | null;
-    };
-    if (teamData.teamId) {
-      return teamData.teamId;
+    if (!isNeededWithTeam(need)) return null;
+    if (need.teamId) {
+      return need.teamId;
     }
-    if (typeof teamData.team === 'string') {
-      return teamData.team || null;
+    if (typeof need.team === 'string') {
+      return need.team || null;
     }
-    return teamData.team?.id ?? null;
+    return need.team?.id ?? null;
   };
   const queueFullItemsLoad = (loadOptions: FullItemsLoadOptions = {}) => {
     if (itemsFullLoaded.value) return;
@@ -291,10 +252,12 @@ export function useNeededItems(options: UseNeededItemsOptions = {}): UseNeededIt
         key = `hideout:${need.hideoutModule.id}:${itemId}`;
       }
       const existing = aggregated.get(key);
+      const normalizedCount = need.count ?? 0;
       if (existing) {
-        existing.count += need.count;
+        const newCount = (existing.count ?? 0) + normalizedCount;
+        aggregated.set(key, { ...existing, count: newCount });
       } else {
-        aggregated.set(key, { ...need });
+        aggregated.set(key, { ...need, count: normalizedCount });
       }
     }
     return Array.from(aggregated.values());
@@ -365,12 +328,13 @@ export function useNeededItems(options: UseNeededItemsOptions = {}): UseNeededIt
     }
     const applySpecialEquipmentFilter =
       hideNonFirSpecialEquipment.value && itemsFullLoaded.value === true;
-    result = result.filter(
-      (need) =>
-        need.needType !== 'taskObjective' ||
-        !applySpecialEquipmentFilter ||
-        !isNonFirSpecialEquipment(need as NeededItemTaskObjective)
-    );
+    const passesSpecialEquipmentFilter = (
+      need: NeededItemTaskObjective | NeededItemHideoutModule
+    ) =>
+      need.needType !== 'taskObjective' ||
+      !applySpecialEquipmentFilter ||
+      !isNonFirSpecialEquipment(need as NeededItemTaskObjective);
+    result = result.filter(passesSpecialEquipmentFilter);
     if (kappaOnly.value) {
       result = result.filter((need) => {
         if (need.needType !== 'taskObjective') {
@@ -435,7 +399,7 @@ export function useNeededItems(options: UseNeededItemsOptions = {}): UseNeededIt
         return false;
       });
     }
-    return result.sort(createSorter(getNeededItemSortValues));
+    return sortNeededItems(result);
   });
   type GroupedNeededItemAccumulator = Omit<GroupedNeededItem, 'total' | 'currentCount'>;
   const groupedItems = computed((): GroupedNeededItem[] => {
@@ -491,17 +455,16 @@ export function useNeededItems(options: UseNeededItemsOptions = {}): UseNeededIt
         }
       }
     }
-    return Array.from(groups.values())
-      .map((group) => ({
-        ...group,
-        total: group.taskFir + group.taskNonFir + group.hideoutFir + group.hideoutNonFir,
-        currentCount:
-          group.taskFirCurrent +
-          group.taskNonFirCurrent +
-          group.hideoutFirCurrent +
-          group.hideoutNonFirCurrent,
-      }))
-      .sort(createSorter(getGroupedItemSortValues));
+    const mapped = Array.from(groups.values()).map((group) => ({
+      ...group,
+      total: group.taskFir + group.taskNonFir + group.hideoutFir + group.hideoutNonFir,
+      currentCount:
+        group.taskFirCurrent +
+        group.taskNonFirCurrent +
+        group.hideoutFirCurrent +
+        group.hideoutNonFirCurrent,
+    }));
+    return sortGroupedItems(mapped);
   });
   const objectivesByItemId = computed(() => {
     const map = new Map<

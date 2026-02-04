@@ -55,12 +55,11 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed, inject } from 'vue';
-  import type { Composer } from 'vue-i18n';
-  import type { Router } from 'vue-router';
+  import { useI18n, type Composer } from 'vue-i18n';
   import { useMetadataStore } from '@/stores/useMetadata';
   import { useTarkovStore } from '@/stores/useTarkov';
   import { logger } from '@/utils/logger';
+  import type { Router } from 'vue-router';
   const props = withDefaults(
     defineProps<{
       objectiveId: string;
@@ -77,6 +76,14 @@
   const emit = defineEmits<{
     (e: 'close'): void;
   }>();
+  function getI18nT(): Composer['t'] | undefined {
+    try {
+      return useI18n({ useScope: 'global' }).t;
+    } catch {
+      return undefined;
+    }
+  }
+  const i18nT = getI18nT();
   // Inject clearPinnedTask to dismiss the pinned task when tooltip closes
   const clearPinnedTask = inject<(() => void) | null>('clearPinnedTask', null);
   const emitClose = () => {
@@ -88,6 +95,9 @@
   const translate: Composer['t'] = ((...args: Parameters<Composer['t']>) => {
     if (props.t) {
       return props.t(...args);
+    }
+    if (i18nT) {
+      return i18nT(...args);
     }
     const [key] = args;
     return typeof key === 'string' ? key : '';

@@ -1,12 +1,44 @@
-import { computed, ref } from 'vue';
 import { markDataMigrated } from '@/plugins/store-initializer';
-import type { GameMode } from '@/utils/constants';
-import type { ProgressData } from '@/utils/dataMigrationService';
 import DataMigrationService from '@/utils/dataMigrationService';
 import { logger } from '@/utils/logger';
+import type { GameMode } from '@/utils/constants';
+import type { ProgressData } from '@/utils/dataMigrationService';
 type MigrationStatus = 'idle' | 'migrating' | 'success' | 'error';
+export type DataMigrationComposable = {
+  migrationStatus: ComputedRef<MigrationStatus>;
+  migrationMessage: ComputedRef<string>;
+  migrationError: ComputedRef<Error | null>;
+  isMigrating: ComputedRef<boolean>;
+  hasMigrated: ComputedRef<boolean>;
+  hasError: ComputedRef<boolean>;
+  apiToken: Ref<string>;
+  showToken: Ref<boolean>;
+  fetchingApi: Ref<boolean>;
+  apiError: Ref<string | null>;
+  apiFetchSuccess: ComputedRef<boolean>;
+  importedData: Ref<ProgressData | null>;
+  confirmDialog: Ref<boolean>;
+  importing: Ref<boolean>;
+  showObjectivesDetails: Ref<boolean>;
+  showFailedTaskDetails: Ref<boolean>;
+  failedTasks: ComputedRef<Array<{ id: string }>>;
+  countCompletedTasks: ComputedRef<number>;
+  countFailedTasks: ComputedRef<number>;
+  countTaskObjectives: ComputedRef<number>;
+  countHideoutModules: ComputedRef<number>;
+  countHideoutParts: ComputedRef<number>;
+  migrateLocalData: (userId: string) => Promise<boolean>;
+  importFromApiToken: (
+    apiToken: string,
+    userId: string,
+    targetGameMode?: GameMode
+  ) => Promise<boolean>;
+  fetchWithApiToken: () => Promise<boolean>;
+  confirmImport: () => Promise<boolean>;
+  resetMigrationState: () => void;
+};
 // Composable to handle data migration from localStorage or old API to Supabase
-export function useDataMigration() {
+export function useDataMigration(): DataMigrationComposable {
   const { $supabase } = useNuxtApp();
   // Reactive state for migration process
   const migrationStatus = ref<MigrationStatus>('idle');
@@ -193,7 +225,7 @@ export function useDataMigration() {
       logger.warn('[useDataMigration] No imported data to confirm');
       return false;
     }
-    const userId = $supabase.user.id;
+    const userId = $supabase.user?.id ?? null;
     if (!userId) {
       apiError.value = 'Please sign in to import data.';
       logger.warn('[useDataMigration] Missing user ID for import');

@@ -52,9 +52,6 @@ const createDefaultProps = () => ({
 });
 const createDefaultGlobal = () => ({
   plugins: [i18n],
-  mocks: {
-    $t: (key: string, fallback?: string) => fallback ?? key,
-  },
   stubs: {
     AppTooltip: { template: '<span><slot /></span>' },
     UBadge: true,

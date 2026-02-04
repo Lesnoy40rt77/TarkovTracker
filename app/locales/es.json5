@@ -13,13 +13,25 @@
     error_loading: 'Error al cargar datos de Tarkov',
     loading: 'Cargando datos de Tarkov',
     logout_failed: 'No se pudo cerrar sesión. Inténtalo de nuevo.',
+    user_label: 'Usuario',
+    user_avatar_alt: 'Avatar de usuario',
     overflow_menu: {
       language: 'Idioma',
     },
   },
   common: {
+    cancel: 'Cancelar',
     close: 'Cerrar',
     refreshbutton: 'Intentar de nuevo',
+  },
+  importConfirm: {
+    title: 'Confirmar importación de datos',
+    description: 'Esto importará tus datos de progreso en tu perfil PvP:',
+    targetMode: 'Modo de juego objetivo: PvP',
+    notice: 'Los datos se importarán en tu progreso PvP (multijugador estándar)',
+    listTitle: 'Datos que se importarán:',
+    warning: 'Advertencia: ¡Esta acción no se puede deshacer!',
+    confirm: 'Confirmar importación',
   },
   offlineMode: {
     title: 'Modo sin conexión activo',
@@ -121,6 +133,7 @@
         tasks: 'misiones',
         loyaltyLevel: 'Nivel de lealtad',
         reputation: 'Reputación',
+        scavKarma: 'Karma de Scav',
       },
       stats: {
         available: {
@@ -149,6 +162,23 @@
         },
       },
     },
+    changelog: {
+      title: 'Registro de cambios',
+      description: 'Consulta las últimas actualizaciones y cambios de TarkovTracker.',
+      back: 'Volver al panel',
+      loading: 'Cargando registro de cambios...',
+      error: 'No se pudo cargar el registro de cambios.',
+      retry: 'Reintentar',
+      empty: 'Aún no hay entradas en el registro de cambios.',
+      loadMore: 'Cargar más',
+      types: {
+        added: 'Añadido',
+        fixed: 'Corregido',
+        improved: 'Mejorado',
+        updated: 'Actualizado',
+        changed: 'Cambiado',
+      },
+    },
     tasks: {
       title: 'Misiones',
       primaryviews: {
@@ -175,6 +205,7 @@
         show_non_kappa_tasks: 'Mostrar misiones no-Kappa',
       },
       notasksfound: 'No se han encontrado misiones. Prueba a cambiar los filtros o actualizar el nivel.',
+      notasksfound_description: 'Ajusta los filtros o los requisitos de nivel para ver las misiones disponibles.',
       showing_all_sources: 'Mostrar todas las fuentes',
       loading: 'Cargando misiones',
       selectedTask: 'Tarea seleccionada',
@@ -186,6 +217,10 @@
         pinTask: 'Fijar misión',
         unpinTask: 'Desfijar misión',
         level: 'Nivel requerido: {count}',
+        levelBadge: 'Nivel {count}',
+        fenceRepBadge: 'Fence {rep}',
+        fenceRepTooltip: 'Requiere reputación con Fence de {rep}',
+        traderLevelTooltip: 'Requiere nivel de lealtad {level} con {trader}',
         traderLevelBadge: '{trader} LL{level}',
         wiki: 'Wiki',
         lockedbefore: 'Misiones antes: {count}',
@@ -193,6 +228,7 @@
         reportDataIssue: 'Reportar problema de datos',
         viewOnTarkovDev: 'Ver en Tarkov.dev',
         viewOnWiki: 'Ver en la Wiki',
+        viewTaskOnWiki: 'Ver {name} en la Wiki',
         completebutton: 'Completar',
         availablebutton: 'Marcar como disponible',
         uncompletebutton: 'Marcar como no completado',
@@ -229,6 +265,7 @@
         itemsCount: '{count} objetos',
         kappaTooltip: 'Esta misión es necesaria para obtener el Contenedor Seguro Kappa',
         kapparequired: 'KAPPA REQUERIDA',
+        blockedTooltip: 'Esta misión está bloqueada permanentemente y nunca puede completarse debido a decisiones tomadas en otras misiones',
         levelBadgeTooltip: 'Nivel mínimo de jugador {level} requerido para desbloquear esta misión',
         lightkeeperTooltip: 'Esta misión es necesaria para desbloquear al comerciante Lightkeeper',
         lightkeeperrequired: 'LIGHTKEEPER REQUERIDO',
@@ -336,6 +373,12 @@
         close: 'Cerrar',
         items_hide_non_fir: 'Ocultar objetos necesarios que no necesitan ser encontrados en incursión',
         items_show_non_fir: 'Mostrar objetos necesarios que no necesitan ser encontrados en incursión',
+      },
+      aria: {
+        decreaseFir: 'Disminuir cantidad FIR',
+        increaseFir: 'Aumentar cantidad FIR',
+        decreaseNonFir: 'Disminuir cantidad No-FIR',
+        increaseNonFir: 'Aumentar cantidad No-FIR',
       },
     },
     settings: {
@@ -668,7 +711,7 @@
       team_transfer_description: 'Si eres propietario de algún equipo, la propiedad se transferirá automáticamente al miembro más antiguo de cada equipo. Los equipos sin otros miembros se eliminarán.',
       security_confirmation_title: 'Confirmación de seguridad',
       security_confirmation_description: 'La eliminación de la cuenta requiere escribir la frase de confirmación exacta a continuación. Esta acción es permanente y no se puede deshacer.',
-      confirm_phrase_value: 'DELETE MY ACCOUNT',
+      confirm_phrase_value: 'ELIMINAR MI CUENTA',
       confirm_phrase_label: 'Escribe \"{phrase}\" para confirmar:',
       confirm_phrase_error: 'Escribe exactamente: {phrase}',
       delete_forever: 'Eliminar cuenta para siempre',
@@ -693,6 +736,14 @@
     danger_zone: {
       title: 'Zona de peligro',
     },
+  },
+  hideout: {
+    collapse: 'Colapsar',
+    expand: 'Expandir',
+  },
+  skills: {
+    requiredFor: 'Requerido para: {items}',
+    requiredLevels: 'Niveles requeridos: {items}',
   },
   generic: {
     item: 'Objeto',

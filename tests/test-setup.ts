@@ -2,11 +2,11 @@ import { resolve } from 'node:path';
 import { enableAutoUnmount } from '@vue/test-utils';
 import 'fake-indexeddb/auto';
 import { afterAll, afterEach, beforeAll, vi } from 'vitest';
-const manifestModuleId = resolve(
+const MANIFEST_MODULE_ID = resolve(
   process.cwd(),
   'node_modules/nuxt/dist/app/composables/manifest.js'
 );
-vi.doMock(manifestModuleId, () => ({
+vi.doMock(MANIFEST_MODULE_ID, () => ({
   getAppManifest: () => Promise.resolve({}),
   getRouteRules: () => ({}),
 }));

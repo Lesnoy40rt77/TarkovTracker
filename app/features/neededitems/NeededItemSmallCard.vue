@@ -18,7 +18,12 @@
               hasItem && isSingleItem && !selfCompletedNeed,
           },
         ]"
+        :role="hasItem && isSingleItem && !selfCompletedNeed ? 'button' : undefined"
+        :tabindex="hasItem && isSingleItem && !selfCompletedNeed ? 0 : undefined"
+        :aria-label="hasItem && isSingleItem && !selfCompletedNeed ? cardAriaLabel : undefined"
         @click="handleCardClick"
+        @keydown.enter="handleCardClick"
+        @keydown.space.prevent="handleCardClick"
       >
         <template v-if="hasItem">
           <div :class="imageContainerClasses">
@@ -60,6 +65,17 @@
                 isSingleItem && !selfCompletedNeed ? '!cursor-pointer' : '',
               ]"
             />
+            <div
+              v-if="selfCompletedNeed || currentCount >= neededCount"
+              class="pointer-events-none absolute right-1 bottom-1 z-20"
+              aria-hidden="true"
+            >
+              <div
+                class="bg-success-600 flex h-6 w-6 items-center justify-center rounded-full shadow-md"
+              >
+                <UIcon name="i-mdi-check" class="h-4 w-4 text-white" />
+              </div>
+            </div>
             <div
               v-if="cardStyle === 'compact' && !isSingleItem && !selfCompletedNeed"
               class="bg-surface-900/70 absolute inset-x-0 bottom-0 z-20 flex justify-center p-1"
@@ -162,7 +178,7 @@
   </KeepAlive>
 </template>
 <script setup lang="ts">
-  import { computed, defineAsyncComponent, inject } from 'vue';
+  import { useI18n } from 'vue-i18n';
   import ItemCountControls from '@/features/neededitems/ItemCountControls.vue';
   import {
     createDefaultNeededItemContext,
@@ -172,13 +188,17 @@
   import { useLocaleNumberFormatter } from '@/utils/formatters';
   const TaskLink = defineAsyncComponent(() => import('@/features/tasks/TaskLink.vue'));
   const StationLink = defineAsyncComponent(() => import('@/features/hideout/StationLink.vue'));
-  const emit = defineEmits(['decreaseCount', 'increaseCount', 'toggleCount', 'setCount']);
+  const emit = defineEmits<{
+    (event: 'decreaseCount' | 'increaseCount' | 'toggleCount'): void;
+    (event: 'setCount', count: number): void;
+  }>();
   const props = defineProps({
     need: {
       type: Object,
       required: true,
     },
   });
+  const { t } = useI18n({ useScope: 'global' });
   const formatNumber = useLocaleNumberFormatter();
   const tarkovStore = useTarkovStore();
   const playerLevel = computed(() => tarkovStore.playerLevel());
@@ -200,8 +220,19 @@
     cardStyle,
   } = inject(neededItemKey, createDefaultNeededItemContext());
   const hasItem = computed(() => Boolean(item.value));
-  // Simplified UI for single-quantity items
   const isSingleItem = computed(() => neededCount.value === 1);
+  const cardAriaLabel = computed(() => {
+    const itemName = item.value?.name || t('neededItems.item', 'Item');
+    const status =
+      currentCount.value >= neededCount.value
+        ? t('neededItems.collected', 'Collected')
+        : t('neededItems.notCollected', 'Not collected');
+    const action =
+      currentCount.value >= neededCount.value
+        ? t('neededItems.clickToUncollect', 'Click to uncollect')
+        : t('neededItems.clickToCollect', 'Click to collect');
+    return `${itemName}. ${status}. ${action}`;
+  });
   const handleCardClick = () => {
     if (hasItem.value && isSingleItem.value && !selfCompletedNeed.value) {
       emit('toggleCount');

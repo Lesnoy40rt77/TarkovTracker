@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ref } from 'vue';
+import { TASK_STATE, type TaskState } from '@/utils/constants';
 import type { NeededItemHideoutModule, NeededItemTaskObjective, TarkovItem } from '@/types/tarkov';
 const createItem = (id: string, name: string): TarkovItem => ({
   id,
@@ -53,7 +54,7 @@ const createHideoutModule = (
   count,
   foundInRaid,
 });
-const createNeededItems = () => {
+const createNeededItems = (options: { includeTeamItems?: boolean } = {}) => {
   const items = {
     bolts: createItem('item-bolts', 'Bolts'),
     screws: createItem('item-screws', 'Screws'),
@@ -66,6 +67,12 @@ const createNeededItems = () => {
     createTaskObjective('obj-3', 'task-2', items.bolts, 2, false),
     createTaskObjective('obj-4', 'task-kappa', items.wires, 4, true),
   ];
+  if (options.includeTeamItems) {
+    taskObjectives.push({
+      ...createTaskObjective('obj-team', 'task-team', createItem('item-team', 'Team Item'), 1),
+      teamId: 'team-1',
+    });
+  }
   const hideoutModules: NeededItemHideoutModule[] = [
     createHideoutModule('hideout-1', 'station-1', 1, items.bolts, 10, false),
     createHideoutModule('hideout-2', 'station-2', 2, items.cpu, 1, true),
@@ -141,10 +148,10 @@ const createProgressStore = () => ({
     'station-2-2': { self: false },
   },
   tasksState: {
-    'task-1': 2,
-    'task-2': 2,
-    'task-kappa': 1,
-  } as Record<string, number>,
+    'task-1': TASK_STATE.ACTIVE,
+    'task-2': TASK_STATE.ACTIVE,
+    'task-kappa': TASK_STATE.AVAILABLE,
+  } as Record<string, TaskState>,
   getTeamIndex: (teamId: string) => (teamId === 'self' ? 'self' : teamId),
 });
 const createPreferencesStore = () => ({
@@ -192,11 +199,14 @@ const createTarkovStore = () => ({
 });
 const setup = async (
   overrides: {
+    includeTeamItems?: boolean;
     preferencesStore?: Partial<ReturnType<typeof createPreferencesStore>>;
     progressStore?: Partial<ReturnType<typeof createProgressStore>>;
   } = {}
 ) => {
-  const { taskObjectives, hideoutModules } = createNeededItems();
+  const { taskObjectives, hideoutModules } = createNeededItems({
+    includeTeamItems: overrides.includeTeamItems,
+  });
   const metadataStore = createMetadataStore(taskObjectives, hideoutModules);
   const progressStore = { ...createProgressStore(), ...overrides.progressStore };
   const preferencesStore = { ...createPreferencesStore(), ...overrides.preferencesStore };
@@ -322,20 +332,15 @@ describe('useNeededItems', () => {
       expect(filtered.every((item) => !fullyOwnedIds.includes(item.id))).toBe(true);
     });
     it('filters out team-owned items when hideTeamItems is enabled', async () => {
-      const { neededItems, metadataStore } = await setup({
+      const { neededItems } = await setup({
         preferencesStore: { itemsTeamAllHidden: true },
+        includeTeamItems: true,
       });
-      metadataStore.neededItemTaskObjectives = [
-        ...metadataStore.neededItemTaskObjectives,
-        {
-          ...createTaskObjective('obj-team', 'task-team', createItem('item-team', 'Team Item'), 1),
-          teamId: 'team-1',
-        } as NeededItemTaskObjective & { teamId: string },
-      ];
       const filtered = neededItems.filteredItems.value;
-      expect(filtered.some((item) => (item as { teamId?: string }).teamId === 'team-1')).toBe(
-        false
+      const hasTeamItem = filtered.some(
+        (item) => item.needType === 'taskObjective' && item.teamId === 'team-1'
       );
+      expect(hasTeamItem).toBe(false);
     });
   });
   describe('groupedItems', () => {
@@ -401,7 +406,7 @@ describe('useNeededItems', () => {
       const priorities = filtered.map((item) => {
         if (item.needType === 'taskObjective') {
           const state = progressStore.tasksState?.[item.taskId];
-          return state === 2 ? 3 : state === 1 ? 1 : 0;
+          return state === TASK_STATE.ACTIVE ? 3 : state === TASK_STATE.AVAILABLE ? 1 : 0;
         }
         return 2;
       });

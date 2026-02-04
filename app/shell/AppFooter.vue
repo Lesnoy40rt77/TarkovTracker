@@ -39,11 +39,12 @@
         </router-link>
       </div>
       <div class="text-surface-500 text-center text-xs">
-        <p class="text-surface-400">TarkovTracker &copy; 2020–{{ new Date().getFullYear() }}</p>
-        <p class="text-surface-600 mt-1">
-          {{ t('footer.game_attribution') }}
-          <span class="ml-1 opacity-60">v{{ appVersion }}</span>
-        </p>
+        <div class="text-surface-400 flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+          <span>TarkovTracker &copy; 2020–{{ new Date().getFullYear() }}</span>
+          <span class="text-surface-600">·</span>
+          <span class="text-surface-600 font-mono">v{{ tarkovVersion }}</span>
+        </div>
+        <p class="text-surface-600 mt-1">{{ t('footer.game_attribution') }}</p>
       </div>
     </div>
   </footer>
@@ -51,5 +52,5 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   const { t } = useI18n({ useScope: 'global' });
-  const appVersion = useRuntimeConfig().public.appVersion || 'dev';
+  const tarkovVersion = useRuntimeConfig().public.tarkovVersion || 'dev';
 </script>

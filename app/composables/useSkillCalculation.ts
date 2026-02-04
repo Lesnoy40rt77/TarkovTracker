@@ -9,13 +9,12 @@
  *
  * @module composables/useSkillCalculation
  */
-import { computed } from 'vue';
 import { useMetadataStore } from '@/stores/useMetadata';
 import { usePreferencesStore } from '@/stores/usePreferences';
 import { useTarkovStore } from '@/stores/useTarkov';
-import type { Skill, SkillRequirement, TaskObjective } from '@/types/tarkov';
 import { sortSkillsByGameOrder } from '@/utils/constants';
 import { logger } from '@/utils/logger';
+import type { Skill, SkillRequirement, TaskObjective } from '@/types/tarkov';
 /**
  * Extended TaskObjective with GraphQL __typename discriminator
  */
@@ -40,6 +39,7 @@ function isTaskObjectiveSkill(
   return objective.__typename === 'TaskObjectiveSkill';
 }
 export interface SkillMetadata {
+  id?: string;
   name: string;
   requiredByTasks: string[];
   requiredLevels: number[];
@@ -130,10 +130,12 @@ export function useSkillCalculation() {
         const objectiveWithType = objective as TaskObjectiveWithTypename;
         if (isTaskObjectiveSkill(objectiveWithType) && objectiveWithType.skillLevel?.name) {
           const skillName = objectiveWithType.skillLevel.name;
+          const skillId = objectiveWithType.skillLevel.skill?.id;
           const requiredLevel = objectiveWithType.skillLevel.level || 0;
           const imageLink = objectiveWithType.skillLevel?.skill?.imageLink;
           if (!skillsMap.has(skillName)) {
             skillsMap.set(skillName, {
+              id: skillId,
               name: skillName,
               requiredByTasks: [],
               requiredLevels: [],
@@ -143,6 +145,9 @@ export function useSkillCalculation() {
           } else if (imageLink && !skillsMap.get(skillName)!.imageLink) {
             // Update imageLink if we didn't have it before
             skillsMap.get(skillName)!.imageLink = imageLink;
+          }
+          if (!skillsMap.get(skillName)!.id && skillId) {
+            skillsMap.get(skillName)!.id = skillId;
           }
           skillsMap.get(skillName)!.requiredByTasks.push(taskName);
           // Track unique required levels
@@ -159,9 +164,11 @@ export function useSkillCalculation() {
         // Skip null/undefined rewards (sparse array data from API)
         if (reward?.name) {
           const skillName = reward.name;
+          const skillId = reward.skill?.id;
           const imageLink = reward.skill?.imageLink;
           if (!skillsMap.has(skillName)) {
             skillsMap.set(skillName, {
+              id: skillId,
               name: skillName,
               requiredByTasks: [],
               requiredLevels: [],
@@ -171,6 +178,9 @@ export function useSkillCalculation() {
           } else if (imageLink && !skillsMap.get(skillName)!.imageLink) {
             // Update imageLink if we didn't have it before
             skillsMap.get(skillName)!.imageLink = imageLink;
+          }
+          if (!skillsMap.get(skillName)!.id && skillId) {
+            skillsMap.get(skillName)!.id = skillId;
           }
           skillsMap.get(skillName)!.rewardedByTasks.push(taskName);
         }
@@ -185,7 +195,6 @@ export function useSkillCalculation() {
     if (sortMode === 'ingame') {
       return sortSkillsByGameOrder(skills);
     }
-    // Default 'priority' sort: required skills first, then alphabetically
     return skills.sort((a, b) => {
       const aRequired = a.requiredByTasks.length > 0;
       const bRequired = b.requiredByTasks.length > 0;

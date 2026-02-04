@@ -1,7 +1,12 @@
 <script setup lang="ts">
-  import { computed, useSlots, useAttrs } from 'vue';
   import type { SelectMenuItem } from '#ui/types';
-  type SelectMenuValue = SelectMenuItem | number | string;
+  type SelectMenuItemLike =
+    | SelectMenuItem
+    | (Record<string, string | number | boolean | undefined> & {
+        label?: string;
+        value?: string | number;
+      });
+  type SelectMenuValue = SelectMenuItemLike | number | string;
   const props = defineProps<{
     modelValue?: SelectMenuValue;
     items?: SelectMenuValue[];

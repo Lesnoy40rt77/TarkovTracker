@@ -6,8 +6,8 @@
     :class="[
       props.isCollapsed ? 'justify-center' : '',
       isActive
-        ? 'border-primary-500 bg-neutral-800/50 text-white'
-        : 'text-surface-300 border-transparent hover:bg-neutral-800/30 hover:text-white',
+        ? 'border-primary-500 bg-surface-800/50 text-white'
+        : 'text-surface-300 hover:bg-surface-800/30 border-transparent hover:text-white',
     ]"
   >
     <DrawerItemIcon
@@ -23,7 +23,7 @@
     :href="props.href ?? undefined"
     target="_blank"
     rel="noopener noreferrer"
-    class="group text-surface-300 flex min-h-10 items-center rounded-sm border-l-2 border-transparent px-3 py-2 text-xs font-medium transition-colors duration-150 hover:bg-neutral-800/30 hover:text-white"
+    class="group text-surface-300 hover:bg-surface-800/30 flex min-h-10 items-center rounded-sm border-l-2 border-transparent px-3 py-2 text-sm font-medium transition-colors duration-150 hover:text-white"
     :class="[props.isCollapsed ? 'justify-center' : '']"
   >
     <DrawerItemIcon
@@ -32,7 +32,11 @@
       :color-class="props.colorClass"
       :has-margin="props.hasMargin"
     />
-    <span v-if="!props.isCollapsed" class="truncate">{{ props.labelText }}</span>
+    <span v-if="!props.isCollapsed" class="flex items-center gap-1 truncate">
+      {{ props.labelText }}
+      <UIcon name="i-mdi-open-in-new" class="h-3 w-3 shrink-0 opacity-60" aria-hidden="true" />
+      <span class="sr-only">({{ $t('common.opensInNewTab', 'opens in new tab') }})</span>
+    </span>
   </a>
   <div
     v-else
@@ -50,6 +54,7 @@
   </div>
 </template>
 <script setup lang="ts">
+  import { logger } from '@/utils/logger';
   const props = defineProps<{
     to?: string | null;
     href?: string | null;
@@ -62,6 +67,11 @@
     hasMargin?: boolean;
   }>();
   const route = useRoute();
+  if (import.meta.env.DEV && props.to && props.href) {
+    logger.warn(
+      '[DrawerItemContent] Both props.to and props.href provided. isAnchor will render with props.href, isNuxtLink will be false, and props.to will be ignored.'
+    );
+  }
   const isDisabled = computed(() => props.disabled ?? (!props.to && !props.href));
   const isNuxtLink = computed(() => !isDisabled.value && !!props.to && !props.href);
   const isAnchor = computed(() => !isDisabled.value && !isNuxtLink.value && !!props.href);

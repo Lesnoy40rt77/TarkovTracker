@@ -13,7 +13,6 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { onMounted } from 'vue';
   import { logger } from '@/utils/logger';
   const route = useRoute();
   onMounted(async () => {

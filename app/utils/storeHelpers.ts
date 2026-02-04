@@ -1,5 +1,5 @@
-import type { Store } from 'pinia';
 import { logger } from '@/utils/logger';
+import type { Store } from 'pinia';
 /**
  * Clears store properties that are not present in the new state
  * This ensures the store doesn't retain stale data when remote documents are updated

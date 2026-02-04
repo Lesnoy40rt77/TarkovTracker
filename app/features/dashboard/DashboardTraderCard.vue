@@ -60,12 +60,14 @@
             v-for="lvl in 4"
             :key="lvl"
             type="button"
-            class="focus-visible:ring-primary-500/40 flex-1 px-2 py-1 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
+            class="focus-visible:ring-primary-500/40 min-h-10 flex-1 px-3 py-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
             :class="
               currentLevel === lvl
                 ? 'bg-surface-600 text-white'
                 : 'text-surface-300 hover:bg-surface-700/70 hover:text-surface-100'
             "
+            :aria-label="$t('page.dashboard.traders.setLoyaltyLevel', { level: lvl })"
+            :aria-pressed="currentLevel === lvl"
             @click="updateLevel(lvl)"
           >
             {{ lvl }}
@@ -87,7 +89,7 @@
       v-else-if="isFence"
       class="text-surface-400 flex items-center justify-between text-xs font-medium"
     >
-      <span>{{ $t('page.dashboard.traders.scavKarma', 'Scav Karma') }}</span>
+      <span>{{ $t('page.dashboard.traders.scavKarma') }}</span>
       <ReputationInput
         :has-reputation="true"
         :reputation-input="reputationInput"
@@ -105,12 +107,12 @@
   import { useMetadataStore } from '@/stores/useMetadata';
   import { usePreferencesStore } from '@/stores/usePreferences';
   import { useTarkovStore } from '@/stores/useTarkov';
-  import type { Trader, TraderLoyaltyLevel } from '@/types/tarkov';
   import {
     TRADER_UNLOCK_TASKS,
     TRADERS_WITHOUT_LOYALTY_LEVELS,
     TRADERS_WITHOUT_REPUTATION,
   } from '@/utils/constants';
+  import type { Trader, TraderLoyaltyLevel } from '@/types/tarkov';
   const MIN_REPUTATION = -10;
   const MAX_REPUTATION = 10;
   const clampReputation = (value: number) =>
@@ -176,7 +178,7 @@
       return;
     }
     const clamped = clampReputation(value);
-    const rounded = Math.round(clamped * 100) / 100;
+    const rounded = parseFloat(clamped.toFixed(2));
     tarkovStore.setTraderReputation(props.trader.id, rounded);
     reputationInput.value = formatReputation(rounded);
   };

@@ -5,7 +5,7 @@
       <div class="w-full">
         <SelectMenuFixed
           v-model="selectedGameMode"
-          :items="gameModeOptions as any"
+          :items="gameModeOptions"
           option-attribute="label"
           value-attribute="value"
           class="w-full"
@@ -31,7 +31,6 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed } from 'vue';
   import { useTarkovStore } from '@/stores/useTarkov';
   import { GAME_MODE_OPTIONS, type GameMode } from '@/utils/constants';
   const store = useTarkovStore();

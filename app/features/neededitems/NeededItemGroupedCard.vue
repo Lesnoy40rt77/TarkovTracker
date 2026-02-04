@@ -204,7 +204,9 @@
   const handleCardClick = (event: MouseEvent | KeyboardEvent) => {
     const target = event.target instanceof Element ? event.target : null;
     const currentTarget = event.currentTarget instanceof Element ? event.currentTarget : null;
-    const interactiveTarget = target?.closest('button, a, [role="button"], [tabindex]');
+    const interactiveTarget = target?.closest(
+      'button, a, [role="button"], [tabindex]:not([tabindex="-1"])'
+    );
     if (interactiveTarget && interactiveTarget !== currentTarget) {
       return;
     }

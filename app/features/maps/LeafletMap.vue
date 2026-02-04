@@ -162,14 +162,12 @@
   </div>
 </template>
 <script setup lang="ts">
-  import type L from 'leaflet';
-  import { computed, createApp, inject, onUnmounted, ref, toRef, watch } from 'vue';
+  import { createApp } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
   import { useLeafletMap } from '@/composables/useLeafletMap';
   import LeafletObjectiveTooltip from '@/features/maps/LeafletObjectiveTooltip.vue';
   import { usePreferencesStore } from '@/stores/usePreferences';
-  import type { MapExtract, TarkovMap } from '@/types/tarkov';
   import { logger } from '@/utils/logger';
   import {
     gameToLatLng,
@@ -178,6 +176,8 @@
     isValidMapTileConfig,
   } from '@/utils/mapCoordinates';
   import { MAP_MARKER_COLORS as MAP_COLORS } from '@/utils/theme-colors';
+  import type { MapExtract, TarkovMap } from '@/types/tarkov';
+  import type L from 'leaflet';
   // Types for marks (matching TarkovMap.vue structure)
   interface MapZone {
     map: { id: string };
@@ -285,6 +285,7 @@
     string,
     { layer: L.Layer; getLatLng: () => L.LatLngExpression; showPopup: (pinned: boolean) => void }
   >();
+  let lastMarksHash = '';
   const mountObjectiveTooltip = (
     objectiveId: string,
     onClose: () => void
@@ -459,12 +460,33 @@
     });
   };
   /**
+   * Generates a hash for marks data to detect changes.
+   */
+  function getMarksHash(marks: MapMark[], mapId: string): string {
+    const relevantData = marks.map((mark) => ({
+      id: mark.id,
+      users: mark.users,
+      zones: mark.zones
+        .filter((z) => z.map.id === mapId)
+        .map((z) => z.outline.map((p) => `${p.x},${p.z}`).join(';')),
+      locations: mark.possibleLocations
+        ?.filter((l) => l.map.id === mapId)
+        .map((l) => l.positions?.map((p) => `${p.x},${p.z}`).join(';')),
+    }));
+    return JSON.stringify(relevantData);
+  }
+  /**
    * Creates objective markers on the map.
    */
   function createObjectiveMarkers(): void {
     if (!leaflet.value || !objectiveLayer.value || !props.map) return;
     const L = leaflet.value;
     if (!isValidMapSvgConfig(props.map.svg) && !isValidMapTileConfig(props.map.tile)) return;
+    const currentHash = getMarksHash(props.marks, props.map.id);
+    if (currentHash === lastMarksHash && objectiveMarkers.size > 0) {
+      return;
+    }
+    lastMarksHash = currentHash;
     if (activePinnedPopupCleanup) {
       activePinnedPopupCleanup();
       activePinnedPopupCleanup = null;
@@ -614,11 +636,11 @@
       extractBadge.style.gap = '6px';
       extractBadge.style.padding = '3px 6px';
       extractBadge.style.borderRadius = '999px';
-      extractBadge.style.backgroundColor = 'rgba(26, 26, 30, 0.9)';
+      extractBadge.style.backgroundColor = 'var(--color-surface-900)';
       extractBadge.style.border = `2px solid ${markerColor}`;
       extractBadge.style.fontSize = '11px';
       extractBadge.style.lineHeight = '1';
-      extractBadge.style.color = '#e5e5e5';
+      extractBadge.style.color = 'var(--color-surface-200)';
       extractBadge.style.boxShadow = '0 2px 4px rgba(0,0,0,0.5)';
       extractBadge.style.whiteSpace = 'nowrap';
       extractBadge.style.transform = 'translate(-50%, calc(-100% - 6px))';
@@ -678,7 +700,7 @@
   });
   watch([showPmcExtracts, showScavExtracts], () => createExtractMarkers());
   watch(selectedFloor, () => {
-    // Markers might need floor-based visibility in the future
+    lastMarksHash = '';
     updateMarkers();
   });
   // Wait for map to be ready, then create markers
@@ -720,44 +742,3 @@
     clearMarkers();
   });
 </script>
-<style>
-  /* Override Leaflet default styles for dark theme */
-  .leaflet-container {
-    background-color: rgb(var(--color-surface-900));
-    font-family: inherit;
-  }
-  .leaflet-popup-content-wrapper {
-    background-color: #1a1a1e !important;
-    color: #e5e5e5 !important;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  }
-  .leaflet-popup-tip {
-    background-color: #1a1a1e !important;
-  }
-  .leaflet-popup-content {
-    margin: 0.75rem;
-  }
-  .leaflet-control-zoom a {
-    background-color: rgb(var(--color-surface-800)) !important;
-    color: rgb(var(--color-gray-200)) !important;
-    border-color: rgb(var(--color-surface-700)) !important;
-  }
-  .leaflet-control-zoom a:hover {
-    background-color: rgb(var(--color-surface-700)) !important;
-  }
-  /* Zone hover tooltip styling */
-  .map-zone-tooltip {
-    background-color: #1a1a1e !important;
-    color: #e5e5e5 !important;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    padding: 6px 8px;
-  }
-  /* Extract marker styling */
-  .extract-marker {
-    background: transparent;
-    border: none;
-  }
-</style>

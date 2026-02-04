@@ -67,7 +67,7 @@
                   </span>
                   <UTooltip
                     v-if="skill.requiredByTasks.length > 0"
-                    :text="`Required for: ${skill.requiredByTasks.join(', ')}`"
+                    :text="$t('skills.requiredFor', { items: skill.requiredByTasks.join(', ') })"
                   >
                     <UBadge color="warning" variant="soft" size="xs">
                       {{ $t('skills.req', 'Req') }}
@@ -75,7 +75,7 @@
                   </UTooltip>
                   <UTooltip
                     v-if="skill.requiredLevels.length > 0"
-                    :text="`Required levels: ${skill.requiredLevels.join(', ')}`"
+                    :text="$t('skills.requiredLevels', { items: skill.requiredLevels.join(', ') })"
                   >
                     <UBadge color="accent" variant="soft" size="xs">
                       {{ $t('skills.lv', 'Lv') }} {{ formatRequiredLevels(skill.requiredLevels) }}
@@ -118,19 +118,28 @@
               </div>
             </div>
             <div class="flex items-center gap-2">
+              <label :for="`skill-input-${skill.name}`" class="sr-only">
+                {{ formatSkillName(skill.name) }} {{ $t('settings.skills.level', 'level') }}
+              </label>
               <UInput
+                :id="`skill-input-${skill.name}`"
                 :model-value="getSkillLevel(skill.name)"
                 type="text"
                 inputmode="numeric"
                 :min="0"
-                :max="51"
                 placeholder="0"
                 size="sm"
                 class="flex-1"
+                :aria-describedby="`skill-range-${skill.name}`"
                 @keydown="preventInvalidInput"
-                @paste="(e: Event) => onPaste(e as ClipboardEvent, skill.name)"
+                @paste="(event: ClipboardEvent) => onPaste(event, skill.name)"
+                @focus="resetSkillLimitToast"
+                @blur="resetSkillLimitToast"
                 @update:model-value="(value) => updateSkillLevel(skill.name, value)"
               />
+              <span :id="`skill-range-${skill.name}`" class="sr-only">
+                {{ $t('settings.skills.validRange', 'Valid range: 0 to 51') }}
+              </span>
               <UButton
                 icon="i-mdi-refresh"
                 size="sm"
@@ -163,13 +172,11 @@
 </template>
 <script setup lang="ts">
   import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
-  import { computed, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
   import GenericCard from '@/components/ui/GenericCard.vue';
   import { useSkillCalculation } from '@/composables/useSkillCalculation';
   import { usePreferencesStore } from '@/stores/usePreferences';
   import type { SkillSortMode } from '@/utils/constants';
-  const { t } = useI18n();
+  const { t } = useI18n({ useScope: 'global' });
   const skillCalculation = useSkillCalculation();
   const preferencesStore = usePreferencesStore();
   const allGameSkills = computed(() => skillCalculation.allGameSkills.value);
@@ -179,6 +186,7 @@
     preferencesStore.setSkillSortMode(mode);
   };
   const toast = useToast();
+  const skillLimitToastShown = ref(false);
   const breakpoints = useBreakpoints(breakpointsTailwind);
   const columnsPerRow = computed(() => {
     if (breakpoints.greaterOrEqual('xl').value) return 4;
@@ -259,16 +267,25 @@
     const selectionEnd = target.selectionEnd || 0;
     const nextValStr = currentVal.slice(0, selectionStart) + e.key + currentVal.slice(selectionEnd);
     const nextVal = parseInt(nextValStr, 10);
-    if (isNaN(nextVal) || nextVal > 51 || nextValStr.length > 2) {
+    const isNumeric = /^\d+$/.test(nextValStr);
+    if (!isNumeric || isNaN(nextVal) || nextVal > 51) {
       e.preventDefault();
-      toast.add({
-        id: 'skill-limit-error',
-        title: t('settings.skills.limit_exceeded', 'Limit Exceeded'),
-        description: t('settings.skills.max_level', 'Maximum skill level is 51.'),
-        color: 'error',
-        icon: 'i-mdi-alert-circle',
-      });
+      showSkillLimitToast();
     }
+  };
+  const showSkillLimitToast = () => {
+    if (skillLimitToastShown.value) return;
+    skillLimitToastShown.value = true;
+    toast.add({
+      id: 'skill-limit-error',
+      title: t('settings.skills.limit_exceeded', 'Limit Exceeded'),
+      description: t('settings.skills.max_level', 'Maximum skill level is 51.'),
+      color: 'error',
+      icon: 'i-mdi-alert-circle',
+    });
+  };
+  const resetSkillLimitToast = () => {
+    skillLimitToastShown.value = false;
   };
   const onPaste = (e: ClipboardEvent, skillName: string) => {
     e.preventDefault();

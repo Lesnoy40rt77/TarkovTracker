@@ -9,13 +9,12 @@
       title: '所需物品',
     },
   },
-  navigation_drawer: {
-    toggle: '切换菜单',
-  },
   app_bar: {
     error_loading: '加载塔科夫数据时出错',
     loading: '正在加载塔科夫数据',
     logout_failed: '退出登录失败，请重试。',
+    user_label: '用户',
+    user_avatar_alt: '用户头像',
     overflow_menu: {
       game_mode: '游戏模式',
       display_name: '显示名称',
@@ -38,8 +37,18 @@
     },
   },
   common: {
+    cancel: '取消',
     close: '关闭',
     refreshbutton: '重试',
+  },
+  importConfirm: {
+    title: '确认数据导入',
+    description: '这将把你的进度数据导入到你的 PvP 档案中：',
+    targetMode: '目标游戏模式：PvP',
+    notice: '数据将导入到你的 PvP（标准多人）进度中',
+    listTitle: '将导入的数据：',
+    warning: '警告：此操作无法撤销！',
+    confirm: '确认导入',
   },
   offlineMode: {
     title: '离线模式运行中',
@@ -141,6 +150,7 @@
         tasks: '任务',
         loyaltyLevel: '忠诚度等级',
         reputation: '声望',
+        scavKarma: 'Scav 信誉',
       },
       stats: {
         available: {
@@ -167,6 +177,23 @@
           stat: 'Kappa保险箱任务',
           details: '解锁Kappa保险箱所需完成的任务',
         },
+      },
+    },
+    changelog: {
+      title: '更新日志',
+      description: '查看 TarkovTracker 的最新更新和变更。',
+      back: '返回总览面板',
+      loading: '加载更新日志...',
+      error: '无法加载更新日志。',
+      retry: '重试',
+      empty: '暂无更新日志条目。',
+      loadMore: '加载更多',
+      types: {
+        added: '新增',
+        fixed: '修复',
+        improved: '改进',
+        updated: '更新',
+        changed: '变更',
       },
     },
     tasks: {
@@ -196,6 +223,7 @@
         xp: '经验奖励',
         ascending: '升序排列',
         descending: '降序排列',
+        ariaLabel: '任务排序',
       },
       hide_global_tasks: '隐藏全局任务',
       show_global_tasks: '显示全局任务',
@@ -294,6 +322,7 @@
         },
       },
       notasksfound: '未找到任务，可尝试修改筛选条件或更新人物等级',
+      notasksfound_description: '调整筛选条件或等级要求以查看可用任务。',
       showing_all_sources: '显示全部来源',
       loading: '加载任务中',
       selectedTask: '已选任务',
@@ -306,6 +335,9 @@
         unpinTask: '取消固定任务',
         level: '等级要求：{count}',
         levelBadge: '等级 {count}',
+        fenceRepBadge: 'Fence {rep}',
+        fenceRepTooltip: '需要 Fence 声望为 {rep}',
+        traderLevelTooltip: '需要 {trader} 忠诚度等级 {level}',
         traderLevelBadge: '{trader} LL{level}',
         wiki: '维基百科',
         lockedbefore: '前置任务：{count} 个',
@@ -324,6 +356,7 @@
         reportDataIssue: '报告数据问题',
         viewOnTarkovDev: '在 Tarkov.dev 查看',
         viewOnWiki: '在维基查看',
+        viewTaskOnWiki: '在维基查看{name}',
         showChainDetails: '显示任务链详情',
         hideChainDetails: '隐藏任务链详情',
         handOver: '交付',
@@ -333,6 +366,9 @@
         complete: '完成',
         markComplete: '标记为完成',
         uncomplete: '取消完成标记',
+        completed: '已完成',
+        notCompleted: '未完成',
+        of: '/',
         item: '物品',
         markfailed: '标记为失败',
         completebutton: '完成',
@@ -499,6 +535,12 @@
         items_hide_non_fir: '隐藏无需战局拾取的物品',
         items_show_non_fir: '显示无需战局拾取的物品',
         empty: '无匹配搜索结果',
+      },
+      aria: {
+        decreaseFir: '减少FIR数量',
+        increaseFir: '增加FIR数量',
+        decreaseNonFir: '减少非FIR数量',
+        increaseNonFir: '增加非FIR数量',
       },
     },
     settings: {
@@ -722,6 +764,7 @@
     changelog: '更新日志',
   },
   navigation_drawer: {
+    toggle: '切换菜单',
     home: '总览面板',
     api: '接口文档',
     login: '登录',
@@ -920,6 +963,14 @@
       confirm_delete_instruction: '输入 {word} 确认操作:',
       confirm_word: '删除账户',
     },
+  },
+  hideout: {
+    collapse: '折叠',
+    expand: '展开',
+  },
+  skills: {
+    requiredFor: '需要: {items}',
+    requiredLevels: '需求等级: {items}',
   },
   generic: {
     item: '物品',

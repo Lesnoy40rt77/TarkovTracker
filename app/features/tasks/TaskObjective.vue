@@ -1,12 +1,18 @@
 <template>
   <div
     :id="`objective-${props.objective.id}`"
-    class="group focus-within:ring-primary-500 focus-within:ring-offset-surface-900 flex w-full items-start gap-4 rounded-md px-2 py-2 transition-colors focus-within:ring-2 focus-within:ring-offset-2"
+    role="button"
+    :tabindex="isParentTaskLocked ? -1 : 0"
+    :aria-label="objectiveAriaLabel"
+    :aria-disabled="isParentTaskLocked"
+    class="group focus-visible:ring-primary-500 focus-visible:ring-offset-surface-900 flex w-full items-start gap-4 rounded-md px-2 py-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2"
     :class="[
       isComplete ? 'bg-success-500/10' : 'hover:bg-white/5',
       isParentTaskLocked ? 'cursor-not-allowed opacity-80' : 'cursor-pointer',
     ]"
     @click="handleRowClick"
+    @keydown.enter="handleRowClick"
+    @keydown.space.prevent="handleRowClick"
     @mouseenter="objectiveMouseEnter()"
     @mouseleave="objectiveMouseLeave()"
   >
@@ -14,7 +20,13 @@
       :name="objectiveIcon.startsWith('mdi-') ? `i-${objectiveIcon}` : objectiveIcon"
       aria-hidden="true"
       class="mt-1.5 h-4 w-4 shrink-0"
-      :class="isComplete ? 'text-success-300' : 'text-surface-400 group-hover:text-surface-300'"
+      :class="
+        isComplete
+          ? 'text-success-300'
+          : isParentTaskLocked
+            ? 'text-surface-400'
+            : 'text-surface-300 group-hover:text-surface-200'
+      "
     />
     <div class="flex flex-1 flex-wrap items-center gap-2">
       <div class="min-w-0">
@@ -102,7 +114,7 @@
   import type { TaskObjective } from '@/types/tarkov';
   const { t } = useI18n({ useScope: 'global' });
   const jumpToMapObjective = inject<((id: string) => void) | null>('jumpToMapObjective', null);
-  const isMapView = inject('isMapView', ref(false));
+  const isMapView = inject<Ref<boolean>>('isMapView', ref(false));
   const { systemStore } = useSystemStoreWithSupabase();
   // Define the props for the component
   const props = defineProps<{
@@ -129,6 +141,12 @@
       ? t('page.tasks.questcard.uncomplete', 'Uncomplete')
       : t('page.tasks.questcard.complete', 'Complete');
     return `${actionLabel}: ${objectiveLabel.value}`;
+  });
+  const objectiveAriaLabel = computed(() => {
+    const status = isComplete.value
+      ? t('page.tasks.questcard.completed', 'Completed')
+      : t('page.tasks.questcard.notCompleted', 'Not completed');
+    return `${objectiveLabel.value}. ${status}. ${toggleObjectiveLabel.value}`;
   });
   const fullObjective = computed(() => {
     return objectives.value.find((o) => o.id == props.objective.id);

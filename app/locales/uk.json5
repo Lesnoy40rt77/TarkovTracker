@@ -9,20 +9,29 @@
       title: 'Необхідні предмети',
     },
   },
-  navigation_drawer: {
-    toggle: 'Перемкнути меню',
-  },
   app_bar: {
     error_loading: 'Помилка завантаження даних Tarkov',
     loading: 'Завантаження даних Tarkov',
     logout_failed: 'Не вдалося вийти. Спробуйте ще раз.',
+    user_label: 'Користувач',
+    user_avatar_alt: 'Аватар користувача',
     overflow_menu: {
       language: 'Мова',
     },
   },
   common: {
+    cancel: 'Скасувати',
     close: 'Закрити',
     refreshbutton: 'Спробувати знову',
+  },
+  importConfirm: {
+    title: 'Підтвердити імпорт даних',
+    description: 'Це імпортує ваші дані прогресу у ваш PvP-профіль:',
+    targetMode: 'Цільовий режим гри: PvP',
+    notice: 'Дані буде імпортовано у ваш PvP-прогрес (стандартний мультиплеєр)',
+    listTitle: 'Дані для імпорту:',
+    warning: 'Попередження: цю дію неможливо скасувати!',
+    confirm: 'Підтвердити імпорт',
   },
   offlineMode: {
     title: 'Робота в автономному режимі',
@@ -124,6 +133,7 @@
         tasks: 'завдань',
         loyaltyLevel: 'Рівень лояльності',
         reputation: 'Репутація',
+        scavKarma: 'Карма Дикого',
       },
       stats: {
         available: {
@@ -150,6 +160,23 @@
           stat: 'Завдання Каппа',
           details: 'Завдання необхідні для контейнера Каппа.',
         },
+      },
+    },
+    changelog: {
+      title: 'Історія змін',
+      description: 'Переглядайте останні оновлення та зміни TarkovTracker.',
+      back: 'Назад до приладової панелі',
+      loading: 'Завантаження історії змін...',
+      error: 'Не вдалося завантажити історію змін.',
+      retry: 'Повторити',
+      empty: 'Поки немає записів історії змін.',
+      loadMore: 'Завантажити ще',
+      types: {
+        added: 'Додано',
+        fixed: 'Виправлено',
+        improved: 'Покращено',
+        updated: 'Оновлено',
+        changed: 'Змінено',
       },
     },
     tasks: {
@@ -201,6 +228,7 @@
         },
       },
       notasksfound: 'Завдання не знайдено. Спробуйте змінити фільтри або оновити рівень.',
+      notasksfound_description: 'Змініть фільтри або вимоги до рівня, щоб побачити доступні завдання.',
       showing_all_sources: 'Показати всі джерела',
       loading: 'Завантажуємо завдання',
       selectedTask: 'Обране завдання',
@@ -212,6 +240,10 @@
         pinTask: 'Закріпити завдання',
         unpinTask: 'Відкріпити завдання',
         level: 'Потрібний рівень: {count}',
+        levelBadge: 'Рів. {count}',
+        fenceRepBadge: 'Fence {rep}',
+        fenceRepTooltip: 'Потрібна репутація у Fence {rep}',
+        traderLevelTooltip: 'Потрібен рівень лояльності {level} у {trader}',
         traderLevelBadge: '{trader} LL{level}',
         wiki: 'Wiki сторінка',
         lockedbefore: 'Завдань до: {count}',
@@ -219,6 +251,7 @@
         reportDataIssue: 'Повідомити про помилку даних',
         viewOnTarkovDev: 'Відкрити на Tarkov.dev',
         viewOnWiki: 'Відкрити у вікі',
+        viewTaskOnWiki: 'Відкрити {name} у вікі',
         completebutton: 'Завершено',
         availablebutton: 'Відзначити Доступним',
         uncompletebutton: 'Відзначити Незавершене',
@@ -255,6 +288,7 @@
         itemsCount: '{count} предметів',
         kappaTooltip: 'Це завдання необхідне для отримання контейнера Kappa',
         kapparequired: 'KAPPA ПОТРІБНА',
+        blockedTooltip: 'Це завдання назавжди заблоковане і ніколи не може бути виконане через рішення, прийняті в інших завданнях',
         levelBadgeTooltip: 'Мінімальний рівень гравця {level} потрібен для відкриття цього завдання',
         lightkeeperTooltip: 'Це завдання необхідне для відкриття торговця Lightkeeper',
         lightkeeperrequired: 'LIGHTKEEPER ПОТРІБЕН',
@@ -362,6 +396,12 @@
         close: 'Закрити',
         items_hide_non_fir: 'Приховати необхідні предмети які не повинні бути знайдені в рейді',
         items_show_non_fir: 'Показати необхідні предмети які не повинні бути знайдені в рейді',
+      },
+      aria: {
+        decreaseFir: 'Зменшити кількість ЗВР',
+        increaseFir: 'Збільшити кількість ЗВР',
+        decreaseNonFir: 'Зменшити кількість не-ЗВР',
+        increaseNonFir: 'Збільшити кількість не-ЗВР',
       },
     },
     settings: {
@@ -574,6 +614,7 @@
   },
   navigation_drawer: {
     brand_name: 'TarkovTracker.org',
+    toggle: 'Перемкнути меню',
     home: 'Головна',
     api: 'API',
     login: 'Увійти',
@@ -737,6 +778,14 @@
     danger_zone: {
       title: 'Небезпечна зона',
     },
+  },
+  hideout: {
+    collapse: 'Згорнути',
+    expand: 'Розгорнути',
+  },
+  skills: {
+    requiredFor: 'Потрібно для: {items}',
+    requiredLevels: 'Потрібні рівні: {items}',
   },
   generic: {
     item: 'Предмет',

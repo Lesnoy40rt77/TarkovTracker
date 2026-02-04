@@ -1,43 +1,34 @@
 import { defineStore } from 'pinia';
-import type { Store } from 'pinia';
-import { computed } from 'vue';
-import type { UserProgressData, UserState } from '@/stores/progressState';
+import {
+  getCompletionFlags,
+  getTaskStatusFromFlags,
+  isTaskActive,
+  isTaskComplete,
+  isTaskFailed,
+} from '@/composables/useTaskStatus';
 import { useMetadataStore } from '@/stores/useMetadata';
 import { usePreferencesStore } from '@/stores/usePreferences';
 import { useTarkovStore } from '@/stores/useTarkov';
 import { useTeammateStores, useTeamStore } from '@/stores/useTeamStore';
-import type { GameEdition, Task, TaskRequirement } from '@/types/tarkov';
-import { GAME_MODES, SPECIAL_STATIONS, TASK_STATE, TRADER_UNLOCK_TASKS } from '@/utils/constants';
+import {
+  GAME_MODES,
+  SPECIAL_STATIONS,
+  TASK_STATE,
+  TRADER_UNLOCK_TASKS,
+  type TaskState,
+} from '@/utils/constants';
 import { logger } from '@/utils/logger';
 import { perfEnd, perfStart } from '@/utils/perf';
 import { computeInvalidProgress } from '@/utils/progressInvalidation';
+import type { UserProgressData, UserState } from '@/stores/progressState';
+import type { GameEdition, Task, TaskRequirement } from '@/types/tarkov';
+import type { Store } from 'pinia';
 function getGameModeData(store: Store<string, UserState> | undefined): UserProgressData {
   if (!store) return {} as UserProgressData;
   const currentGameMode = store.$state.currentGameMode || GAME_MODES.PVP;
   const gameModeState = store.$state[currentGameMode as keyof UserState];
   return (gameModeState || store.$state) as UserProgressData;
 }
-type RawTaskCompletion = { complete?: boolean; failed?: boolean } | boolean | null | undefined;
-const getCompletionFlags = (completion: RawTaskCompletion) => {
-  if (typeof completion === 'boolean') {
-    return { complete: completion, failed: false };
-  }
-  return {
-    complete: completion?.complete === true,
-    failed: completion?.failed === true,
-  };
-};
-const isTaskComplete = (completion?: RawTaskCompletion) => {
-  const flags = getCompletionFlags(completion);
-  return flags.complete && !flags.failed;
-};
-const isTaskFailed = (completion?: RawTaskCompletion) => {
-  return getCompletionFlags(completion).failed;
-};
-const isTaskActiveRecord = (completion?: RawTaskCompletion) => {
-  if (!completion) return false;
-  return !isTaskComplete(completion) && !isTaskFailed(completion);
-};
 type TeamStoresMap = Record<string, Store<string, UserState>>;
 type CompletionsMap = Record<string, Record<string, boolean>>;
 type FailedTasksMap = Record<string, Record<string, boolean>>;
@@ -100,48 +91,37 @@ export const useProgressStore = defineStore('progress', () => {
     logger.debug('[ProgressStore] Visible team stores:', Object.keys(visibleStores));
     return visibleStores;
   });
-  const tasksCompletions = computed(() => {
-    const perfTimer = perfStart('[Progress] tasksCompletions', {
+  const taskStatusFlags = computed(() => {
+    const perfTimer = perfStart('[Progress] taskStatusFlags', {
       tasks: metadataStore.tasks.length,
     });
     const completions: CompletionsMap = {};
+    const failures: FailedTasksMap = {};
     if (!metadataStore.tasks.length || !visibleTeamStores.value) {
       perfEnd(perfTimer, { skipped: true });
-      return {};
+      return { completions: {}, failures: {} };
     }
-    const teamCount = Object.keys(visibleTeamStores.value).length;
+    const teamIds = Object.keys(visibleTeamStores.value);
+    const teamDataCache = new Map<string, UserProgressData>();
+    for (const teamId of teamIds) {
+      const store = visibleTeamStores.value[teamId];
+      teamDataCache.set(teamId, getGameModeData(store));
+    }
     for (const task of metadataStore.tasks as Task[]) {
       completions[task.id] = {};
-      for (const teamId of Object.keys(visibleTeamStores.value)) {
-        const store = visibleTeamStores.value[teamId];
-        const currentData = getGameModeData(store);
+      failures[task.id] = {};
+      for (const teamId of teamIds) {
+        const currentData = teamDataCache.get(teamId)!;
         const completionFlags = getCompletionFlags(currentData?.taskCompletions?.[task.id]);
         completions[task.id]![teamId] = completionFlags.complete;
-      }
-    }
-    perfEnd(perfTimer, { tasks: metadataStore.tasks.length, teams: teamCount });
-    return completions;
-  });
-  const tasksFailed = computed(() => {
-    const perfTimer = perfStart('[Progress] tasksFailed', { tasks: metadataStore.tasks.length });
-    const failures: FailedTasksMap = {};
-    if (!metadataStore.tasks.length || Object.keys(visibleTeamStores.value).length === 0) {
-      perfEnd(perfTimer, { skipped: true });
-      return {};
-    }
-    const teamCount = Object.keys(visibleTeamStores.value).length;
-    for (const task of metadataStore.tasks as Task[]) {
-      failures[task.id] = {};
-      for (const teamId of Object.keys(visibleTeamStores.value)) {
-        const store = visibleTeamStores.value[teamId];
-        const currentData = getGameModeData(store);
-        const completionFlags = getCompletionFlags(currentData?.taskCompletions?.[task.id]);
         failures[task.id]![teamId] = completionFlags.failed;
       }
     }
-    perfEnd(perfTimer, { tasks: metadataStore.tasks.length, teams: teamCount });
-    return failures;
+    perfEnd(perfTimer, { tasks: metadataStore.tasks.length, teams: teamIds.length });
+    return { completions, failures };
   });
+  const tasksCompletions = computed(() => taskStatusFlags.value.completions);
+  const tasksFailed = computed(() => taskStatusFlags.value.failures);
   const gameEditionData = computed<GameEdition[]>(() => metadataStore.editions);
   const traderLevelsAchieved = computed(() => {
     const perfTimer = perfStart('[Progress] traderLevelsAchieved', {
@@ -244,7 +224,7 @@ export const useProgressStore = defineStore('progress', () => {
         const completion = teamData.completions[reqTaskId];
         const isComplete = isTaskComplete(completion);
         const isFailed = isTaskFailed(completion);
-        const isActive = isTaskActiveRecord(completion);
+        const isActive = isTaskActive(completion);
         if (requiresComplete && isComplete) return true;
         if (requiresFailed && isFailed) return true;
         if (requiresActive) {
@@ -729,10 +709,7 @@ export const useProgressStore = defineStore('progress', () => {
     const store = teamStores.value[storeKey];
     const currentData = getGameModeData(store);
     const taskCompletion = currentData?.taskCompletions?.[taskId];
-    const flags = getCompletionFlags(taskCompletion);
-    if (flags.failed) return 'failed';
-    if (flags.complete) return 'completed';
-    return 'incomplete';
+    return getTaskStatusFromFlags(taskCompletion);
   };
   const getProgressPercentage = (teamId: string, category: string): number => {
     const storeKey = getTeamIndex(teamId);
@@ -760,24 +737,21 @@ export const useProgressStore = defineStore('progress', () => {
         return 0;
     }
   };
-  const tasksState = computed<Record<string, number>>(() => {
-    const state: Record<string, number> = {};
+  const tasksState = computed<Record<string, TaskState>>(() => {
+    const state: Record<string, TaskState> = {};
     const tasks = metadataStore.tasks as Task[];
     if (!tasks.length) return {};
     const store = teamStores.value['self'];
     const currentData = getGameModeData(store);
     const completions = currentData?.taskCompletions ?? {};
-    // We can use the unlockedTasks computed, but be careful of reactivity loops if it depends on this.
-    // unlockedTasks depends on tasks, visibleTeamStores, getGameModeData. It doesn't depend on tasksState.
-    // However, unlockedTasks is Record<taskId, Record<teamId, boolean>>
     for (const task of tasks) {
       const taskId = task.id;
       const completion = completions[taskId];
-      if (completion?.complete && !completion?.failed) {
+      if (isTaskComplete(completion)) {
         state[taskId] = TASK_STATE.COMPLETE;
-      } else if (completion?.failed) {
+      } else if (isTaskFailed(completion)) {
         state[taskId] = TASK_STATE.FAILED;
-      } else if (isTaskActiveRecord(completion)) {
+      } else if (isTaskActive(completion)) {
         state[taskId] = TASK_STATE.ACTIVE;
       } else if (unlockedTasks.value[taskId]?.['self']) {
         state[taskId] = TASK_STATE.AVAILABLE;

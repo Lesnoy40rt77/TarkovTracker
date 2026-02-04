@@ -28,7 +28,7 @@
         marginLeft: mainMarginLeft,
       }"
     >
-      <div :class="contentWrapperClass">
+      <div class="scoped-main-content" :class="contentWrapperClass">
         <slot />
       </div>
     </main>
@@ -43,7 +43,6 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed, defineAsyncComponent } from 'vue';
   import { useRoute } from 'vue-router';
   import { useSharedBreakpoints } from '@/composables/useSharedBreakpoints';
   import { useAppStore } from '@/stores/useApp';

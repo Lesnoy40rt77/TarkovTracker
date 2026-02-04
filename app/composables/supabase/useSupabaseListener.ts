@@ -1,23 +1,13 @@
 // Framework imports
+// Library imports
+import { devLog, logger } from '@/utils/logger';
+import { clearStaleState, resetStore, safePatchStore } from '@/utils/storeHelpers';
 import type {
   PostgrestError,
   RealtimeChannel,
   RealtimePostgresChangesPayload,
 } from '@supabase/supabase-js';
 import type { Store } from 'pinia';
-import {
-  getCurrentInstance,
-  isRef,
-  onUnmounted,
-  ref,
-  unref,
-  watch,
-  type ComputedRef,
-  type Ref,
-} from 'vue';
-// Library imports
-import { devLog, logger } from '@/utils/logger';
-import { clearStaleState, resetStore, safePatchStore } from '@/utils/storeHelpers';
 // Local imports
 export interface SupabaseListenerConfig {
   store: Store;

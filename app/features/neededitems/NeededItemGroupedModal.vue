@@ -82,7 +82,7 @@
               >
                 <div class="flex min-w-0 flex-1 items-center gap-2">
                   <router-link
-                    :to="`/tasks?task=${obj.taskId}`"
+                    :to="{ path: '/tasks', query: { task: obj.taskId } }"
                     class="flex min-w-0 items-center gap-2 no-underline"
                   >
                     <img
@@ -223,6 +223,7 @@
   import NeededItemGroupedInputControls from '@/features/neededitems/NeededItemGroupedInputControls.vue';
   import { useMetadataStore } from '@/stores/useMetadata';
   import { useTarkovStore } from '@/stores/useTarkov';
+  import { logger } from '@/utils/logger';
   import type {
     GroupedItemInfo,
     NeededItemHideoutModule,
@@ -345,20 +346,28 @@
   const canSmartFill = computed(() => firInput.value > 0 || nonFirInput.value > 0);
   const isComplete = computed(() => currentTotal.value >= totalNeeded.value);
   const handleSmartFill = () => {
-    const result = distributeItems(
-      firInput.value,
-      nonFirInput.value,
-      taskObjectivesList.value,
-      hideoutModulesList.value
-    );
-    applyDistribution(result);
-    firInput.value = 0;
-    nonFirInput.value = 0;
+    try {
+      const result = distributeItems(
+        firInput.value,
+        nonFirInput.value,
+        taskObjectivesList.value,
+        hideoutModulesList.value
+      );
+      applyDistribution(result);
+      firInput.value = 0;
+      nonFirInput.value = 0;
+    } catch (error) {
+      logger.error('Failed to smart fill needed items.', error);
+    }
   };
   const handleReset = () => {
-    resetObjectives(taskObjectivesList.value, hideoutModulesList.value);
-    firInput.value = 0;
-    nonFirInput.value = 0;
+    try {
+      resetObjectives(taskObjectivesList.value, hideoutModulesList.value);
+      firInput.value = 0;
+      nonFirInput.value = 0;
+    } catch (error) {
+      logger.error('Failed to reset needed items.', error);
+    }
   };
   const increaseObjective = (obj: NeededItemTaskObjective) => {
     const current = getObjectiveCount(obj);

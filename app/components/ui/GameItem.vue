@@ -18,6 +18,7 @@
       <img
         v-if="isVisible && computedImageSrc"
         :src="computedImageSrc"
+        :alt="props.itemName || 'Item'"
         :class="[
           fill ? 'max-h-full max-w-full object-contain' : 'h-full w-full object-contain',
           imageElementClasses,
@@ -42,9 +43,9 @@
           :width="imageSize"
           :height="imageSize"
           :src="computedImageSrc"
+          :alt="props.itemName || 'Item'"
           :class="imageClasses"
           class="rounded"
-          alt="Item Icon"
           @error="handleImgError"
         />
       </div>
@@ -181,11 +182,9 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed, defineAsyncComponent, ref } from 'vue';
-  import ContextMenu from '@/components/ui/ContextMenu.vue';
-  import ContextMenuItem from '@/components/ui/ContextMenuItem.vue';
   import { useLocaleNumberFormatter } from '@/utils/formatters';
   import { logger } from '@/utils/logger';
+  import type ContextMenu from '@/components/ui/ContextMenu.vue';
   const ItemCountControls = defineAsyncComponent(
     () => import('@/features/neededitems/ItemCountControls.vue')
   );
@@ -365,10 +364,14 @@
       window.open(props.wikiLink, '_blank');
     }
   };
-  const copyItemName = () => {
+  const copyItemName = async () => {
     const textToCopy = props.copyValue || props.itemName;
     if (textToCopy) {
-      navigator.clipboard.writeText(textToCopy);
+      try {
+        await navigator.clipboard.writeText(textToCopy);
+      } catch (error) {
+        logger.error('[GameItem] Failed to copy item name:', error);
+      }
     }
   };
   const handleClick = (event: MouseEvent) => {

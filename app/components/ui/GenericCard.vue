@@ -79,7 +79,6 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed } from 'vue';
   import type { SemanticColor } from '@/types/theme';
   interface Props {
     // Header props

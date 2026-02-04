@@ -22,7 +22,7 @@ export function filterTasksByTypeSettings(
   return taskList.filter((task) => {
     if (excludedTaskIds.has(task.id)) return false;
     if (prestigeTaskMap.has(task.id)) {
-      const taskPrestigeLevel = prestigeTaskMap.get(task.id);
+      const taskPrestigeLevel = prestigeTaskMap.get(task.id)!;
       if (taskPrestigeLevel !== userPrestigeLevel) return false;
     }
     const isKappaRequired = task.kappaRequired === true;
@@ -52,7 +52,9 @@ export function buildTaskTypeFilterOptions(
   return {
     showKappa: !preferencesStore.getHideNonKappaTasks,
     showLightkeeper: preferencesStore.getShowLightkeeperTasks,
-    showNonSpecial: preferencesStore.getShowNonSpecialTasks,
+    showNonSpecial: preferencesStore.getHideNonKappaTasks
+      ? false
+      : preferencesStore.getShowNonSpecialTasks,
     userPrestigeLevel: tarkovStore.getPrestigeLevel(),
     prestigeTaskMap: metadataStore.prestigeTaskMap,
     excludedTaskIds: metadataStore.getExcludedTaskIdsForEdition(tarkovStore.getGameEdition()),

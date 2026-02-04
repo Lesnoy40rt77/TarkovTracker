@@ -74,7 +74,6 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed } from 'vue';
   import { useMetadataStore } from '@/stores/useMetadata';
   const metadataStore = useMetadataStore();
   const props = defineProps({

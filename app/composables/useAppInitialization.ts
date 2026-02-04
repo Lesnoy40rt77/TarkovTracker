@@ -1,5 +1,5 @@
-import { onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useToastI18n } from '@/composables/useToastI18n';
 import { usePreferencesStore } from '@/stores/usePreferences';
 import { initializeTarkovSync, resetTarkovSync, useTarkovStore } from '@/stores/useTarkov';
 import { logger } from '@/utils/logger';
@@ -13,8 +13,9 @@ export function useAppInitialization() {
   const { $supabase } = useNuxtApp();
   const preferencesStore = usePreferencesStore();
   const { locale, availableLocales } = useI18n({ useScope: 'global' });
+  const { showLoadFailed } = useToastI18n();
   const isAvailableLocale = (value: string): value is typeof locale.value =>
-    availableLocales.includes(value as typeof locale.value);
+    (availableLocales as readonly string[]).includes(value);
   let syncStarted = false;
   let migrationAttempted = false;
   const startSyncIfNeeded = async () => {
@@ -25,18 +26,19 @@ export function useAppInitialization() {
     } catch (error) {
       syncStarted = false;
       logger.error('[useAppInitialization] Error initializing Supabase sync:', error);
+      showLoadFailed();
     }
   };
   const runMigrationIfNeeded = async () => {
     if (!import.meta.client || !$supabase.user.loggedIn || migrationAttempted) return;
     try {
       const store = useTarkovStore();
-      // migrateDataIfNeeded is safe to call repeatedly; internal guard checks shape
       await store.migrateDataIfNeeded?.();
       migrationAttempted = true;
     } catch (error) {
-      migrationAttempted = false; // allow another attempt on next login change
+      migrationAttempted = false;
       logger.error('[useAppInitialization] Error running data migration:', error);
+      showLoadFailed();
     }
   };
   // React to authentication changes so login-after-load users get sync/migration too

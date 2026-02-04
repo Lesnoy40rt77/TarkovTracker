@@ -1,6 +1,6 @@
 import { type _GettersTree, defineStore, type StateTree } from 'pinia';
-import { watch } from 'vue';
 import { useSupabaseSync } from '@/composables/supabase/useSupabaseSync';
+import { useToastI18n } from '@/composables/useToastI18n';
 import {
   actions,
   defaultState,
@@ -14,10 +14,10 @@ import {
 } from '@/stores/progressState';
 import { useMetadataStore } from '@/stores/useMetadata';
 import { usePreferencesStore } from '@/stores/usePreferences';
-import type { GameEdition, HideoutStation, Task } from '@/types/tarkov';
 import { GAME_MODES, SPECIAL_STATIONS, type GameMode } from '@/utils/constants';
 import { logger } from '@/utils/logger';
 import { STORAGE_KEYS } from '@/utils/storageKeys';
+import type { GameEdition, HideoutStation, Task } from '@/types/tarkov';
 // ============================================================================
 // Constants
 // ============================================================================
@@ -57,6 +57,7 @@ type TarkovStoreInstance = UserState & {
     gameModeData: UserProgressData,
     tasksMap: Map<string, Task>
   ): number;
+  setTasksAndObjectivesUncompleted(taskIds: string[], objectiveIds: string[]): void;
   enforceHideoutPrereqsNow(): number;
   markTaskAsFailed(
     taskId: string,
@@ -112,21 +113,27 @@ const mergeCountableObjects = <T extends Record<string, CountableEntry>>(
   }
   return merged;
 };
+const getToastTranslate = () => {
+  try {
+    const { $i18n } = useNuxtApp();
+    return $i18n?.t?.bind($i18n) ?? ((key: string) => key);
+  } catch {
+    return (key: string) => key;
+  }
+};
 const notifyHideoutPrereqEnforcement = (removedCount: number) => {
   if (!removedCount || !import.meta.client) return;
   try {
-    const toast = useToast();
-    toast.add({
-      title: 'Hideout updated',
-      description: `Removed ${removedCount} station upgrade${removedCount === 1 ? '' : 's'} that no longer meet prerequisites.`,
-      color: 'warning',
-    });
+    const toastI18n = useToastI18n(getToastTranslate());
+    toastI18n.showHideoutUpdated(removedCount);
   } catch (error) {
     logger.warn('[TarkovStore] Could not show hideout enforcement toast:', error);
   }
 };
 type HideoutModuleMeta = {
   id: string;
+  stationId: string;
+  level: number;
   stationLevelRequirements: HideoutStation['levels'][number]['stationLevelRequirements'];
   skillRequirements: HideoutStation['levels'][number]['skillRequirements'];
   traderRequirements: HideoutStation['levels'][number]['traderRequirements'];
@@ -138,6 +145,8 @@ const buildHideoutModuleMeta = (stations: HideoutStation[]): HideoutModuleMeta[]
     for (const level of station.levels ?? []) {
       modules.push({
         id: level.id,
+        stationId: station.id,
+        level: level.level ?? 0,
         stationLevelRequirements: level.stationLevelRequirements ?? [],
         skillRequirements: level.skillRequirements ?? [],
         traderRequirements: level.traderRequirements ?? [],
@@ -147,31 +156,17 @@ const buildHideoutModuleMeta = (stations: HideoutStation[]): HideoutModuleMeta[]
   }
   return modules;
 };
-const computeStationLevels = (
-  stations: HideoutStation[],
-  completedModuleIds: Set<string>,
-  edition: GameEdition | undefined
-) => {
-  const levels = new Map<string, number>();
-  for (const station of stations) {
-    const maxLevel = station.levels?.length ?? 0;
-    let baseLevel = 0;
-    if (station.normalizedName === SPECIAL_STATIONS.STASH) {
-      baseLevel = Math.min(edition?.defaultStashLevel ?? 0, maxLevel);
-    } else if (station.normalizedName === SPECIAL_STATIONS.CULTIST_CIRCLE) {
-      baseLevel = Math.min(edition?.defaultCultistCircleLevel ?? 0, maxLevel);
-    }
-    let completedLevel = 0;
-    for (const level of station.levels ?? []) {
-      if (completedModuleIds.has(level.id)) {
-        completedLevel = Math.max(completedLevel, level.level);
-      }
-    }
-    levels.set(station.id, Math.max(baseLevel, completedLevel));
+const getStationBaseLevel = (station: HideoutStation, edition: GameEdition | undefined) => {
+  const maxLevel = station.levels?.length ?? 0;
+  if (station.normalizedName === SPECIAL_STATIONS.STASH) {
+    return Math.min(edition?.defaultStashLevel ?? 0, maxLevel);
   }
-  return levels;
+  if (station.normalizedName === SPECIAL_STATIONS.CULTIST_CIRCLE) {
+    return Math.min(edition?.defaultCultistCircleLevel ?? 0, maxLevel);
+  }
+  return 0;
 };
-const resolveInvalidHideoutModules = (
+const resolveValidHideoutModules = (
   modules: HideoutModuleMeta[],
   stations: HideoutStation[],
   completedModuleIds: Set<string>,
@@ -184,45 +179,86 @@ const resolveInvalidHideoutModules = (
     traders: Record<string, { level?: number }>;
   }
 ) => {
-  const removed = new Set<string>();
-  let changed = true;
-  while (changed) {
-    changed = false;
-    const stationLevels = computeStationLevels(stations, completedModuleIds, edition);
-    for (const module of modules) {
-      if (!completedModuleIds.has(module.id)) continue;
-      const stationReqsMet =
-        !options.requireStationLevels ||
-        (module.stationLevelRequirements?.every((req) => {
-          const currentLevel = stationLevels.get(req.station.id) ?? 0;
-          return currentLevel >= req.level;
-        }) ??
-          true);
-      const skillReqsMet =
-        !options.requireSkillLevels ||
-        (module.skillRequirements?.every((req) => {
-          if (!req?.name || typeof req?.level !== 'number') return true;
-          const currentLevel = options.skills?.[req.name] ?? 0;
-          return currentLevel >= req.level;
-        }) ??
-          true);
-      const traderReqsMet =
-        !options.requireTraderLoyalty ||
-        (module.traderRequirements?.every((req) => {
-          if (!req?.trader?.id || typeof req?.value !== 'number') return true;
-          const currentLevel = options.traders?.[req.trader.id]?.level ?? 1;
-          return currentLevel >= req.value;
-        }) ??
-          true);
-      const prereqsMet = stationReqsMet && skillReqsMet && traderReqsMet;
-      if (!prereqsMet) {
-        completedModuleIds.delete(module.id);
-        removed.add(module.id);
-        changed = true;
-      }
-    }
+  const modulesByStation = new Map<string, HideoutModuleMeta[]>();
+  for (const module of modules) {
+    const list = modulesByStation.get(module.stationId) ?? [];
+    list.push(module);
+    modulesByStation.set(module.stationId, list);
   }
-  return removed;
+  for (const list of modulesByStation.values()) {
+    list.sort((a, b) => a.level - b.level);
+  }
+  const baseLevels = new Map<string, number>();
+  for (const station of stations) {
+    baseLevels.set(station.id, getStationBaseLevel(station, edition));
+  }
+  let stationLevels = new Map(baseLevels);
+  let validModules = new Set<string>();
+  const maxIterations = Math.max(5, modules.length * 2);
+  let iterations = 0;
+  for (; iterations < maxIterations; iterations++) {
+    const nextLevels = new Map(baseLevels);
+    const nextValidModules = new Set<string>();
+    for (const station of stations) {
+      const baseLevel = baseLevels.get(station.id) ?? 0;
+      let currentLevel = baseLevel;
+      const stationModules = modulesByStation.get(station.id) ?? [];
+      for (const module of stationModules) {
+        if (module.level <= baseLevel) {
+          if (completedModuleIds.has(module.id)) {
+            nextValidModules.add(module.id);
+          }
+          continue;
+        }
+        if (!completedModuleIds.has(module.id)) break;
+        const stationReqsMet =
+          !options.requireStationLevels ||
+          (module.stationLevelRequirements?.every((req) => {
+            const requiredLevel = stationLevels.get(req.station.id) ?? 0;
+            return requiredLevel >= req.level;
+          }) ??
+            true);
+        const skillReqsMet =
+          !options.requireSkillLevels ||
+          (module.skillRequirements?.every((req) => {
+            if (!req?.name || typeof req?.level !== 'number') return true;
+            const playerSkillLevel = options.skills?.[req.name] ?? 0;
+            return playerSkillLevel >= req.level;
+          }) ??
+            true);
+        const traderReqsMet =
+          !options.requireTraderLoyalty ||
+          (module.traderRequirements?.every((req) => {
+            if (!req?.trader?.id || typeof req?.value !== 'number') return true;
+            const playerTraderLevel = options.traders?.[req.trader.id]?.level ?? 1;
+            return playerTraderLevel >= req.value;
+          }) ??
+            true);
+        if (stationReqsMet && skillReqsMet && traderReqsMet) {
+          currentLevel = module.level;
+          nextValidModules.add(module.id);
+        } else {
+          break;
+        }
+      }
+      nextLevels.set(station.id, currentLevel);
+    }
+    const levelsStable =
+      stationLevels.size === nextLevels.size &&
+      Array.from(stationLevels.entries()).every(
+        ([stationId, level]) => nextLevels.get(stationId) === level
+      );
+    const modulesStable =
+      validModules.size === nextValidModules.size &&
+      Array.from(validModules).every((moduleId) => nextValidModules.has(moduleId));
+    stationLevels = nextLevels;
+    validModules = nextValidModules;
+    if (levelsStable && modulesStable) break;
+  }
+  if (iterations >= maxIterations) {
+    logger.warn('[TarkovStore] Hideout validation hit iteration cap.');
+  }
+  return validModules;
 };
 const enforceHideoutPrereqs = (store: TarkovStoreInstance): string[] => {
   const metadataStore = useMetadataStore();
@@ -245,19 +281,19 @@ const enforceHideoutPrereqs = (store: TarkovStoreInstance): string[] => {
   const modules = buildHideoutModuleMeta(stations);
   if (!modules.length) return [];
   const edition = metadataStore.editions.find((entry) => entry.value === store.gameEdition);
-  const removedModules = resolveInvalidHideoutModules(
-    modules,
-    stations,
-    completedModuleIds,
-    edition,
-    {
-      requireStationLevels,
-      requireSkillLevels,
-      requireTraderLoyalty,
-      skills: currentData.skills ?? {},
-      traders: currentData.traders ?? {},
+  const validModules = resolveValidHideoutModules(modules, stations, completedModuleIds, edition, {
+    requireStationLevels,
+    requireSkillLevels,
+    requireTraderLoyalty,
+    skills: currentData.skills ?? {},
+    traders: currentData.traders ?? {},
+  });
+  const removedModules = new Set<string>();
+  for (const moduleId of completedModuleIds) {
+    if (!validModules.has(moduleId)) {
+      removedModules.add(moduleId);
     }
-  );
+  }
   if (!removedModules.size) return [];
   const modulesById = new Map(modules.map((module) => [module.id, module]));
   for (const moduleId of removedModules) {
@@ -338,6 +374,19 @@ const tarkovActions = {
     actions.setTraderLevel.call(this, traderId, level);
     const removedModules = enforceHideoutPrereqs(this);
     notifyHideoutPrereqEnforcement(removedModules.length);
+  },
+  setTasksAndObjectivesUncompleted(
+    this: TarkovStoreInstance,
+    taskIds: string[],
+    objectiveIds: string[]
+  ) {
+    if (!taskIds.length && !objectiveIds.length) return;
+    for (const taskId of taskIds) {
+      actions.setTaskUncompleted.call(this, taskId);
+    }
+    for (const objectiveId of objectiveIds) {
+      actions.setTaskObjectiveUncomplete.call(this, objectiveId);
+    }
   },
   enforceHideoutPrereqsNow(this: TarkovStoreInstance) {
     const removedModules = enforceHideoutPrereqs(this);
@@ -732,6 +781,7 @@ const tarkovActions = {
     gameModeData: UserProgressData,
     tasksMap: Map<string, Task>
   ): number;
+  setTasksAndObjectivesUncompleted(taskIds: string[], objectiveIds: string[]): void;
   enforceHideoutPrereqsNow(): number;
   markTaskAsFailed(
     taskId: string,
@@ -909,6 +959,7 @@ export async function initializeTarkovSync() {
   const tarkovStore = useTarkovStore();
   const { $supabase } = useNuxtApp();
   if (import.meta.client && $supabase.user.loggedIn) {
+    const toastI18n = useToastI18n(getToastTranslate());
     const currentUserId = $supabase.user.id;
     if (syncController) {
       if (syncUserId === currentUserId) {
@@ -941,15 +992,10 @@ export async function initializeTarkovSync() {
         return null;
       }
     };
-    const notifyLocalIgnored = (description: string) => {
+    const notifyLocalIgnored = (reason: 'otherAccount' | 'unsaved' | 'guest') => {
       if (!import.meta.client || hasShownLocalIgnoreToast) return;
       try {
-        const toast = useToast();
-        toast.add({
-          title: 'Local progress ignored',
-          description,
-          color: 'warning',
-        });
+        toastI18n.showLocalIgnored(reason);
         hasShownLocalIgnoreToast = true;
       } catch (e) {
         logger.warn('[TarkovStore] Could not show toast notification:', e);
@@ -975,9 +1021,7 @@ export async function initializeTarkovSync() {
           localStorage.removeItem(STORAGE_KEYS.progress);
         }
         resetStoreToDefault();
-        notifyLocalIgnored(
-          'Local progress belongs to another account and was not applied to protect your cloud data.'
-        );
+        notifyLocalIgnored('otherAccount');
       }
       // Get current localStorage state (loaded by persist plugin)
       let localState = tarkovStore.$state;
@@ -987,9 +1031,7 @@ export async function initializeTarkovSync() {
         resetStoreToDefault();
         localState = tarkovStore.$state;
         hasLocalProgress = hasProgress(localState);
-        notifyLocalIgnored(
-          'Found temporary local progress that was not saved to your device; cloud progress was kept.'
-        );
+        notifyLocalIgnored('unsaved');
       }
       const progressScore = (state: UserState): number => {
         const scoreMode = (mode: UserProgressData | undefined) => {
@@ -1055,9 +1097,7 @@ export async function initializeTarkovSync() {
         const remoteUpdatedAt = data.updated_at ? Date.parse(data.updated_at) : null;
         const localOwnedByUser = storedUserId === currentUserId;
         if (hasLocalProgress && !localOwnedByUser && storedUserId === null) {
-          notifyLocalIgnored(
-            'Found local guest progress on this device; your cloud progress was kept.'
-          );
+          notifyLocalIgnored('guest');
         }
         let shouldPreferLocal = false;
         if (localOwnedByUser && localTimestamp && remoteUpdatedAt) {
@@ -1140,14 +1180,7 @@ export async function initializeTarkovSync() {
           // This prevents overwriting potentially existing data
           resetStoreToDefault();
           // Notify user of the issue
-          const toast = useToast();
-          toast.add({
-            title: 'Unable to load progress',
-            description:
-              'We detected an issue loading your account data. Please refresh the page or contact support if this persists.',
-            color: 'error',
-            duration: 10000,
-          });
+          toastI18n.showLoadFailed();
           return { ok: false, hadRemoteData: false };
         }
         // All safety checks passed - truly new user (or old account, first login)
