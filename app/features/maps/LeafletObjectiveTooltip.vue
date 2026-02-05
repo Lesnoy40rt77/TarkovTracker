@@ -125,7 +125,7 @@
   const isParentTaskLocked = computed(() => {
     const taskId = objective.value?.taskId;
     if (!taskId) return false;
-    const isTaskComplete = tarkovStore.isTaskComplete(taskId) && !tarkovStore.isTaskFailed(taskId);
+    const isTaskComplete = tarkovStore.isTaskComplete(taskId);
     const isTaskFailed = tarkovStore.isTaskFailed(taskId);
     return isTaskComplete || isTaskFailed;
   });

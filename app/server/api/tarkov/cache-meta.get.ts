@@ -50,7 +50,10 @@ export default defineEventHandler(async (event) => {
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
       logger.warn(`[CacheMeta] Cache meta request timed out after ${requestTimeoutMs}ms.`, error);
-      return { error: `Cache meta request timed out after ${requestTimeoutMs}ms.` };
+      return {
+        data: { lastPurgeAt: null },
+        error: `Cache meta request timed out after ${requestTimeoutMs}ms.`,
+      };
     }
     logger.error('[CacheMeta] Network error fetching cache meta.', {
       url: url.toString(),

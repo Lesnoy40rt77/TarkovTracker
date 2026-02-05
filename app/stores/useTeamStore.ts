@@ -543,10 +543,15 @@ export function useTeammateStores() {
           pendingRetryAttempts.value = 0;
           return;
         }
-        logger.error('Retry failed for teammate stores:', { failedTeammates });
+        logger.error('Retry failed for teammate stores:', {
+          failedTeammates,
+        });
         scheduleRetry(teammatesArray);
       } catch (e) {
-        logger.error('Retry failed for teammate stores:', e);
+        logger.error('Retry failed for teammate stores:', {
+          error: e,
+          attemptedTeammates: teammatesArray,
+        });
         scheduleRetry(teammatesArray);
       }
     }, delay);

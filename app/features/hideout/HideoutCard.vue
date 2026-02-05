@@ -9,8 +9,10 @@
     class="relative rounded-lg"
     :class="cardHighlightClasses"
     header-classes="pb-2"
-    @mouseenter="dismissHighlight"
-    @focusin="dismissHighlight"
+    @mouseenter="scheduleDismissHighlight"
+    @focusin="scheduleDismissHighlight"
+    @mouseleave="cancelDismissHighlightDebounce"
+    @focusout="cancelDismissHighlightDebounce"
   >
     <template #header>
       <div class="flex items-center justify-between pb-2 text-xl">
@@ -421,9 +423,26 @@
     if (!highlightActive.value || !highlightTargetsModule.value) return '';
     return buildHighlightClasses('after:ring-offset-surface-800');
   });
+  const HIGHLIGHT_DISMISS_DELAY_MS = 200;
+  let dismissHighlightTimer: ReturnType<typeof setTimeout> | null = null;
+  const clearDismissHighlightTimer = () => {
+    if (!dismissHighlightTimer) return;
+    clearTimeout(dismissHighlightTimer);
+    dismissHighlightTimer = null;
+  };
   const dismissHighlight = () => {
     if (!highlightActive.value) return;
     highlightDismissed.value = true;
+  };
+  const scheduleDismissHighlight = () => {
+    clearDismissHighlightTimer();
+    dismissHighlightTimer = setTimeout(() => {
+      dismissHighlightTimer = null;
+      dismissHighlight();
+    }, HIGHLIGHT_DISMISS_DELAY_MS);
+  };
+  const cancelDismissHighlightDebounce = () => {
+    clearDismissHighlightTimer();
   };
   const upgradeStation = () => {
     // Store next level to a variable because it can change mid-function
@@ -459,4 +478,7 @@
       color: 'error',
     });
   };
+  onUnmounted(() => {
+    clearDismissHighlightTimer();
+  });
 </script>

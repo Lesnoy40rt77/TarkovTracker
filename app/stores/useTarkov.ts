@@ -434,11 +434,17 @@ const tarkovActions = {
     taskIds: string[],
     objectiveIds: string[]
   ) {
-    if (!taskIds.length && !objectiveIds.length) return;
-    for (const taskId of taskIds) {
+    const validTaskIds = taskIds
+      .filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
+      .map((id) => id.trim());
+    const validObjectiveIds = objectiveIds
+      .filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
+      .map((id) => id.trim());
+    if (!validTaskIds.length && !validObjectiveIds.length) return;
+    for (const taskId of validTaskIds) {
       actions.setTaskUncompleted.call(this, taskId);
     }
-    for (const objectiveId of objectiveIds) {
+    for (const objectiveId of validObjectiveIds) {
       actions.setTaskObjectiveUncomplete.call(this, objectiveId);
     }
   },

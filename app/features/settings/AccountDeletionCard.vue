@@ -151,6 +151,7 @@
   };
   const getProviderColor = (provider: AuthProvider) => {
     if (provider === 'discord') return 'primary';
+    if (provider === 'twitch') return 'warning';
     if (provider === 'google') return 'error';
     if (provider === 'github') return 'neutral';
     return 'secondary';
@@ -306,7 +307,6 @@
     systemStore.$reset();
     teamStore.$reset();
     tarkovStore.$reset();
-    localStorage.clear();
   };
   const redirectToHome = async () => {
     try {

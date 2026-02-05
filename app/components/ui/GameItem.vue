@@ -378,6 +378,21 @@
           color: 'success',
         });
       } catch (error) {
+        const clipboardErrorTitle = t('toast.clipboard_error.title');
+        const clipboardErrorDescription = t('toast.clipboard_error.description', {
+          value: textToCopy,
+        });
+        toast.add({
+          title:
+            clipboardErrorTitle === 'toast.clipboard_error.title'
+              ? 'Copy failed'
+              : clipboardErrorTitle,
+          description:
+            clipboardErrorDescription === 'toast.clipboard_error.description'
+              ? `Unable to copy "${textToCopy}" to clipboard.`
+              : clipboardErrorDescription,
+          color: 'error',
+        });
         logger.error('[GameItem] Failed to copy item name:', error);
       }
     }

@@ -1,6 +1,7 @@
 import { useI18n } from 'vue-i18n';
 import { useMetadataStore } from '@/stores/useMetadata';
 import { useTarkovStore } from '@/stores/useTarkov';
+import { logger } from '@/utils/logger';
 import type { TaskActionPayload } from '@/composables/useTaskActions';
 import type { TaskObjective } from '@/types/tarkov';
 export function useTaskNotification() {
@@ -142,6 +143,12 @@ export function useTaskNotification() {
         handleTaskObjectives(taskToUndo.objectives, 'setTaskObjectiveUncomplete');
       }
       updateTaskStatus('page.tasks.questcard.undo_failed', taskName);
+    } else {
+      logger.warn('[TaskNotification] Unknown undo action received.', {
+        action: undoData.value.action,
+        taskId: undoData.value.taskId,
+        taskName: undoData.value.taskName,
+      });
     }
     showUndoButton.value = false;
     undoData.value = null;

@@ -305,7 +305,7 @@ export function useLeafletMap(options: UseLeafletMapOptions): UseLeafletMapRetur
     try {
       const bounds = getLeafletBounds(tileConfig);
       const tilePaths = [tileConfig.tilePath, ...(tileConfig.tileFallbacks ?? [])];
-      tileLayer.value = L.tileLayer(tilePaths[0] ?? tileConfig.tilePath, {
+      tileLayer.value = L.tileLayer(tileConfig.tilePath, {
         minZoom: tileConfig.minZoom ?? 1,
         maxZoom: tileConfig.maxZoom ?? 6,
         noWrap: true,

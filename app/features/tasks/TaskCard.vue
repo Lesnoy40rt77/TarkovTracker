@@ -121,9 +121,9 @@
           tabindex="0"
           :aria-expanded="objectivesVisible"
           :aria-controls="`objectives-content-${task.id}`"
-          @click="objectivesVisible = !objectivesVisible"
-          @keydown.enter.prevent="objectivesVisible = !objectivesVisible"
-          @keydown.space.prevent="objectivesVisible = !objectivesVisible"
+          @click="toggleObjectivesVisibility"
+          @keydown.enter.prevent="toggleObjectivesVisibility"
+          @keydown.space.prevent="toggleObjectivesVisibility"
         >
           <div class="text-surface-400 text-[10px] font-bold tracking-wider uppercase">
             {{ t('page.tasks.questcard.objectives', 'Objectives') }}
@@ -334,12 +334,16 @@
     objectives: () => taskObjectives.value,
   });
   const { isComplete, isFailed, isLocked, isInvalid } = useTaskState(() => props.task.id);
-  const shouldShowObjectives = () =>
-    !(isComplete.value && preferencesStore.getHideCompletedTaskObjectives);
-  const objectivesVisible = ref(shouldShowObjectives());
-  watch([isComplete, () => preferencesStore.getHideCompletedTaskObjectives], () => {
-    objectivesVisible.value = shouldShowObjectives();
+  const objectivesExpanded = ref(true);
+  const objectivesVisible = computed(() => {
+    return (
+      objectivesExpanded.value &&
+      !(isComplete.value && preferencesStore.getHideCompletedTaskObjectives)
+    );
   });
+  const toggleObjectivesVisibility = () => {
+    objectivesExpanded.value = !objectivesExpanded.value;
+  };
   // Use extracted task actions composable
   const { markTaskComplete, markTaskUncomplete, markTaskAvailable, markTaskFailed } =
     useTaskActions(

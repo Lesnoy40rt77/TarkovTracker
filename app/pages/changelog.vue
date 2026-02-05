@@ -220,7 +220,12 @@
   };
   const loadChangelog = async () => {
     error.value = false;
-    await refresh();
+    try {
+      await refresh();
+    } catch (err) {
+      error.value = true;
+      logger.error('Failed to load changelog', err);
+    }
   };
   const loadMore = async () => {
     loadingMore.value = true;

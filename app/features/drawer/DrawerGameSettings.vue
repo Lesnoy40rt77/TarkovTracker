@@ -106,6 +106,8 @@
       } catch (err) {
         try {
           await tarkovStore.switchGameMode(previousMode);
+          metadataStore.updateLanguageAndGameMode();
+          await metadataStore.fetchAllData();
         } catch (rollbackErr) {
           logger.error('[DrawerGameSettings] rollback failed:', rollbackErr);
         }
