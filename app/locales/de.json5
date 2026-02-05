@@ -44,6 +44,10 @@
       title: 'Entwurf aktualisiert',
       description: 'Dein laufender Wert wurde auf {value} aktualisiert.',
     },
+    clipboard_copied: {
+      title: 'Kopiert!',
+      description: '{value}',
+    },
     hideout_updated: {
       title: 'Versteck aktualisiert',
       description: '{count} Stationsupgrades entfernt, die die Voraussetzungen nicht mehr erfüllen.',

@@ -32,6 +32,10 @@
       title: 'Brouillon mis à jour',
       description: 'Votre valeur en cours a été mise à jour à {value}.',
     },
+    clipboard_copied: {
+      title: 'Copié !',
+      description: '{value}',
+    },
     hideout_updated: {
       title: 'Planque mise à jour',
       description: '{count} améliorations de station supprimées car elles ne remplissent plus les prérequis.',

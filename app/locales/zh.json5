@@ -44,6 +44,10 @@
       title: '草稿已更新',
       description: '你的当前值已更新为 {value}。',
     },
+    clipboard_copied: {
+      title: '已复制！',
+      description: '{value}',
+    },
     hideout_updated: {
       title: '藏身处已更新',
       description: '已移除 {count} 个不再满足前置条件的设施升级。',

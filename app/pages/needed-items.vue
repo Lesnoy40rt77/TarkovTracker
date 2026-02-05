@@ -21,6 +21,7 @@
       <div
         v-if="itemsError"
         class="text-surface-400 flex flex-col items-center justify-center gap-4 p-8"
+        aria-live="polite"
       >
         <UIcon name="i-mdi-alert-circle" class="text-error-400 h-8 w-8" />
         <span class="text-error-400">
@@ -33,12 +34,17 @@
       <div
         v-else-if="!itemsReady"
         class="text-surface-400 flex items-center justify-center gap-2 p-8"
+        aria-live="polite"
       >
         <UIcon name="i-mdi-loading" class="h-5 w-5 animate-spin" />
         <span>{{ $t('page.needed_items.loading', 'Loading items...') }}</span>
       </div>
       <template v-else>
-        <div v-if="displayItems.length === 0" class="text-surface-400 p-8 text-center">
+        <div
+          v-if="displayItems.length === 0"
+          class="text-surface-400 p-8 text-center"
+          aria-live="polite"
+        >
           {{ $t('page.needed_items.empty', 'No items match your search.') }}
         </div>
         <div v-else-if="groupByItem" class="p-2">
@@ -106,6 +112,7 @@
   </div>
 </template>
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import NeededItem from '@/features/neededitems/NeededItem.vue';
   import NeededItemGroupedCard from '@/features/neededitems/NeededItemGroupedCard.vue';
   import {

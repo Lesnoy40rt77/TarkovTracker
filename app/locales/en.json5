@@ -64,6 +64,10 @@
       title: 'Draft updated',
       description: 'Your in-progress value was updated to {value}.',
     },
+    clipboard_copied: {
+      title: 'Copied!',
+      description: '{value}',
+    },
   },
   common: {
     cancel: 'Cancel',

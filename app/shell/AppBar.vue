@@ -136,6 +136,7 @@
 <script setup lang="ts">
   import { useWindowSize } from '@vueuse/core';
   import { storeToRefs } from 'pinia';
+  import { useI18n } from 'vue-i18n';
   import { useAppStore } from '@/stores/useApp';
   import { useMetadataStore } from '@/stores/useMetadata';
   import { usePreferencesStore } from '@/stores/usePreferences';

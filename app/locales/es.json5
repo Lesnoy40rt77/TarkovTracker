@@ -33,6 +33,10 @@
       title: 'Borrador actualizado',
       description: 'Tu valor en progreso se actualizó a {value}.',
     },
+    clipboard_copied: {
+      title: '¡Copiado!',
+      description: '{value}',
+    },
     hideout_updated: {
       title: 'Escondite actualizado',
       description: 'Tu escondite se actualizó correctamente.',

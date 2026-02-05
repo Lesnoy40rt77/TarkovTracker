@@ -25,12 +25,17 @@
   common: {
     cancel: 'Скасувати',
     close: 'Закрити',
+    opens_in_new_tab: 'Відкрити в новій вкладці',
     refresh_button: 'Спробувати знову',
   },
   toast: {
     count_edit_updated: {
       title: 'Чернетку оновлено',
       description: 'Ваше поточне значення було оновлено до {value}.',
+    },
+    clipboard_copied: {
+      title: 'Скопійовано!',
+      description: '{value}',
     },
     hideout_updated: {
       title: 'Схрон оновлено',
