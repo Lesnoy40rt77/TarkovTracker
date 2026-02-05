@@ -34,6 +34,7 @@
     <!-- Progress Breakdown Section -->
     <div class="mb-8">
       <button
+        type="button"
         class="group mb-4 flex w-full cursor-pointer items-center text-2xl font-bold text-white"
         :aria-expanded="!progressSectionCollapsed"
         @click="progressSectionCollapsed = !progressSectionCollapsed"
@@ -108,6 +109,7 @@
     <!-- Trader Progress Section -->
     <div class="mb-8">
       <button
+        type="button"
         class="group mb-4 flex w-full cursor-pointer items-center text-2xl font-bold text-white"
         :aria-expanded="!tradersSectionCollapsed"
         @click="tradersSectionCollapsed = !tradersSectionCollapsed"
@@ -136,6 +138,7 @@
     <!-- Milestones Section -->
     <div>
       <button
+        type="button"
         class="group mb-4 flex w-full cursor-pointer items-center text-2xl font-bold text-white"
         :aria-expanded="!milestonesSectionCollapsed"
         @click="milestonesSectionCollapsed = !milestonesSectionCollapsed"

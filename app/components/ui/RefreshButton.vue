@@ -3,10 +3,8 @@
     {{ t('common.refresh_button') }}
   </UButton>
 </template>
-<script setup>
+<script setup lang="ts">
   import { storeToRefs } from 'pinia';
-  import { useI18n } from 'vue-i18n';
-  import { useRouter } from 'vue-router';
   import { useMetadataStore } from '@/stores/useMetadata';
   const { t } = useI18n({ useScope: 'global' });
   const metadataStore = useMetadataStore();

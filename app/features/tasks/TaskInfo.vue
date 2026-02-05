@@ -78,7 +78,7 @@
             </div>
           </div>
         </div>
-        <InfoRow v-if="task?.factionName != 'Any'" class="text-surface-400 mb-1 text-sm">
+        <InfoRow v-if="task?.factionName !== 'Any'" class="text-surface-400 mb-1 text-sm">
           <template #icon>
             <img :src="factionImage" class="mx-1 h-6 w-6 invert" />
           </template>

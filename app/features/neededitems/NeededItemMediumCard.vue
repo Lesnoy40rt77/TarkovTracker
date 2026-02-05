@@ -27,7 +27,10 @@
             class="ml-0.5 inline-block h-3.5 w-3.5"
           />
         </AppTooltip>
-        <AppTooltip v-if="isKappaRequired" :text="$t('task_kappa_req', 'Required for Kappa quest')">
+        <AppTooltip
+          v-if="isKappaRequired"
+          :text="$t('needed_items.task_kappa_req', 'Required for Kappa quest')"
+        >
           <UIcon name="i-mdi-trophy" class="text-warning-400 ml-0.5 inline-block h-3.5 w-3.5" />
         </AppTooltip>
         <AppTooltip v-if="isCraftable" :text="craftableTitle">

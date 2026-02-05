@@ -30,7 +30,6 @@
   </UAlert>
 </template>
 <script setup lang="ts">
-  import { useRoute } from 'vue-router';
   import { useEdgeFunctions } from '@/composables/api/useEdgeFunctions';
   import { useSystemStore } from '@/stores/useSystemStore';
   import { logger } from '@/utils/logger';

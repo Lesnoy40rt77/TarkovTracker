@@ -2,7 +2,7 @@
   <UModal
     :open="open"
     :title="itemInfo.name"
-    :description="`${currentTotal}/${totalNeeded}`"
+    :description="$t('needed_items.progress_format', { current: currentTotal, total: totalNeeded })"
     :ui="{ content: 'bg-transparent border-0 p-0 shadow-none ring-0 outline-none' }"
     scrollable
     @update:open="$emit('update:open', $event)"

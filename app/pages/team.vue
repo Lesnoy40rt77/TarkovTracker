@@ -32,13 +32,7 @@
   const metaDescription = computed(() => t('page.team.meta.description'));
   definePageMeta({
     title: 'Team',
-    meta: [
-      {
-        name: 'description',
-        content: 'Collaborate with teammates on Escape from Tarkov progress.',
-      },
-      { name: 'robots', content: 'noindex, nofollow' },
-    ],
+    meta: [{ name: 'robots', content: 'noindex, nofollow' }],
   });
   useSeoMeta({
     title: metaTitle,

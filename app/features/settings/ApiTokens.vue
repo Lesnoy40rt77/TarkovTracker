@@ -354,11 +354,10 @@
     return new Date(date).toLocaleString();
   };
   const lastUsedTooltip = (lastUsedAt: string | null) => {
-    const prefix = t('page.settings.card.apitokens.list.last_used');
-    const suffix = lastUsedAt
+    const value = lastUsedAt
       ? formatDate(lastUsedAt)
       : t('page.settings.card.apitokens.list.never');
-    return `${prefix}: ${suffix}`;
+    return t('page.settings.card.apitokens.list.last_used_tooltip', { value });
   };
   const formatGameMode = (mode: GameMode) => {
     return mode === GAME_MODES.PVE ? 'PvE' : 'PvP';

@@ -228,19 +228,18 @@
   const loadChangelog = async (force = false) => {
     if (pending.value) return;
     if (hasRequested.value && !force) return;
-    entries.value = [];
     pending.value = true;
     error.value = false;
     hasRequested.value = true;
-    const serverItems = await fetchServerItems();
-    if (serverItems) {
-      entries.value = serverItems;
+    let newEntries = await fetchServerItems();
+    if (newEntries?.length) {
+      entries.value = newEntries;
       pending.value = false;
       return;
     }
-    const githubItems = await fetchGithubItems();
-    if (githubItems) {
-      entries.value = githubItems;
+    newEntries = await fetchGithubItems();
+    if (newEntries?.length) {
+      entries.value = newEntries;
       pending.value = false;
       return;
     }

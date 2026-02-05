@@ -222,8 +222,15 @@
   };
   const loadMore = async () => {
     loadingMore.value = true;
+    const previousLimit = currentLimit.value;
     currentLimit.value += 20;
-    await loadChangelog();
-    loadingMore.value = false;
+    try {
+      await loadChangelog();
+    } catch (err) {
+      currentLimit.value = previousLimit;
+      logger.error('Failed to load more changelog entries', err);
+    } finally {
+      loadingMore.value = false;
+    }
   };
 </script>

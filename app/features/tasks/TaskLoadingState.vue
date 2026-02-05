@@ -8,7 +8,7 @@
       <div
         v-for="i in 3"
         :key="i"
-        class="bg-surface-800 animate-pulse rounded-lg border border-white/10 p-4"
+        class="bg-surface-800 border-surface-400/10 animate-pulse rounded-lg border p-4"
       >
         <div class="flex items-center gap-3">
           <div class="bg-surface-700 h-9 w-9 rounded-full"></div>

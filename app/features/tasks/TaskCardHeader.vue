@@ -37,7 +37,7 @@
           :href="task.wikiLink"
           target="_blank"
           rel="noopener noreferrer"
-          :class="iconButtonClass"
+          :class="ICON_BUTTON_CLASS"
           :aria-label="t('page.tasks.questcard.view_on_wiki', 'View on Wiki')"
           @click.stop
         >
@@ -52,7 +52,7 @@
           :href="tarkovDevTaskUrl"
           target="_blank"
           rel="noopener noreferrer"
-          :class="iconButtonClass"
+          :class="ICON_BUTTON_CLASS"
           :aria-label="t('page.tasks.questcard.view_on_tarkov_dev', 'View on Tarkov.dev')"
           @click.stop
         >
@@ -102,7 +102,7 @@
       ? 'flex min-w-0 items-center gap-2'
       : 'text-link hover:text-link-hover flex min-w-0 items-center gap-2 no-underline'
   );
-  const iconButtonClass = computed(() => [
+  const ICON_BUTTON_CLASS = [
     'focus-visible:ring-primary-500',
     'focus-visible:ring-offset-surface-900',
     'text-surface-400',
@@ -110,7 +110,7 @@
     'inline-flex items-center justify-center rounded p-1 transition-colors',
     'hover:bg-white/10 focus:outline-none',
     'focus-visible:ring-2 focus-visible:ring-offset-2',
-  ]);
+  ];
   const titleTooltip = computed(() => {
     if (shouldLinkToWiki.value) {
       return t(

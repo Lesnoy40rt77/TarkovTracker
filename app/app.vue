@@ -17,7 +17,7 @@
   const { locale } = useI18n();
   const { public: publicConfig } = useRuntimeConfig();
   const siteUrl = (publicConfig.appUrl || 'https://tarkovtracker.org').replace(/\/$/, '');
-  const organizationSchema = {
+  const webApplicationSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
     name: 'TarkovTracker',
@@ -51,7 +51,7 @@
     script: [
       {
         type: 'application/ld+json',
-        innerHTML: JSON.stringify(organizationSchema),
+        innerHTML: JSON.stringify(webApplicationSchema),
       },
     ],
   }));

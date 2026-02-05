@@ -56,11 +56,6 @@
     });
   };
   const handleMenuKeydown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      closeMenu();
-      return;
-    }
     const items = getMenuItems();
     if (!items.length) return;
     const currentIndex = items.findIndex((item) => item === document.activeElement);

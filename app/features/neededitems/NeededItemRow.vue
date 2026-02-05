@@ -26,7 +26,7 @@
                   :craftable-title="craftableTitle"
                   :craftable-icon-class="craftableIconClass"
                   :kappa-required="isKappaRequired"
-                  :kappa-title="$t('task_kappa_req', 'Required for Kappa quest')"
+                  :kappa-title="$t('needed_items.task_kappa_req', 'Required for Kappa quest')"
                   @craft="goToCraftStation"
                 />
               </span>
@@ -105,7 +105,9 @@
                           craftable-icon-base-class="ml-1 h-4 w-4"
                           :craftable-icon-class="craftableIconClass"
                           :kappa-required="isKappaRequired"
-                          :kappa-title="$t('task_kappa_req', 'Required for Kappa quest')"
+                          :kappa-title="
+                            $t('needed_items.task_kappa_req', 'Required for Kappa quest')
+                          "
                           kappa-icon-class="ml-1 h-4 w-4 text-warning-400"
                           @craft="goToCraftStation"
                         />
