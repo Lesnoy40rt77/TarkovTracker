@@ -14,7 +14,7 @@
       class="h-6 w-6 transition-colors"
       :class="colorClass"
     />
-    <span v-else :class="iconClass" />
+    <span v-else :class="[iconClass, colorClass]" />
   </div>
 </template>
 <script setup lang="ts">

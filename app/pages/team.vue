@@ -27,8 +27,10 @@
 <script setup lang="ts">
   import { useSystemStoreWithSupabase } from '@/stores/useSystemStore';
   const { t } = useI18n({ useScope: 'global' });
-  const metaTitle = computed(() => t('page.team.meta.title'));
-  const metaDescription = computed(() => t('page.team.meta.description'));
+  const metaTitle = computed(() => t('page.team.meta.title', 'Team'));
+  const metaDescription = computed(() =>
+    t('page.team.meta.description', 'Collaborate with teammates on Escape from Tarkov progress.')
+  );
   definePageMeta({
     title: 'Team',
   });

@@ -560,6 +560,30 @@ html.no-smooth-scroll {
   .text-lightkeeper {
     color: var(--color-lightkeeper-400);
   }
+  .bg-twitch-hover {
+    background-color: var(--color-twitch-hover);
+  }
+  .bg-discord-hover {
+    background-color: var(--color-discord-hover);
+  }
+  .bg-github-hover {
+    background-color: var(--color-github-hover);
+  }
+  .shadow-twitch {
+    box-shadow:
+      0 10px 15px -3px rgb(from var(--color-twitch) r g b / 0.25),
+      0 4px 6px -4px rgb(from var(--color-twitch) r g b / 0.25);
+  }
+  .shadow-discord {
+    box-shadow:
+      0 10px 15px -3px rgb(from var(--color-discord) r g b / 0.25),
+      0 4px 6px -4px rgb(from var(--color-discord) r g b / 0.25);
+  }
+  .shadow-github {
+    box-shadow:
+      0 10px 15px -3px rgb(from var(--color-github) r g b / 0.25),
+      0 4px 6px -4px rgb(from var(--color-github) r g b / 0.25);
+  }
   /* Background: solid dark base */
   .bg-military-background {
     background-color: var(--color-surface-950);

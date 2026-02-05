@@ -41,7 +41,7 @@
         <span>{{ $t('page.dashboard.traders.unlock_required') }}</span>
       </div>
       <NuxtLink
-        :to="`/tasks?task=${unlockTaskId}`"
+        :to="{ path: '/tasks', query: { task: unlockTaskId } }"
         class="text-info-400 hover:text-info-300 block transition-colors hover:underline"
       >
         {{ unlockTask.name }}

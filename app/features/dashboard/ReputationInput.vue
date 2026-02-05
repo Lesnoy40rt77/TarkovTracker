@@ -15,12 +15,17 @@
   />
 </template>
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
   const { t } = useI18n();
   const props = defineProps<{
     hasReputation: boolean;
     reputationInput: string;
     title?: string;
+  }>();
+  const emit = defineEmits<{
+    blur: [FocusEvent];
+    focus: [FocusEvent];
+    input: [Event];
+    keydown: [KeyboardEvent];
   }>();
   const inputClasses = [
     'bg-surface-800 border-surface-700 text-surface-100 placeholder-surface-500',
@@ -31,10 +36,4 @@
   const resolvedTitle = computed(
     () => props.title ?? t('page.dashboard.traders.reputation_input_label')
   );
-  const emit = defineEmits<{
-    blur: [FocusEvent];
-    focus: [FocusEvent];
-    input: [Event];
-    keydown: [KeyboardEvent];
-  }>();
 </script>

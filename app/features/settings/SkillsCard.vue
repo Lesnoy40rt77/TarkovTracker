@@ -31,7 +31,7 @@
           {{
             $t(
               'settings.skills.explanation',
-              'Quest rewards are auto-calculated. Enter your total skill level (max 51) to adjust the offset.'
+              `Quest rewards are auto-calculated. Enter your total skill level (max ${MAX_SKILL_LEVEL}) to adjust the offset.`
             )
           }}
         </p>
@@ -100,7 +100,11 @@
               </div>
               <span
                 class="shrink-0 text-lg font-bold"
-                :class="getSkillLevel(skill.name) >= 51 ? 'text-warning-500' : 'text-primary-400'"
+                :class="
+                  getSkillLevel(skill.name) >= MAX_SKILL_LEVEL
+                    ? 'text-warning-500'
+                    : 'text-primary-400'
+                "
               >
                 {{ getDisplayLevel(skill.name) }}
               </span>
@@ -138,7 +142,7 @@
                 @update:model-value="(value) => updateSkillLevel(skill.name, value)"
               />
               <span :id="`skill-range-${skill.name}`" class="sr-only">
-                {{ $t('settings.skills.valid_range', 'Valid range: 0 to 51') }}
+                {{ $t('settings.skills.valid_range', `Valid range: 0 to ${MAX_SKILL_LEVEL}`) }}
               </span>
               <UButton
                 icon="i-mdi-refresh"
@@ -177,6 +181,7 @@
   import { useSkillCalculation } from '@/composables/useSkillCalculation';
   import { usePreferencesStore } from '@/stores/usePreferences';
   import type { SkillSortMode } from '@/utils/constants';
+  const MAX_SKILL_LEVEL = 51;
   const { t } = useI18n({ useScope: 'global' });
   const skillCalculation = useSkillCalculation();
   const preferencesStore = usePreferencesStore();
@@ -228,7 +233,7 @@
   const getSkillOffset = (skillName: string) => skillCalculation.getSkillOffset(skillName);
   const getDisplayLevel = (skillName: string) => {
     const level = getSkillLevel(skillName);
-    return level >= 51 ? t('skills.elite_level', 'ELITE Level') : level;
+    return level >= MAX_SKILL_LEVEL ? t('skills.elite_level', 'ELITE Level') : level;
   };
   const updateSkillLevel = (skillName: string, value: string | number) => {
     if (value === '') {
@@ -237,7 +242,7 @@
     }
     const numValue = typeof value === 'string' ? parseInt(value, 10) : value;
     if (!isNaN(numValue) && numValue >= 0) {
-      const clampedValue = Math.min(Math.max(numValue, 0), 51);
+      const clampedValue = Math.min(Math.max(numValue, 0), MAX_SKILL_LEVEL);
       skillCalculation.setTotalSkillLevel(skillName, clampedValue);
     }
   };
@@ -274,7 +279,7 @@
     const nextValStr = currentVal.slice(0, selectionStart) + e.key + currentVal.slice(selectionEnd);
     const nextVal = parseInt(nextValStr, 10);
     const isNumeric = /^\d+$/.test(nextValStr);
-    if (!isNumeric || isNaN(nextVal) || nextVal > 51) {
+    if (!isNumeric || isNaN(nextVal) || nextVal > MAX_SKILL_LEVEL) {
       e.preventDefault();
       showSkillLimitToast();
     }
@@ -285,7 +290,7 @@
     toast.add({
       id: 'skill-limit-error',
       title: t('settings.skills.limit_exceeded', 'Limit Exceeded'),
-      description: t('settings.skills.max_level', 'Maximum skill level is 51.'),
+      description: t('settings.skills.max_level', `Maximum skill level is ${MAX_SKILL_LEVEL}.`),
       color: 'error',
       icon: 'i-mdi-alert-circle',
     });
@@ -300,7 +305,7 @@
     if (!pastedText) return;
     const numVal = parseInt(pastedText, 10);
     if (!isNaN(numVal)) {
-      const clamped = Math.min(Math.max(numVal, 0), 51);
+      const clamped = Math.min(Math.max(numVal, 0), MAX_SKILL_LEVEL);
       skillCalculation.setTotalSkillLevel(skillName, clamped);
     }
   };

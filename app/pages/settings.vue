@@ -389,7 +389,7 @@
     } catch (error) {
       logger.error(`[Settings] Error resetting ${config.errorLogContext}:`, error);
       toast.add({
-        title: 'Reset Failed',
+        title: t('settings.reset.errorTitle', 'Reset Failed'),
         description: config.errorDescription,
         color: 'error',
       });
@@ -399,26 +399,44 @@
   };
   const resetPvPData = createResetHandler({
     resetFn: () => tarkovStore.resetPvPData(),
-    successTitle: 'PvP Data Reset',
-    successDescription: 'Your PvP progress has been reset successfully.',
+    successTitle: t('settings.resetPvP.successTitle', 'PvP Data Reset'),
+    successDescription: t(
+      'settings.resetPvP.successDescription',
+      'Your PvP progress has been reset successfully.'
+    ),
     errorLogContext: 'PvP data',
-    errorDescription: 'Failed to reset PvP data. Please try again.',
+    errorDescription: t(
+      'settings.resetPvP.errorDescription',
+      'Failed to reset PvP data. Please try again.'
+    ),
     dialogRef: showResetPvPDialog,
   });
   const resetPvEData = createResetHandler({
     resetFn: () => tarkovStore.resetPvEData(),
-    successTitle: 'PvE Data Reset',
-    successDescription: 'Your PvE progress has been reset successfully.',
+    successTitle: t('settings.resetPvE.successTitle', 'PvE Data Reset'),
+    successDescription: t(
+      'settings.resetPvE.successDescription',
+      'Your PvE progress has been reset successfully.'
+    ),
     errorLogContext: 'PvE data',
-    errorDescription: 'Failed to reset PvE data. Please try again.',
+    errorDescription: t(
+      'settings.resetPvE.errorDescription',
+      'Failed to reset PvE data. Please try again.'
+    ),
     dialogRef: showResetPvEDialog,
   });
   const resetAllData = createResetHandler({
     resetFn: () => tarkovStore.resetAllData(),
-    successTitle: 'All Data Reset',
-    successDescription: 'All your progress has been reset successfully.',
+    successTitle: t('settings.resetAll.successTitle', 'All Data Reset'),
+    successDescription: t(
+      'settings.resetAll.successDescription',
+      'All your progress has been reset successfully.'
+    ),
     errorLogContext: 'all data',
-    errorDescription: 'Failed to reset data. Please try again.',
+    errorDescription: t(
+      'settings.resetAll.errorDescription',
+      'Failed to reset data. Please try again.'
+    ),
     dialogRef: showResetAllDialog,
   });
 </script>
