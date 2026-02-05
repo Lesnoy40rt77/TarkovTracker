@@ -14,7 +14,7 @@ describe('useCountEditController', () => {
     });
     expect(controller.isEditing.value).toBe(false);
   });
-  it('startEdit sets isEditing true and sets editValue to current', async () => {
+  it('startEdit sets isEditing true and sets editValue to current', () => {
     const controller = useCountEditController({
       current: 5,
       max: 10,

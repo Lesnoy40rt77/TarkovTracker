@@ -50,48 +50,53 @@ const _UButton = { template: '<button />' };
 const _UIcon = { template: '<div />' };
 const _UTooltip = { template: '<div><slot /></div>' };
 const _UBadge = { template: '<div />' };
+type UseSkillCalculationMock = ReturnType<typeof useSkillCalculation>;
+const createWrapper = (overrides: Partial<UseSkillCalculationMock> = {}) => {
+  const defaultMock: UseSkillCalculationMock = {
+    calculatedQuestSkills: computed(() => ({})),
+    totalSkills: computed(() => ({})),
+    allSkillNames: computed(() => []),
+    allGameSkills: computed(() => [
+      {
+        name: 'Strength',
+        requiredByTasks: [],
+        requiredLevels: [],
+        rewardedByTasks: [],
+      },
+    ]),
+    getSkillLevel: () => 10,
+    getQuestSkillLevel: () => 5,
+    getSkillOffset: () => 5,
+    getSkillMetadata: () => null,
+    setSkillOffset: vi.fn(),
+    setTotalSkillLevel: vi.fn(),
+    resetSkillOffset: vi.fn(),
+  };
+  vi.mocked(useSkillCalculation).mockReturnValue({ ...defaultMock, ...overrides });
+  return mount(SkillsCard, {
+    global: {
+      plugins: [i18n],
+      stubs: {
+        GenericCard: _GenericCard,
+        UInput: UInput,
+        UButton: _UButton,
+        UIcon: _UIcon,
+        UTooltip: _UTooltip,
+        UBadge: _UBadge,
+        ULink: true,
+        NuxtLink: true,
+        Icon: true,
+      },
+      mocks: {
+        $t: (key: string, fallback: string) => fallback,
+      },
+    },
+  });
+};
 describe('SkillsCard', () => {
   it('prevents invalid characters on keydown', async () => {
     const setTotalSkillLevel = vi.fn();
-    vi.mocked(useSkillCalculation).mockReturnValue({
-      calculatedQuestSkills: computed(() => ({})),
-      totalSkills: computed(() => ({})),
-      allSkillNames: computed(() => []),
-      allGameSkills: computed(() => [
-        {
-          name: 'Strength',
-          requiredByTasks: [],
-          requiredLevels: [],
-          rewardedByTasks: [],
-        },
-      ]),
-      getSkillLevel: () => 10,
-      getQuestSkillLevel: () => 5,
-      getSkillOffset: () => 5,
-      getSkillMetadata: () => null,
-      setSkillOffset: vi.fn(),
-      setTotalSkillLevel,
-      resetSkillOffset: vi.fn(),
-    });
-    const wrapper = mount(SkillsCard, {
-      global: {
-        plugins: [i18n],
-        stubs: {
-          GenericCard: _GenericCard,
-          UInput: UInput,
-          UButton: _UButton,
-          UIcon: _UIcon,
-          UTooltip: _UTooltip,
-          UBadge: _UBadge,
-          ULink: true,
-          NuxtLink: true,
-          Icon: true,
-        },
-        mocks: {
-          $t: (key: string, fallback: string) => fallback,
-        },
-      },
-    });
+    const wrapper = createWrapper({ setTotalSkillLevel });
     const input = wrapper.find('input');
     const inputEl = input.element as HTMLInputElement;
     const dispatchKey = async (key: string, nextValue: string) => {
@@ -129,37 +134,11 @@ describe('SkillsCard', () => {
     expect(setTotalSkillLevel).toHaveBeenCalledWith('Strength', 1);
   });
   it('prevents input resulting in value > 51', async () => {
-    vi.mocked(useSkillCalculation).mockReturnValue({
-      calculatedQuestSkills: computed(() => ({})),
-      totalSkills: computed(() => ({})),
-      allSkillNames: computed(() => []),
-      allGameSkills: computed(() => [
-        { name: 'Strength', requiredByTasks: [], requiredLevels: [], rewardedByTasks: [] },
-      ]),
+    const wrapper = createWrapper({
       getSkillLevel: () => 5,
       getQuestSkillLevel: () => 0,
       getSkillOffset: () => 5,
-      getSkillMetadata: () => null,
-      setSkillOffset: vi.fn(),
       setTotalSkillLevel: vi.fn(),
-      resetSkillOffset: vi.fn(),
-    });
-    const wrapper = mount(SkillsCard, {
-      global: {
-        plugins: [i18n],
-        stubs: {
-          GenericCard: _GenericCard,
-          UInput: UInput,
-          UButton: _UButton,
-          UIcon: _UIcon,
-          UTooltip: _UTooltip,
-          UBadge: _UBadge,
-          ULink: true,
-          NuxtLink: true,
-          Icon: true,
-        },
-        mocks: { $t: (k: string, f: string) => f },
-      },
     });
     const input = wrapper.find('input');
     const inputEl = input.element as HTMLInputElement;

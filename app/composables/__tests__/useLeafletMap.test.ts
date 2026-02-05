@@ -184,7 +184,7 @@ describe('useLeafletMap', () => {
       expect(result.selectedFloor.value).toBe('ground');
       wrapper.unmount();
     });
-    it('uses initial floor when provided', async () => {
+    it('uses initialFloor override when provided', async () => {
       const mapData = {
         id: 'interchange',
         name: 'Interchange',
