@@ -200,19 +200,29 @@ describe('objectPath', () => {
     });
     it('does not pollute Object.prototype via __proto__', () => {
       const obj = {} as Record<string, unknown>;
+      let err: unknown;
       try {
         set(obj, '__proto__.polluted', 'yes');
-      } catch {
-        /* empty */
+      } catch (error) {
+        err = error;
+      }
+      expect(err).toBeInstanceOf(Error);
+      if (err instanceof Error) {
+        expect(err.message).toMatch(/Dangerous key/);
       }
       expect(({} as Record<string, unknown>)['polluted']).toBeUndefined();
     });
     it('does not pollute Object.prototype via constructor', () => {
       const obj = {} as Record<string, unknown>;
+      let err: unknown;
       try {
         set(obj, 'constructor.prototype.polluted', 'yes');
-      } catch {
-        /* empty */
+      } catch (error) {
+        err = error;
+      }
+      expect(err).toBeInstanceOf(Error);
+      if (err instanceof Error) {
+        expect(err.message).toMatch(/Dangerous key/);
       }
       expect(({} as Record<string, unknown>)['polluted']).toBeUndefined();
     });
