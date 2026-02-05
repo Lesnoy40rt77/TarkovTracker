@@ -5,10 +5,15 @@ import { GAME_MODES } from '@/utils/constants';
 import { logger } from '@/utils/logger';
 import type { SystemGetters, SystemState } from '@/types/tarkov';
 import type { PostgrestError } from '@supabase/supabase-js';
+const VALID_GAME_MODES = Object.values(GAME_MODES) as string[];
 function getCurrentGameMode(): 'pvp' | 'pve' {
   try {
     const tarkovStore = useTarkovStore();
-    return (tarkovStore.getCurrentGameMode?.() as 'pvp' | 'pve') || GAME_MODES.PVP;
+    const mode = tarkovStore.getCurrentGameMode?.();
+    if (typeof mode === 'string' && VALID_GAME_MODES.includes(mode)) {
+      return mode as 'pvp' | 'pve';
+    }
+    return GAME_MODES.PVP;
   } catch (err) {
     logger.error('getCurrentGameMode: failed to get Tarkov store', err);
     return GAME_MODES.PVP;

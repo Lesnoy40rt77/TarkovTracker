@@ -588,7 +588,7 @@ export const usePreferencesStore = defineStore('preferences', {
       }
     },
     addTaskFilterPreset(preset: TaskFilterPreset) {
-      if (!this.taskFilterPresets) this.taskFilterPresets = [];
+      this.taskFilterPresets ??= [];
       const existingIndex = this.taskFilterPresets.findIndex(
         (existing) => existing.id === preset.id
       );
@@ -772,10 +772,6 @@ if (shouldInitPreferencesWatchers) {
                       needed_items_hide_non_fir_special_equipment:
                         preferencesState.neededItemsHideNonFirSpecialEquipment,
                       needed_items_kappa_only: preferencesState.neededItemsKappaOnly,
-                      needed_items_sort_by: preferencesState.neededItemsSortBy,
-                      needed_items_sort_direction: preferencesState.neededItemsSortDirection,
-                      needed_items_hide_owned: preferencesState.neededItemsHideOwned,
-                      needed_items_card_style: preferencesState.neededItemsCardStyle,
                       items_hide_non_fir: preferencesState.itemsHideNonFIR,
                       hide_global_tasks: preferencesState.hideGlobalTasks,
                       hide_non_kappa_tasks: preferencesState.hideNonKappaTasks,
@@ -789,12 +785,8 @@ if (shouldInitPreferencesWatchers) {
                       enable_holiday_effects: preferencesState.enableHolidayEffects,
                       dashboard_notice_dismissed: preferencesState.dashboardNoticeDismissed,
                       show_map_extracts: preferencesState.showMapExtracts,
-                      map_zoom_speed: preferencesState.mapZoomSpeed,
-                      pinned_task_ids: preferencesState.pinnedTaskIds,
                       neededitems_style: preferencesState.neededitemsStyle,
                       hideout_primary_view: preferencesState.hideoutPrimaryView,
-                      hideout_collapse_completed: preferencesState.hideoutCollapseCompleted,
-                      hideout_sort_ready_first: preferencesState.hideoutSortReadyFirst,
                       hideout_require_station_levels: preferencesState.hideoutRequireStationLevels,
                       hideout_require_skill_levels: preferencesState.hideoutRequireSkillLevels,
                       hideout_require_trader_loyalty: preferencesState.hideoutRequireTraderLoyalty,
@@ -806,8 +798,6 @@ if (shouldInitPreferencesWatchers) {
                       show_locked_filter: preferencesState.showLockedFilter,
                       show_completed_filter: preferencesState.showCompletedFilter,
                       show_failed_filter: preferencesState.showFailedFilter,
-                      task_filter_presets: preferencesState.taskFilterPresets,
-                      skill_sort_mode: preferencesState.skillSortMode,
                       use_automatic_level_calculation:
                         preferencesState.useAutomaticLevelCalculation,
                     };

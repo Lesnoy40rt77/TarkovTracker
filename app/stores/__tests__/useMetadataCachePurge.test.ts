@@ -3,10 +3,20 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useMetadataStore } from '@/stores/useMetadata';
 import { STORAGE_KEYS } from '@/utils/storageKeys';
 import * as cacheUtils from '@/utils/tarkovCache';
+const loggerMock = vi.hoisted(() => ({
+  logger: {
+    debug: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+  },
+}));
+vi.mock('@/utils/logger', () => loggerMock);
 describe('useMetadataStore checkCachePurge', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     localStorage.clear();
+    vi.clearAllMocks();
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -57,6 +67,10 @@ describe('useMetadataStore checkCachePurge', () => {
     await expect(store.checkCachePurge()).resolves.toBeUndefined();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(clearSpy).not.toHaveBeenCalled();
+    expect(loggerMock.logger.warn).toHaveBeenCalledWith(
+      '[MetadataStore] Failed to check cache purge status:',
+      expect.any(Error)
+    );
     expect(localStorage.getItem(STORAGE_KEYS.cachePurgeAt)).toBeNull();
   });
   it('skips repeated cache-meta requests within the TTL', async () => {

@@ -60,7 +60,10 @@ export default defineNuxtPlugin(() => {
         },
         signInWithOAuth: async () => {
           logger.debug('[Supabase Stub] auth.signInWithOAuth called in offline mode');
-          return { url: undefined };
+          return {
+            data: { provider: '', url: null },
+            error: new Error('OAuth not available in offline mode'),
+          };
         },
         signOut: async () => {
           logger.debug('[Supabase Stub] auth.signOut called in offline mode');

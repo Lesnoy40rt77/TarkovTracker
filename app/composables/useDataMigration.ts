@@ -225,12 +225,17 @@ export function useDataMigration(): DataMigrationComposable {
       logger.warn('[useDataMigration] No imported data to confirm');
       return false;
     }
-    const userId = $supabase.user?.id ?? null;
-    if (!userId) {
+    if (!$supabase.user) {
       apiError.value = 'Please sign in to import data.';
+      logger.warn('[useDataMigration] Missing user object for import');
+      return false;
+    }
+    if (!$supabase.user.id) {
+      apiError.value = 'User session invalid, please re-authenticate.';
       logger.warn('[useDataMigration] Missing user ID for import');
       return false;
     }
+    const userId = $supabase.user.id;
     importing.value = true;
     try {
       migrationStatus.value = 'migrating';

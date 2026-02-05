@@ -138,6 +138,15 @@ export interface TaskObjective {
   description?: string;
   location?: { id: string; name?: string };
   maps?: { id: string; name?: string }[];
+  zones?: Array<{
+    map?: { id: string };
+    outline?: Array<{ x: number; y: number; z: number }>;
+    position?: { x: number; y: number; z: number };
+  }>;
+  possibleLocations?: Array<{
+    map?: { id: string };
+    positions?: Array<{ x: number; y: number; z: number }>;
+  }>;
   /** The primary item this objective refers to */
   item?: TarkovItem;
   /** All accepted items for this objective (TaskObjectiveItem.items) */
@@ -445,19 +454,6 @@ export interface ObjectiveGPSInfo {
 }
 export interface StaticMapData {
   [key: string]: {
-    id: number;
-    tdevId: string;
-    locale: {
-      en: string;
-      ru?: string;
-    };
-    wiki?: string;
-    description?: string;
-    enemies?: string[];
-    raidDuration?: {
-      day: number;
-      night: number;
-    };
     /** Whether the map is unavailable for display (e.g., unreleased maps) */
     unavailable?: boolean;
     svg?: MapSvgConfig;

@@ -1,5 +1,6 @@
 import { useMetadataStore } from '@/stores/useMetadata';
 import { useTarkovStore } from '@/stores/useTarkov';
+import { logger } from '@/utils/logger';
 import type { NeededItemHideoutModule, NeededItemTaskObjective } from '@/types/tarkov';
 export interface ObjectiveUpdate {
   id: string;
@@ -169,27 +170,32 @@ export function useItemDistribution(): UseItemDistributionReturn {
         hideoutPartUpdates[update.id] = entry;
       }
     }
-    tarkovStore.$patch((state) => {
-      const currentData = state.currentGameMode === 'pve' ? state.pve : state.pvp;
-      if (!currentData.taskObjectives) {
-        currentData.taskObjectives = {};
-      }
-      if (!currentData.hideoutParts) {
-        currentData.hideoutParts = {};
-      }
-      for (const [id, updates] of Object.entries(taskObjectiveUpdates)) {
-        currentData.taskObjectives[id] = {
-          ...currentData.taskObjectives[id],
-          ...updates,
-        };
-      }
-      for (const [id, updates] of Object.entries(hideoutPartUpdates)) {
-        currentData.hideoutParts[id] = {
-          ...currentData.hideoutParts[id],
-          ...updates,
-        };
-      }
-    });
+    try {
+      tarkovStore.$patch((state) => {
+        const currentData = state.currentGameMode === 'pve' ? state.pve : state.pvp;
+        if (!currentData.taskObjectives) {
+          currentData.taskObjectives = {};
+        }
+        if (!currentData.hideoutParts) {
+          currentData.hideoutParts = {};
+        }
+        for (const [id, updates] of Object.entries(taskObjectiveUpdates)) {
+          currentData.taskObjectives[id] = {
+            ...currentData.taskObjectives[id],
+            ...updates,
+          };
+        }
+        for (const [id, updates] of Object.entries(hideoutPartUpdates)) {
+          currentData.hideoutParts[id] = {
+            ...currentData.hideoutParts[id],
+            ...updates,
+          };
+        }
+      });
+    } catch (error) {
+      logger.error('[useItemDistribution] Failed to apply distribution:', error);
+      throw new Error('Failed to update progress data');
+    }
   }
   function resetObjectives(
     taskObjectives: NeededItemTaskObjective[],

@@ -1,11 +1,9 @@
 import { markI18nReady } from '@/composables/i18nHelpers';
+import { isSupportedLocale } from '@/utils/locales';
 import { logger } from '@/utils/logger';
 import { STORAGE_KEYS } from '@/utils/storageKeys';
+import type { SupportedLocale } from '@/utils/locales';
 import type { Composer, I18n } from 'vue-i18n';
-const SUPPORTED_LOCALES = ['en', 'de', 'es', 'fr', 'ru', 'uk', 'zh'] as const;
-type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
-const isSupportedLocale = (value: string): value is SupportedLocale =>
-  SUPPORTED_LOCALES.includes(value as SupportedLocale);
 function getInitialLocale(): SupportedLocale {
   if (typeof window !== 'undefined' && window.localStorage) {
     try {
@@ -24,6 +22,20 @@ function getInitialLocale(): SupportedLocale {
   const resolved = (navLang || 'en').split(/[-_]/)[0] || 'en';
   return isSupportedLocale(resolved) ? resolved : 'en';
 }
+function setI18nLocale(i18n: I18n | Composer, locale: SupportedLocale): boolean {
+  const target = 'global' in i18n ? i18n.global : i18n;
+  if (!('locale' in target)) return false;
+  const localeValue = target.locale as unknown;
+  if (typeof localeValue === 'string') {
+    (target as { locale: string }).locale = locale;
+    return true;
+  }
+  if (localeValue && typeof localeValue === 'object' && 'value' in localeValue) {
+    (localeValue as { value: string }).value = locale;
+    return true;
+  }
+  return false;
+}
 export default defineNuxtPlugin({
   name: 'i18n-ready',
   enforce: 'post',
@@ -35,30 +47,8 @@ export default defineNuxtPlugin({
       return;
     }
     const initialLocale = getInitialLocale();
-    if ('global' in i18n && i18n.global) {
-      const globalLocale = i18n.global.locale as unknown;
-      if (typeof globalLocale === 'string') {
-        (i18n.global as { locale: string }).locale = initialLocale;
-      } else if (globalLocale && typeof globalLocale === 'object' && 'value' in globalLocale) {
-        (globalLocale as { value: string }).value = initialLocale;
-      } else {
-        logger.warn('[i18n] Missing locale on i18n global instance; skipping locale init.');
-      }
-    } else if ('locale' in i18n) {
-      const composerLocale = i18n.locale as unknown;
-      if (typeof composerLocale === 'string') {
-        (i18n as unknown as { locale: string }).locale = initialLocale;
-      } else if (
-        composerLocale &&
-        typeof composerLocale === 'object' &&
-        'value' in composerLocale
-      ) {
-        (composerLocale as { value: string }).value = initialLocale;
-      } else {
-        logger.warn('[i18n] Missing locale on i18n composer instance; skipping locale init.');
-      }
-    } else {
-      logger.warn('[i18n] Missing locale on i18n instance; skipping locale init.');
+    if (!setI18nLocale(i18n, initialLocale)) {
+      logger.warn('[i18n] Failed to set locale on i18n instance; skipping locale init.');
     }
     markI18nReady();
   },

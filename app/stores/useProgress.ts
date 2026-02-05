@@ -1,11 +1,4 @@
 import { defineStore } from 'pinia';
-import {
-  getCompletionFlags,
-  getTaskStatusFromFlags,
-  isTaskActive,
-  isTaskComplete,
-  isTaskFailed,
-} from '@/composables/useTaskStatus';
 import { useMetadataStore } from '@/stores/useMetadata';
 import { usePreferencesStore } from '@/stores/usePreferences';
 import { useTarkovStore } from '@/stores/useTarkov';
@@ -20,6 +13,13 @@ import {
 import { logger } from '@/utils/logger';
 import { perfEnd, perfStart } from '@/utils/perf';
 import { computeInvalidProgress } from '@/utils/progressInvalidation';
+import {
+  getCompletionFlags,
+  getTaskStatusFromFlags,
+  isTaskActive,
+  isTaskComplete,
+  isTaskFailed,
+} from '@/utils/taskStatus';
 import type { UserProgressData, UserState } from '@/stores/progressState';
 import type { GameEdition, Task, TaskRequirement } from '@/types/tarkov';
 import type { Store } from 'pinia';

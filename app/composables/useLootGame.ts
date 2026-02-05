@@ -35,7 +35,7 @@ const FALLBACK_LOOT_TABLE: LootItem[] = [
   {
     name: 'Duct Tape',
     icon: 'i-mdi-tape-drive',
-    rarity: 'Common',
+    rarity: 'Uncommon',
     colorClass: 'text-rarity-uncommon-400',
     textClass: 'text-rarity-uncommon-100',
     isRealItem: false,
@@ -62,7 +62,7 @@ const FALLBACK_LOOT_TABLE: LootItem[] = [
   {
     name: 'Golden Rooster',
     icon: 'i-mdi-bird',
-    rarity: 'Rare',
+    rarity: 'Legendary',
     colorClass: 'text-rarity-legendary-400',
     textClass: 'text-rarity-legendary-100',
     isRealItem: false,
