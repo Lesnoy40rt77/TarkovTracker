@@ -1,6 +1,6 @@
 <template>
   <UButton v-if="refreshEnabled" variant="soft" color="primary" @click="refresh()">
-    {{ t('common.refreshbutton') }}
+    {{ t('common.refresh_button') }}
   </UButton>
 </template>
 <script setup>

@@ -27,7 +27,7 @@
   }>();
   const sizeClass = computed(() => (props.hasMargin ? 'mr-3 w-6' : 'w-6'));
   const iconClass = computed(() => {
-    if (!props.icon || props.icon.startsWith('i-')) {
+    if (!props.icon) {
       return ['mdi', 'mdi-help-circle', 'text-2xl'];
     }
     return ['mdi', props.icon, 'text-2xl'];

@@ -20,7 +20,7 @@
       ></DrawerItem>
       <DrawerItem
         icon="i-heroicons-cube"
-        locale-key="neededitems"
+        locale-key="needed_items"
         to="/needed-items"
         :is-collapsed="props.isCollapsed"
       ></DrawerItem>

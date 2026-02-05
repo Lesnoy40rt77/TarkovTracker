@@ -86,13 +86,7 @@
             :items="accountItems"
             :content="{ side: 'bottom', align: 'end', sideOffset: 0 }"
             :modal="false"
-            :ui="{
-              content:
-                'bg-surface-800 border border-surface-600 border-t-0 rounded-t-none rounded-b-md min-w-[var(--reka-dropdown-menu-trigger-width)] ring-0 outline-none shadow-none',
-              group: 'p-1',
-              item: 'px-3 py-1.5 text-sm cursor-pointer rounded text-surface-200 data-[highlighted]:bg-surface-700 data-[highlighted]:text-white',
-              itemLeadingIcon: 'size-4 text-surface-400',
-            }"
+            :ui="DROPDOWN_MENU_UI_CONFIG"
           >
             <button
               type="button"
@@ -142,12 +136,11 @@
 <script setup lang="ts">
   import { useWindowSize } from '@vueuse/core';
   import { storeToRefs } from 'pinia';
-  import { useI18n } from 'vue-i18n';
-  import { useRoute } from 'vue-router';
   import { useAppStore } from '@/stores/useApp';
   import { useMetadataStore } from '@/stores/useMetadata';
   import { usePreferencesStore } from '@/stores/usePreferences';
   import { useTarkovStore } from '@/stores/useTarkov';
+  import { DROPDOWN_MENU_UI_CONFIG } from '@/utils/dropdownMenuUIConfig';
   import { logger } from '@/utils/logger';
   const { t } = useI18n({ useScope: 'global' });
   const appStore = useAppStore();
@@ -204,7 +197,7 @@
   const pageTitleKey = computed(() => {
     const name = String(route.name || 'index');
     if (name === 'needed-items' || name === 'neededitems') {
-      return 'page.neededItems.title';
+      return 'page.needed_items.title';
     }
     return `page.${name.replaceAll('-', '_')}.title`;
   });

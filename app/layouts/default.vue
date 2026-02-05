@@ -28,7 +28,7 @@
         marginLeft: mainMarginLeft,
       }"
     >
-      <div class="scoped-main-content" :class="contentWrapperClass">
+      <div :class="contentWrapperClass">
         <slot />
       </div>
     </main>

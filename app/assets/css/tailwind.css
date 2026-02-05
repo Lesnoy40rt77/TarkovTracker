@@ -513,14 +513,6 @@ html.no-smooth-scroll {
 .ring-accented {
   --tw-ring-color: var(--ui-border-accented);
 }
-@layer base {
-  .scoped-main-content a:not(.btn):not(.button) {
-    @apply text-link transition-colors duration-150;
-  }
-  .scoped-main-content a:not(.btn):not(.button):hover {
-    @apply text-link-hover decoration-link-hover;
-  }
-}
 @layer utilities {
   /* Kappa color utilities */
   .bg-kappa {
@@ -679,7 +671,9 @@ html.no-smooth-scroll {
 /* Text colors now use warm surface tokens (see @theme --color-surface-*) */
 
 /* Nuxt UI v4 USelectMenu (Reka combobox) locks content width to the trigger; override to fit widest option. */
-/* TODO: Remove these overrides if/when Nuxt UI v4 stops forcing trigger-width content sizing. */
+/* TODO: Remove these overrides when Nuxt UI v4 fixes trigger-width content sizing.
+   Track: https://github.com/tarkovtracker-org/TarkovTracker/issues/157
+   Condition: Remove once Nuxt UI v4 stops forcing trigger-width sizing (fix or opt-out prop). */
 [id^='reka-combobox-content'][data-slot='content'] {
   --reka-combobox-trigger-width: max-content !important;
   min-width: var(--reka-popper-anchor-width);

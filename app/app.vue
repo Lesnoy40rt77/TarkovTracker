@@ -12,20 +12,51 @@
 </template>
 <script setup lang="ts">
   import { useAppInitialization } from '@/composables/useAppInitialization';
-  // Initialize app (auth, locale, migrations)
   useAppInitialization();
-  const config = useRuntimeConfig();
   const route = useRoute();
-  // Dynamically set canonical and social URLs based on current route
-  useHead({
+  const { locale } = useI18n();
+  const { public: publicConfig } = useRuntimeConfig();
+  const siteUrl = (publicConfig.appUrl || 'https://tarkovtracker.org').replace(/\/$/, '');
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'TarkovTracker',
+    url: siteUrl,
+    applicationCategory: 'GameApplication',
+    operatingSystem: 'Web',
+    description:
+      'Complete Escape from Tarkov progress tracker for patch 1.0+. Track quests, storyline, hideout, and needed items.',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+    author: {
+      '@type': 'Organization',
+      name: 'TarkovTracker',
+      url: siteUrl,
+    },
+    sameAs: ['https://github.com/tarkovtracker-org/TarkovTracker'],
+  };
+  useHead(() => ({
+    htmlAttrs: {
+      lang: locale.value,
+    },
     link: [
       {
         rel: 'canonical',
-        href: computed(() => `${config.public.appUrl}${route.path}`),
+        href: `${siteUrl}${route.path}`,
       },
     ],
-  });
+    script: [
+      {
+        type: 'application/ld+json',
+        innerHTML: JSON.stringify(organizationSchema),
+      },
+    ],
+  }));
   useSeoMeta({
-    ogUrl: computed(() => `${config.public.appUrl}${route.path}`),
+    ogUrl: computed(() => `${siteUrl}${route.path}`),
+    ogLocale: computed(() => locale.value),
   });
 </script>

@@ -35,11 +35,12 @@
     <span v-if="!props.isCollapsed" class="flex items-center gap-1 truncate">
       {{ props.labelText }}
       <UIcon name="i-mdi-open-in-new" class="h-3 w-3 shrink-0 opacity-60" aria-hidden="true" />
-      <span class="sr-only">({{ $t('common.opensInNewTab', 'opens in new tab') }})</span>
+      <span class="sr-only">({{ $t('common.opens_in_new_tab', 'opens in new tab') }})</span>
     </span>
   </a>
   <div
     v-else
+    role="link"
     class="group flex min-h-12 cursor-not-allowed items-center rounded-sm border-l-2 border-transparent px-3 py-3 text-base font-medium text-white/50 opacity-60 transition-colors duration-200"
     :class="[props.isCollapsed ? 'justify-center' : '']"
     aria-disabled="true"
@@ -67,10 +68,14 @@
     hasMargin?: boolean;
   }>();
   const route = useRoute();
-  if (import.meta.env.DEV && props.to && props.href) {
-    logger.warn(
-      '[DrawerItemContent] Both props.to and props.href provided. isAnchor will render with props.href, isNuxtLink will be false, and props.to will be ignored.'
-    );
+  if (import.meta.env.DEV) {
+    watchEffect(() => {
+      if (props.to && props.href) {
+        logger.warn(
+          '[DrawerItemContent] Both props.to and props.href provided. isAnchor will render with props.href, isNuxtLink will be false, and props.to will be ignored.'
+        );
+      }
+    });
   }
   const isDisabled = computed(() => props.disabled ?? (!props.to && !props.href));
   const isNuxtLink = computed(() => !isDisabled.value && !!props.to && !props.href);

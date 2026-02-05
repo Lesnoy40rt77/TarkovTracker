@@ -29,6 +29,7 @@
   const x = ref(0);
   const y = ref(0);
   const menuRef = ref<HTMLElement>();
+  const triggerRef = ref<HTMLElement | null>(null);
   const getMenuItems = (): HTMLElement[] => {
     if (!menuRef.value) return [];
     return Array.from(
@@ -45,7 +46,21 @@
       }
     });
   };
+  const close = () => {
+    visible.value = false;
+  };
+  const closeMenu = () => {
+    close();
+    nextTick(() => {
+      triggerRef.value?.focus();
+    });
+  };
   const handleMenuKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeMenu();
+      return;
+    }
     const items = getMenuItems();
     if (!items.length) return;
     const currentIndex = items.findIndex((item) => item === document.activeElement);
@@ -63,14 +78,18 @@
     } else if (event.key === 'End') {
       event.preventDefault();
       items[items.length - 1]?.focus();
-    } else if (event.key === 'Escape') {
-      event.preventDefault();
-      close();
     }
   };
   const open = (event: MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
+    if (event.currentTarget instanceof HTMLElement) {
+      triggerRef.value = event.currentTarget;
+    } else if (event.target instanceof HTMLElement) {
+      triggerRef.value = event.target;
+    } else {
+      triggerRef.value = null;
+    }
     x.value = event.clientX;
     y.value = event.clientY;
     visible.value = true;
@@ -90,9 +109,6 @@
       }
     });
   };
-  const close = () => {
-    visible.value = false;
-  };
   watch(visible, (isVisible) => {
     if (isVisible) {
       focusFirstItem();
@@ -101,7 +117,8 @@
   onClickOutside(menuRef, close);
   const handleGlobalKeydown = (event: KeyboardEvent) => {
     if (event.key === 'Escape' && visible.value) {
-      close();
+      event.preventDefault();
+      closeMenu();
     }
   };
   onMounted(() => {
