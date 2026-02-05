@@ -166,7 +166,7 @@
   import { storeToRefs } from 'pinia';
   import { useI18n } from 'vue-i18n';
   import { useRoute, useRouter } from 'vue-router';
-  import { useHideoutFiltering } from '@/composables/useHideoutFiltering';
+  import { type HideoutPrimaryView, useHideoutFiltering } from '@/composables/useHideoutFiltering';
   import { useHideoutStationStatus } from '@/composables/useHideoutStationStatus';
   import { usePrereqModal, type PrereqType } from '@/composables/usePrereqModal';
   import { useMetadataStore } from '@/stores/useMetadata';
@@ -218,7 +218,14 @@
   // Hideout filtering composable
   const { activePrimaryView, isStoreLoading, visibleStations, stationCounts } =
     useHideoutFiltering();
-  const primaryViews = computed(() => [
+  type HideoutPrimaryViewOption = {
+    badgeColor: string;
+    count: number;
+    icon: string;
+    title: string;
+    view: HideoutPrimaryView;
+  };
+  const primaryViews = computed<HideoutPrimaryViewOption[]>(() => [
     {
       title: t('page.hideout.primary_views.all'),
       icon: 'mdi-clipboard-check',

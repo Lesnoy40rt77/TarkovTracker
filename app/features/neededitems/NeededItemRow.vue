@@ -366,5 +366,8 @@
   });
   const isSingleItem = computed(() => neededCount.value === 1);
   const isCollected = computed(() => currentCount.value >= neededCount.value);
-  defineEmits(['decreaseCount', 'increaseCount', 'toggleCount', 'setCount']);
+  defineEmits<{
+    (event: 'decreaseCount' | 'increaseCount' | 'toggleCount'): void;
+    (event: 'setCount', count: number): void;
+  }>();
 </script>

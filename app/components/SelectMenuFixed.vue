@@ -38,9 +38,10 @@
   };
   const getLongestLabel = () => {
     if (!props.items?.length) return '';
-    const labels = props.items.map((item) =>
-      typeof item === 'object' && item !== null ? item[labelKey.value] : item
-    );
+    const labels = props.items.map((item) => {
+      const record = asRecord(item);
+      return record ? record[labelKey.value] : item;
+    });
     return labels.reduce((longest, label) => {
       const labelStr = String(label || '');
       const longestStr = String(longest || '');

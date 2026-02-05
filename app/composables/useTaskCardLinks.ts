@@ -5,12 +5,25 @@ export interface UseTaskCardLinksOptions {
   task: () => Task;
   objectives: () => TaskObjective[];
 }
-type SelectedTaskItem = {
+export type SelectedTaskItem = {
   id: string;
   name?: string;
   wikiLink?: string;
 };
-export function useTaskCardLinks(options: UseTaskCardLinksOptions) {
+export interface UseTaskCardLinksReturn {
+  selectedItem: Ref<SelectedTaskItem | null>;
+  tarkovDevTaskUrl: ComputedRef<string>;
+  copyTextToClipboard: (text: string) => Promise<boolean>;
+  copyTaskLink: () => Promise<boolean>;
+  openTaskWiki: () => void;
+  openTaskOnTarkovDev: () => void;
+  getTaskDataIssueUrl: () => string;
+  openTaskDataIssue: () => void;
+  setSelectedItem: (item: SelectedTaskItem | null) => void;
+  openItemOnTarkovDev: () => void;
+  openItemOnWiki: () => void;
+}
+export function useTaskCardLinks(options: UseTaskCardLinksOptions): UseTaskCardLinksReturn {
   const { task, objectives } = options;
   const router = useRouter();
   const tarkovStore = useTarkovStore();

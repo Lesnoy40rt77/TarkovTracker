@@ -4,6 +4,7 @@ import { useMetadataStore } from '@/stores/useMetadata';
 import { usePreferencesStore } from '@/stores/usePreferences';
 import { useProgressStore } from '@/stores/useProgress';
 import type { HideoutStation } from '@/types/tarkov';
+export type HideoutPrimaryView = 'available' | 'maxed' | 'locked' | 'all';
 export type HideoutStationCounts = {
   available: number;
   maxed: number;
@@ -11,7 +12,7 @@ export type HideoutStationCounts = {
   all: number;
 };
 export type UseHideoutFilteringReturn = {
-  activePrimaryView: WritableComputedRef<string>;
+  activePrimaryView: WritableComputedRef<HideoutPrimaryView>;
   isStoreLoading: ComputedRef<boolean>;
   visibleStations: ComputedRef<HideoutStation[]>;
   stationCounts: ComputedRef<HideoutStationCounts>;
@@ -22,10 +23,9 @@ export function useHideoutFiltering(): UseHideoutFilteringReturn {
   const progressStore = useProgressStore();
   const { arePrereqsMet, getStationStatus } = useHideoutStationStatus();
   const preferencesStore = usePreferencesStore();
-  // Active primary view (available, maxed, locked, all)
-  const activePrimaryView = computed({
-    get: () => preferencesStore.getHideoutPrimaryView,
-    set: (value) => preferencesStore.setHideoutPrimaryView(value),
+  const activePrimaryView = computed<HideoutPrimaryView>({
+    get: () => preferencesStore.getHideoutPrimaryView as HideoutPrimaryView,
+    set: (value: HideoutPrimaryView) => preferencesStore.setHideoutPrimaryView(value),
   });
   const sortReadyFirst = computed(() => preferencesStore.getHideoutSortReadyFirst);
   const isStationReadyToBuild = (station: HideoutStation): boolean => {

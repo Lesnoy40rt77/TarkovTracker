@@ -12,10 +12,14 @@ const NON_LOCATION_OBJECTIVE_TYPES = new Set([
   'buildWeapon',
 ]);
 interface ObjectiveWithLocation extends TaskObjective {
-  zones?: Array<{ map: { id: string }; outline: { x: number; y: number; z: number }[] }>;
+  zones?: Array<{
+    map?: { id: string };
+    outline?: Array<{ x: number; y: number; z: number }>;
+    position?: { x: number; y: number; z: number };
+  }>;
   possibleLocations?: Array<{
-    map: { id: string };
-    positions?: { x: number; y: number; z: number }[];
+    map?: { id: string };
+    positions?: Array<{ x: number; y: number; z: number }>;
   }>;
 }
 /**
@@ -35,19 +39,19 @@ export function objectiveHasMapLocation(
   objective: TaskObjective,
   fullObjective?: TaskObjective
 ): boolean {
-  const target = (fullObjective ?? objective) as ObjectiveWithLocation;
+  const target: ObjectiveWithLocation = fullObjective ?? objective;
   if (target.type && NON_LOCATION_OBJECTIVE_TYPES.has(target.type)) {
     return false;
   }
   // Check for zones with actual outline coordinates
   const hasZonesWithOutlines =
     Array.isArray(target.zones) &&
-    target.zones.some((zone) => Array.isArray(zone.outline) && zone.outline.length > 0);
+    target.zones.some((zone) => Array.isArray(zone?.outline) && zone.outline.length > 0);
   // Check for possibleLocations with actual position coordinates
   const hasLocationsWithPositions =
     Array.isArray(target.possibleLocations) &&
     target.possibleLocations.some(
-      (loc) => Array.isArray(loc.positions) && loc.positions.length > 0
+      (loc) => Array.isArray(loc?.positions) && loc.positions.length > 0
     );
   if (hasZonesWithOutlines || hasLocationsWithPositions) {
     return true;

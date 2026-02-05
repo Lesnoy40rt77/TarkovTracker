@@ -1,3 +1,4 @@
+import type { Ref } from '#imports';
 export type PrereqType = 'station' | 'skill' | 'trader';
 export interface UsePrereqModalOptions {
   onConfirm: (key: PrereqType) => void;

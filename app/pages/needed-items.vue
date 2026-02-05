@@ -136,13 +136,14 @@
         'View all items needed for your active quests and hideout upgrades. Filter by quest, craft, and find-in-raid requirements.'
       ),
   });
-  const props = defineProps({
-    baseRenderCount: {
-      type: Number,
-      default: DEFAULT_INITIAL_RENDER_COUNT,
-      validator: (value: number) => Number.isFinite(value) && value > 0,
-    },
-  });
+  const props = withDefaults(
+    defineProps<{
+      baseRenderCount?: number;
+    }>(),
+    {
+      baseRenderCount: DEFAULT_INITIAL_RENDER_COUNT,
+    }
+  );
   const search = ref('');
   const { belowMd, xs } = useSharedBreakpoints();
   const {
@@ -169,8 +170,12 @@
   onMounted(() => {
     ensureNeededItemsData();
   });
+  const baseRenderCount = computed(() => {
+    const value = props.baseRenderCount;
+    return Number.isFinite(value) && value > 0 ? value : DEFAULT_INITIAL_RENDER_COUNT;
+  });
   const adjustedRenderCount = computed(() => {
-    const baseCount = props.baseRenderCount;
+    const baseCount = baseRenderCount.value;
     const viewAdjusted =
       viewMode.value === 'grid'
         ? Math.max(baseCount, Math.ceil(baseCount * SCREEN_SIZE_MULTIPLIERS.gridView))

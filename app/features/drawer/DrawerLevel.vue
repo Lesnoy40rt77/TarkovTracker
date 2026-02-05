@@ -154,89 +154,87 @@
     </template>
   </div>
 </template>
-<script setup>
-  import { useI18n } from 'vue-i18n';
-  import { useRouter } from 'vue-router';
+<script setup lang="ts">
   import { useXpCalculation } from '@/composables/useXpCalculation';
   import { useMetadataStore } from '@/stores/useMetadata';
   import { usePreferencesStore } from '@/stores/usePreferences';
   import { useTarkovStore } from '@/stores/useTarkov';
   import { useLocaleNumberFormatter } from '@/utils/formatters';
   import { logger } from '@/utils/logger';
+  import type { PlayerLevel } from '@/types/tarkov';
   const { t } = useI18n({ useScope: 'global' });
   const router = useRouter();
   const formatNumber = useLocaleNumberFormatter();
-  defineProps({
-    isCollapsed: {
-      type: Boolean,
-      required: true,
-    },
-  });
+  interface DrawerLevelProps {
+    isCollapsed: boolean;
+  }
+  defineProps<DrawerLevelProps>();
   const tarkovStore = useTarkovStore();
   const metadataStore = useMetadataStore();
   const preferencesStore = usePreferencesStore();
   const xpCalculation = useXpCalculation();
-  const minPlayerLevel = computed(() => metadataStore.minPlayerLevel);
-  const maxPlayerLevel = computed(() => metadataStore.maxPlayerLevel);
-  const playerLevels = computed(() => metadataStore.playerLevels);
-  const useAutomaticLevel = computed(() => preferencesStore.getUseAutomaticLevelCalculation);
+  const minPlayerLevel = computed<number>(() => metadataStore.minPlayerLevel);
+  const maxPlayerLevel = computed<number>(() => metadataStore.maxPlayerLevel);
+  const playerLevels = computed<PlayerLevel[]>(() => metadataStore.playerLevels);
+  const useAutomaticLevel = computed<boolean>(
+    () => preferencesStore.getUseAutomaticLevelCalculation
+  );
   const STEPPER_BUTTON_CLASS =
     'flex h-5.5 w-5.5 items-center justify-center p-0 text-white/70 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40';
-  const displayedLevel = computed(() => {
+  const displayedLevel = computed<number>(() => {
     return useAutomaticLevel.value ? xpCalculation.derivedLevel.value : tarkovStore.playerLevel();
   });
-  const isDataReady = computed(() => {
-    return (
-      !metadataStore.loading && metadataStore.playerLevels.length > 0 && tarkovStore.getPMCFaction()
-    );
+  const isDataReady = computed<boolean>(() => {
+    return !metadataStore.loading && metadataStore.playerLevels.length > 0;
   });
-  const groupIcon = computed(() => {
+  const groupIcon = computed<string>(() => {
     const level = displayedLevel.value;
     const entry = playerLevels.value.find((pl) => pl.level === level);
     return entry?.levelBadgeImageLink ?? '';
   });
-  const groupImageLoadFailed = ref(false);
-  const editingLevel = ref(false);
-  const levelInputValue = ref(tarkovStore.playerLevel());
-  const levelInput = ref(null);
-  function startEditingLevel() {
+  const groupImageLoadFailed = ref<boolean>(false);
+  const editingLevel = ref<boolean>(false);
+  const levelInputValue = ref<number>(tarkovStore.playerLevel());
+  const levelInput = ref<HTMLInputElement | null>(null);
+  function startEditingLevel(): void {
     editingLevel.value = true;
     levelInputValue.value = tarkovStore.playerLevel();
-    nextTick(() => {
-      if (levelInput.value) levelInput.value.focus();
+    void nextTick(() => {
+      levelInput.value?.focus();
     });
   }
-  function enforceMaxLevel() {
-    const currentValue = parseInt(levelInputValue.value, 10);
-    if (!isNaN(currentValue) && currentValue > maxPlayerLevel.value) {
+  function enforceMaxLevel(): void {
+    const currentValue = Number(levelInputValue.value);
+    if (Number.isFinite(currentValue) && currentValue > maxPlayerLevel.value) {
       levelInputValue.value = maxPlayerLevel.value;
     }
   }
-  function saveLevel() {
-    let newLevel = parseInt(levelInputValue.value, 10);
-    if (isNaN(newLevel)) newLevel = minPlayerLevel.value;
+  function saveLevel(): void {
+    let newLevel = Number(levelInputValue.value);
+    if (!Number.isFinite(newLevel)) newLevel = minPlayerLevel.value;
     newLevel = Math.max(minPlayerLevel.value, Math.min(maxPlayerLevel.value, newLevel));
     tarkovStore.setLevel(newLevel);
     editingLevel.value = false;
   }
-  function incrementLevel() {
+  function incrementLevel(): void {
     if (tarkovStore.playerLevel() < maxPlayerLevel.value) {
       tarkovStore.setLevel(tarkovStore.playerLevel() + 1);
     }
   }
-  function decrementLevel() {
+  function decrementLevel(): void {
     if (tarkovStore.playerLevel() > minPlayerLevel.value) {
       tarkovStore.setLevel(tarkovStore.playerLevel() - 1);
     }
   }
-  function navigateToSettings() {
-    router.push('/settings');
+  function navigateToSettings(): void {
+    void router.push('/settings');
   }
   watch(groupIcon, () => {
     groupImageLoadFailed.value = false;
   });
-  function handleGroupImageError(event) {
-    logger.warn('Failed to load group image', { src: event?.target?.src });
+  function handleGroupImageError(event: string | Event): void {
+    const src = typeof event === 'string' ? event : (event.target as HTMLImageElement | null)?.src;
+    logger.warn('Failed to load group image', { src });
     groupImageLoadFailed.value = true;
   }
 </script>

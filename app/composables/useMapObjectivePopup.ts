@@ -9,6 +9,11 @@ export type UseMapObjectivePopupOptions = {
   leafletMapRef: Ref<LeafletMapRef | null>;
   mapContainerRef: Ref<HTMLElement | null>;
 };
+export interface UseMapObjectivePopupReturn {
+  jumpToMapObjective: (objectiveId: string) => Promise<void>;
+  scrollToMap: () => void;
+  cleanup: () => void;
+}
 const SCROLL_TO_MAP_POPUP_DELAY = 150;
 const MAP_POPUP_POST_RERENDER_DELAY = 100;
 const NEAR_TOP_SCROLL_THRESHOLD = 100;
@@ -17,7 +22,7 @@ const POPUP_ACTIVATE_MAX_ATTEMPTS = 6;
 export function useMapObjectivePopup({
   leafletMapRef,
   mapContainerRef,
-}: UseMapObjectivePopupOptions) {
+}: UseMapObjectivePopupOptions): UseMapObjectivePopupReturn {
   const metadataStore = useMetadataStore();
   const preferencesStore = usePreferencesStore();
   const isMounted = ref(true);

@@ -58,6 +58,14 @@
   </UModal>
 </template>
 <script setup lang="ts">
+  import type { PropType } from '#imports';
+  interface ImportedData extends Record<string, unknown> {
+    tasks?: Record<string, unknown>;
+    hideout?: Record<string, unknown>;
+    level?: number;
+    gameEdition?: string | number;
+    pmcFaction?: string;
+  }
   const { t } = useI18n({ useScope: 'global' });
   defineProps({
     show: {
@@ -65,8 +73,8 @@
       default: false,
     },
     data: {
-      type: Object,
-      default: null,
+      type: Object as PropType<ImportedData>,
+      default: undefined,
     },
     completedTasks: {
       type: Number,
