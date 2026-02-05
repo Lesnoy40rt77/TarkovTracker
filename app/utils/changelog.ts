@@ -19,6 +19,31 @@ export const toSentence = (value: string): string => {
   }
   return text;
 };
+const SKIP_TYPES = new Set(['chore', 'ci', 'test', 'tests', 'docs', 'build', 'style', 'deps']);
+const VERB_MAP: Readonly<Record<string, string>> = Object.freeze({
+  feat: 'Added',
+  fix: 'Fixed',
+  perf: 'Improved',
+  ui: 'Updated',
+  refactor: 'Improved',
+});
+const INFERRED_MAP: Readonly<Record<string, string>> = Object.freeze({
+  add: 'Added',
+  adds: 'Added',
+  added: 'Added',
+  fix: 'Fixed',
+  fixes: 'Fixed',
+  fixed: 'Fixed',
+  improve: 'Improved',
+  improves: 'Improved',
+  improved: 'Improved',
+  update: 'Updated',
+  updates: 'Updated',
+  updated: 'Updated',
+  refactor: 'Improved',
+  refactors: 'Improved',
+  refactored: 'Improved',
+});
 export const extractReleaseBullets = (body: string | null | undefined): string[] => {
   if (!body) return [];
   const lines = body
@@ -47,16 +72,8 @@ export const normalizeCommitMessage = (message: string | null | undefined): stri
   const conventional = firstLine.match(/^([a-z]+)(?:\([^)]+\))?:\s*(.+)$/i);
   const type = conventional?.[1]?.toLowerCase() ?? '';
   let subject = conventional?.[2] ?? firstLine;
-  const skipTypes = new Set(['chore', 'ci', 'test', 'tests', 'docs', 'build', 'style', 'deps']);
-  if (type && skipTypes.has(type)) return null;
-  const verbMap: Record<string, string> = {
-    feat: 'Added',
-    fix: 'Fixed',
-    perf: 'Improved',
-    ui: 'Updated',
-    refactor: 'Improved',
-  };
-  let verb = verbMap[type] || '';
+  if (type && SKIP_TYPES.has(type)) return null;
+  let verb = VERB_MAP[type] || '';
   subject = cleanText(subject);
   if (!subject) return null;
   const verbPattern =
@@ -64,24 +81,7 @@ export const normalizeCommitMessage = (message: string | null | undefined): stri
   const leadingVerb = subject.match(verbPattern);
   if (!verb && leadingVerb && leadingVerb[1]) {
     const keyword = leadingVerb[1].toLowerCase();
-    const inferredMap: Record<string, string> = {
-      add: 'Added',
-      adds: 'Added',
-      added: 'Added',
-      fix: 'Fixed',
-      fixes: 'Fixed',
-      fixed: 'Fixed',
-      improve: 'Improved',
-      improves: 'Improved',
-      improved: 'Improved',
-      update: 'Updated',
-      updates: 'Updated',
-      updated: 'Updated',
-      refactor: 'Improved',
-      refactors: 'Improved',
-      refactored: 'Improved',
-    };
-    verb = inferredMap[keyword] || 'Updated';
+    verb = INFERRED_MAP[keyword] || 'Updated';
     subject = subject.replace(verbPattern, '');
   }
   if (!verb) return null;

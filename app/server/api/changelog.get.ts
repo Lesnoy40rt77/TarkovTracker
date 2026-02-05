@@ -1,4 +1,5 @@
 import { defineEventHandler, getQuery, setResponseHeaders } from 'h3';
+import { LRUCache } from 'lru-cache';
 import { useRuntimeConfig } from '#imports';
 import { createLogger } from '@/server/utils/logger';
 import {
@@ -54,112 +55,88 @@ type GitHubCompareResponse = {
 };
 type StatsCacheEntry = { stats: ChangelogStats; timestamp: number };
 type GitHubConfig = { owner: string; repo: string; baseUrl: string };
-type LRUNode = { key: string; prev: LRUNode | null; next: LRUNode | null };
 const logger = createLogger('Changelog');
-const DEFAULT_OWNER = 'tarkovtracker-org';
-const DEFAULT_REPO = 'TarkovTracker';
-const DEFAULT_LIMIT = 10;
-const MAX_LIMIT = 50;
-const RELEASE_LIMIT = 3;
-const MAX_BULLETS_PER_GROUP = 5;
-const MAX_STATS_FETCHES = 20;
-const statsCache = new Map<string, StatsCacheEntry>();
-const lruNodeMap = new Map<string, LRUNode>();
-let lruHead: LRUNode | null = null;
-let lruTail: LRUNode | null = null;
-const lruMoveToTail = (key: string): void => {
-  let node = lruNodeMap.get(key);
-  if (!node) {
-    node = { key, prev: null, next: null };
-    lruNodeMap.set(key, node);
-  } else if (node === lruTail) {
-    return;
-  } else {
-    if (node.prev) node.prev.next = node.next;
-    if (node.next) node.next.prev = node.prev;
-    if (node === lruHead) lruHead = node.next;
-    node.prev = null;
-    node.next = null;
-  }
-  if (!lruHead) {
-    lruHead = node;
-    lruTail = node;
-  } else if (lruTail) {
-    lruTail.next = node;
-    node.prev = lruTail;
-    lruTail = node;
-  }
-};
-const lruRemove = (key: string): void => {
-  const node = lruNodeMap.get(key);
-  if (!node) return;
-  if (node.prev) node.prev.next = node.next;
-  if (node.next) node.next.prev = node.prev;
-  if (node === lruHead) lruHead = node.next;
-  if (node === lruTail) lruTail = node.prev;
-  lruNodeMap.delete(key);
-};
-const CACHE_TTL_MS = 30 * 60 * 1000;
-const MAX_CACHE_ENTRIES = 1000;
-const SHARED_CACHE_PREFIX = 'changelog-stats';
-const MAX_KEY_LENGTH = 200;
-const EVICTION_BATCH_SIZE = Math.ceil(MAX_CACHE_ENTRIES * 0.1);
-let lastFullEviction = 0;
-const FULL_EVICTION_INTERVAL_MS = 5 * 60 * 1000;
+const changelogConfig = (() => {
+  const MAX_CACHE_ENTRIES = 1000;
+  const CACHE_TTL_MS = 30 * 60 * 1000;
+  return {
+    DEFAULT_OWNER: 'tarkovtracker-org',
+    DEFAULT_REPO: 'TarkovTracker',
+    DEFAULT_LIMIT: 10,
+    MAX_LIMIT: 50,
+    RELEASE_LIMIT: 3,
+    MAX_BULLETS_PER_GROUP: 5,
+    MAX_STATS_FETCHES: 20,
+    CACHE_TTL_MS,
+    MAX_CACHE_ENTRIES,
+    SHARED_CACHE_PREFIX: 'changelog-stats',
+    MAX_KEY_LENGTH: 200,
+    EVICTION_BATCH_SIZE: Math.ceil(MAX_CACHE_ENTRIES * 0.1),
+    FULL_EVICTION_INTERVAL_MS: 5 * 60 * 1000,
+    cache: {
+      statsCache: new LRUCache<string, StatsCacheEntry>({ max: MAX_CACHE_ENTRIES }),
+      lastFullEviction: 0,
+    },
+  };
+})();
 const evictStaleEntries = (): number => {
   const now = Date.now();
   let evicted = 0;
-  for (const [key, entry] of statsCache) {
-    if (now - entry.timestamp >= CACHE_TTL_MS) {
-      statsCache.delete(key);
-      lruRemove(key);
+  for (const [key, entry] of changelogConfig.cache.statsCache) {
+    if (now - entry.timestamp >= changelogConfig.CACHE_TTL_MS) {
+      changelogConfig.cache.statsCache.delete(key);
       evicted++;
     }
   }
   return evicted;
 };
 const evictLRU = (count: number): void => {
-  if (count <= 0 || !lruHead) return;
+  if (count <= 0) return;
   let evicted = 0;
-  while (lruHead && evicted < count) {
-    const key = lruHead.key;
-    statsCache.delete(key);
-    lruRemove(key);
+  while (evicted < count) {
+    const removed = changelogConfig.cache.statsCache.pop();
+    if (!removed) break;
     evicted++;
   }
 };
 const maybeRunFullEviction = (): void => {
   const now = Date.now();
-  if (now - lastFullEviction < FULL_EVICTION_INTERVAL_MS) return;
-  lastFullEviction = now;
+  if (now - changelogConfig.cache.lastFullEviction < changelogConfig.FULL_EVICTION_INTERVAL_MS) {
+    return;
+  }
+  changelogConfig.cache.lastFullEviction = now;
   evictStaleEntries();
-  if (statsCache.size > MAX_CACHE_ENTRIES) {
-    evictLRU(statsCache.size - MAX_CACHE_ENTRIES + EVICTION_BATCH_SIZE);
+  if (changelogConfig.cache.statsCache.size > changelogConfig.MAX_CACHE_ENTRIES) {
+    evictLRU(
+      changelogConfig.cache.statsCache.size -
+        changelogConfig.MAX_CACHE_ENTRIES +
+        changelogConfig.EVICTION_BATCH_SIZE
+    );
   }
 };
 const isValidCacheKey = (key: string): boolean => {
-  return typeof key === 'string' && key.length > 0 && key.length <= MAX_KEY_LENGTH;
+  return typeof key === 'string' && key.length > 0 && key.length <= changelogConfig.MAX_KEY_LENGTH;
 };
 const getLocalCacheEntry = (key: string): StatsCacheEntry | null => {
-  const cached = statsCache.get(key);
+  const cached = changelogConfig.cache.statsCache.get(key);
   if (!cached) return null;
   const now = Date.now();
-  if (now - cached.timestamp >= CACHE_TTL_MS) {
-    statsCache.delete(key);
-    lruRemove(key);
+  if (now - cached.timestamp >= changelogConfig.CACHE_TTL_MS) {
+    changelogConfig.cache.statsCache.delete(key);
     return null;
   }
-  lruMoveToTail(key);
   return cached;
 };
 const setLocalCacheEntry = (key: string, entry: StatsCacheEntry): void => {
   if (!isValidCacheKey(key)) return;
   maybeRunFullEviction();
-  if (statsCache.size >= MAX_CACHE_ENTRIES && !statsCache.has(key)) {
-    evictLRU(EVICTION_BATCH_SIZE);
+  if (
+    changelogConfig.cache.statsCache.size >= changelogConfig.MAX_CACHE_ENTRIES &&
+    !changelogConfig.cache.statsCache.has(key)
+  ) {
+    evictLRU(changelogConfig.EVICTION_BATCH_SIZE);
   }
-  statsCache.set(key, entry);
-  lruMoveToTail(key);
+  changelogConfig.cache.statsCache.set(key, entry);
 };
 const getSharedCache = (): Cache | null => {
   const cacheStorage = (
@@ -193,7 +170,7 @@ const buildSharedCacheRequest = (key: string): Request => {
   const { host, protocol } = getSharedCacheOrigin();
   const encodedKey = encodeURIComponent(key);
   const cacheUrl = new URL(
-    `${protocol}//${host}/__edge-cache/${SHARED_CACHE_PREFIX}/${encodedKey}`
+    `${protocol}//${host}/__edge-cache/${changelogConfig.SHARED_CACHE_PREFIX}/${encodedKey}`
   );
   return new Request(cacheUrl.toString());
 };
@@ -205,7 +182,7 @@ const getSharedCacheEntry = async (key: string): Promise<StatsCacheEntry | null>
     if (!cachedResponse) return null;
     const payload = (await cachedResponse.json()) as StatsCacheEntry | null;
     if (!payload?.stats || typeof payload.timestamp !== 'number') return null;
-    if (Date.now() - payload.timestamp >= CACHE_TTL_MS) return null;
+    if (Date.now() - payload.timestamp >= changelogConfig.CACHE_TTL_MS) return null;
     return payload;
   } catch (error) {
     logger.warn('[Changelog] Failed to read shared cache.', {
@@ -218,7 +195,7 @@ const getSharedCacheEntry = async (key: string): Promise<StatsCacheEntry | null>
 const setSharedCacheEntry = async (key: string, entry: StatsCacheEntry): Promise<void> => {
   const cache = getSharedCache();
   if (!cache) return;
-  const ttlSeconds = Math.max(1, Math.floor(CACHE_TTL_MS / 1000));
+  const ttlSeconds = Math.max(1, Math.floor(changelogConfig.CACHE_TTL_MS / 1000));
   try {
     const response = new Response(JSON.stringify(entry), {
       headers: {
@@ -244,11 +221,13 @@ const clamp = (value: number, min: number, max: number): number => {
 };
 const getGitHubConfig = (runtimeConfig: ReturnType<typeof useRuntimeConfig>): GitHubConfig => {
   const owner =
-    (typeof runtimeConfig.githubOwner === 'string' && runtimeConfig.githubOwner.trim()) ||
-    DEFAULT_OWNER;
+    (typeof runtimeConfig.public.githubOwner === 'string' &&
+      runtimeConfig.public.githubOwner.trim()) ||
+    changelogConfig.DEFAULT_OWNER;
   const repo =
-    (typeof runtimeConfig.githubRepo === 'string' && runtimeConfig.githubRepo.trim()) ||
-    DEFAULT_REPO;
+    (typeof runtimeConfig.public.githubRepo === 'string' &&
+      runtimeConfig.public.githubRepo.trim()) ||
+    changelogConfig.DEFAULT_REPO;
   const baseUrl = `https://api.github.com/repos/${owner}/${repo}`;
   return { owner, repo, baseUrl };
 };
@@ -361,7 +340,7 @@ const fetchReleaseStats = async (
 };
 const buildReleaseItems = async (
   releases: GitHubRelease[],
-  limit: number = RELEASE_LIMIT,
+  limit: number = changelogConfig.RELEASE_LIMIT,
   baseUrl: string,
   githubToken?: string
 ): Promise<ChangelogItem[]> => {
@@ -383,7 +362,7 @@ const buildReleaseItems = async (
     const bullets: ChangelogBullet[] = rawBullets
       .map((b) => ({ text: toSentence(b) }))
       .filter((b) => b.text)
-      .slice(0, MAX_BULLETS_PER_GROUP);
+      .slice(0, changelogConfig.MAX_BULLETS_PER_GROUP);
     if (!bullets.length && label) {
       bullets.push({ text: toSentence(label) });
     }
@@ -429,7 +408,7 @@ const buildCommitItems = async (
     if (!day || !sha) continue;
     processed.push({ sha, date: day, bullet });
   }
-  const statsToFetch = processed.slice(0, MAX_STATS_FETCHES);
+  const statsToFetch = processed.slice(0, changelogConfig.MAX_STATS_FETCHES);
   const statsMap = new Map<string, ChangelogStats>();
   const settledResults = await Promise.allSettled(
     statsToFetch.map(async ({ sha }) => {
@@ -449,7 +428,7 @@ const buildCommitItems = async (
       bullets: [],
       stats: { additions: 0, deletions: 0 },
     };
-    if (existing.bullets.length < MAX_BULLETS_PER_GROUP) {
+    if (existing.bullets.length < changelogConfig.MAX_BULLETS_PER_GROUP) {
       const commitStats = statsMap.get(sha);
       existing.bullets.push({
         text: bullet,
@@ -474,8 +453,12 @@ export default defineEventHandler(async (event): Promise<ChangelogResponse> => {
     const githubToken = runtimeConfig.githubToken;
     const { baseUrl } = getGitHubConfig(runtimeConfig);
     const query = getQuery(event);
-    const limit = clamp(parseNumber(query.limit, DEFAULT_LIMIT), 1, MAX_LIMIT);
-    const releaseLimit = clamp(parseNumber(query.releases, RELEASE_LIMIT), 1, 10);
+    const limit = clamp(
+      parseNumber(query.limit, changelogConfig.DEFAULT_LIMIT),
+      1,
+      changelogConfig.MAX_LIMIT
+    );
+    const releaseLimit = clamp(parseNumber(query.releases, changelogConfig.RELEASE_LIMIT), 1, 10);
     const releaseUrl = `${baseUrl}/releases?per_page=${releaseLimit}`;
     const releases = await fetchGithub<GitHubRelease[]>(releaseUrl, githubToken);
     const releaseItems = Array.isArray(releases)
