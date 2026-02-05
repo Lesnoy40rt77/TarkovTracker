@@ -1,4 +1,3 @@
-import { useRouter } from 'vue-router';
 import { useTarkovStore } from '@/stores/useTarkov';
 import { logger } from '@/utils/logger';
 import type { Task, TaskObjective } from '@/types/tarkov';
@@ -20,6 +19,8 @@ export function useTaskCardLinks(options: UseTaskCardLinksOptions) {
       logger.warn('[TaskCardLinks] Clipboard API failed, trying fallback:', error);
     }
     try {
+      // Note: document.execCommand('copy') is deprecated but intentionally retained
+      // as a legacy fallback for browsers without navigator.clipboard support
       const textarea = document.createElement('textarea');
       textarea.value = text;
       textarea.setAttribute('readonly', 'true');
@@ -87,11 +88,11 @@ export function useTaskCardLinks(options: UseTaskCardLinksOptions) {
     window.open(`https://tarkov.dev/item/${selectedItem.value.id}`, '_blank');
   };
   const openItemOnWiki = () => {
-    if (selectedItem.value?.wikiLink) {
+    if (!selectedItem.value) return;
+    if (selectedItem.value.wikiLink) {
       window.open(selectedItem.value.wikiLink, '_blank');
       return;
     }
-    if (!selectedItem.value) return;
     window.open(
       `https://escapefromtarkov.fandom.com/wiki/Special:Search?query=${selectedItem.value.id}`,
       '_blank'

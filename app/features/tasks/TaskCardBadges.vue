@@ -7,7 +7,7 @@
       :icon="isPinned ? 'i-mdi-pin' : 'i-mdi-pin-outline'"
       class="shrink-0"
       :aria-label="
-        isPinned ? t('page.tasks.questcard.unpinTask') : t('page.tasks.questcard.pinTask')
+        isPinned ? t('page.tasks.questcard.unpin_task') : t('page.tasks.questcard.pin_task')
       "
       @click.stop="emit('togglePin')"
     />
@@ -15,7 +15,7 @@
       v-if="(task.minPlayerLevel ?? 0) > 0"
       :text="
         t(
-          'page.tasks.questcard.levelBadgeTooltip',
+          'page.tasks.questcard.level_badge_tooltip',
           { level: task.minPlayerLevel },
           `Minimum player level ${task.minPlayerLevel} required to unlock this quest`
         )
@@ -27,21 +27,16 @@
         variant="soft"
         class="shrink-0 cursor-help text-[11px]"
       >
-        {{ t('page.tasks.questcard.levelBadge', { count: task.minPlayerLevel }) }}
+        {{ t('page.tasks.questcard.level_badge', { count: task.minPlayerLevel }) }}
       </UBadge>
     </AppTooltip>
     <AppTooltip
-      v-if="fenceRepRequirement"
+      v-if="props.fenceRepRequirement"
       :text="
         t(
-          'page.tasks.questcard.fenceRepTooltip',
-          {
-            rep:
-              fenceRepRequirement.value >= 0
-                ? `+${fenceRepRequirement.value}`
-                : fenceRepRequirement.value,
-          },
-          `Requires Fence reputation of ${fenceRepRequirement.value >= 0 ? 'at least' : 'at most'} ${fenceRepRequirement.value}`
+          'page.tasks.questcard.fence_rep_tooltip',
+          { rep: formattedFenceRep },
+          `Requires Fence reputation of ${props.fenceRepRequirement.value >= 0 ? 'at least' : 'at most'} ${props.fenceRepRequirement.value}`
         )
       "
     >
@@ -51,14 +46,7 @@
         variant="soft"
         class="shrink-0 cursor-help text-[11px]"
       >
-        {{
-          t('page.tasks.questcard.fenceRepBadge', {
-            rep:
-              fenceRepRequirement.value >= 0
-                ? `+${fenceRepRequirement.value}`
-                : fenceRepRequirement.value,
-          })
-        }}
+        {{ t('page.tasks.questcard.fence_rep_badge', { rep: formattedFenceRep }) }}
       </UBadge>
     </AppTooltip>
     <AppTooltip
@@ -66,7 +54,7 @@
       :key="req.id"
       :text="
         t(
-          'page.tasks.questcard.traderLevelTooltip',
+          'page.tasks.questcard.trader_level_tooltip',
           { trader: req.trader.name, level: req.level },
           `Requires ${req.trader.name} Loyalty Level ${req.level}`
         )
@@ -79,7 +67,10 @@
         class="shrink-0 cursor-help text-[11px]"
       >
         {{
-          t('page.tasks.questcard.traderLevelBadge', { trader: req.trader.name, level: req.level })
+          t('page.tasks.questcard.trader_level_badge', {
+            trader: req.trader.name,
+            level: req.level,
+          })
         }}
       </UBadge>
     </AppTooltip>
@@ -96,7 +87,7 @@
           class="h-3 w-3"
         />
         <span class="truncate">
-          {{ task?.map?.name || t('page.tasks.questcard.anyMap', 'Any') }}
+          {{ task?.map?.name || t('page.tasks.questcard.any_map', 'Any') }}
         </span>
       </UBadge>
     </AppTooltip>
@@ -107,7 +98,7 @@
       v-if="isInvalid && !isFailed"
       :text="
         t(
-          'page.tasks.questcard.blockedTooltip',
+          'page.tasks.questcard.blocked_tooltip',
           'This quest is permanently blocked and can never be completed due to choices made in other quests'
         )
       "
@@ -120,7 +111,7 @@
       v-if="showRequiredLabels && task.kappaRequired"
       :text="
         t(
-          'page.tasks.questcard.kappaTooltip',
+          'page.tasks.questcard.kappa_tooltip',
           'This quest is required to obtain the Kappa Secure Container'
         )
       "
@@ -133,7 +124,7 @@
       v-if="showRequiredLabels && task.lightkeeperRequired"
       :text="
         t(
-          'page.tasks.questcard.lightkeeperTooltip',
+          'page.tasks.questcard.lightkeeper_tooltip',
           'This quest is required to unlock the Lightkeeper trader'
         )
       "
@@ -146,7 +137,7 @@
       v-if="showRequiredLabels && exclusiveEditionBadge"
       :text="
         t(
-          'page.tasks.questcard.editionExclusiveTooltip',
+          'page.tasks.questcard.edition_exclusive_tooltip',
           { editions: exclusiveEditionBadge },
           `This quest is only available to players with ${exclusiveEditionBadge} edition`
         )
@@ -174,7 +165,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import type { Task, TraderRequirement, TraderLevelRequirementWithMet } from '@/types/tarkov';
-  defineProps<{
+  const props = defineProps<{
     task: Task;
     isPinned: boolean;
     isOurFaction: boolean;
@@ -193,4 +184,10 @@
     openMenu: [event: MouseEvent];
   }>();
   const { t } = useI18n({ useScope: 'global' });
+  const formattedFenceRep = computed(() => {
+    if (!props.fenceRepRequirement) return '';
+    return props.fenceRepRequirement.value >= 0
+      ? `+${props.fenceRepRequirement.value}`
+      : String(props.fenceRepRequirement.value);
+  });
 </script>

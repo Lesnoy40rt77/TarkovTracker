@@ -31,14 +31,14 @@
     <div class="ml-2 flex shrink-0 items-center gap-1.5">
       <AppTooltip
         v-if="task?.wikiLink && !shouldLinkToWiki"
-        :text="t('page.tasks.questcard.viewOnWiki', 'View on Wiki')"
+        :text="t('page.tasks.questcard.view_on_wiki', 'View on Wiki')"
       >
         <a
           :href="task.wikiLink"
           target="_blank"
           rel="noopener noreferrer"
           :class="iconButtonClass"
-          :aria-label="t('page.tasks.questcard.viewOnWiki', 'View on Wiki')"
+          :aria-label="t('page.tasks.questcard.view_on_wiki', 'View on Wiki')"
           @click.stop
         >
           <img src="/img/logos/wikilogo.webp" alt="Wiki" aria-hidden="true" class="h-5 w-5" />
@@ -46,14 +46,14 @@
       </AppTooltip>
       <AppTooltip
         v-if="task?.id"
-        :text="t('page.tasks.questcard.viewOnTarkovDev', 'View on Tarkov.dev')"
+        :text="t('page.tasks.questcard.view_on_tarkov_dev', 'View on Tarkov.dev')"
       >
         <a
           :href="tarkovDevTaskUrl"
           target="_blank"
           rel="noopener noreferrer"
           :class="iconButtonClass"
-          :aria-label="t('page.tasks.questcard.viewOnTarkovDev', 'View on Tarkov.dev')"
+          :aria-label="t('page.tasks.questcard.view_on_tarkov_dev', 'View on Tarkov.dev')"
           @click.stop
         >
           <img
@@ -114,7 +114,7 @@
   const titleTooltip = computed(() => {
     if (shouldLinkToWiki.value) {
       return t(
-        'page.tasks.questcard.viewTaskOnWiki',
+        'page.tasks.questcard.view_task_on_wiki',
         { name: props.task?.name ?? '' },
         `View ${props.task?.name ?? ''} on Wiki`
       );

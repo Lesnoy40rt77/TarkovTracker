@@ -63,7 +63,7 @@
         <span class="text-success-300 font-medium">
           {{
             t(
-              'page.tasks.questcard.itemsCount',
+              'page.tasks.questcard.items_count',
               { count: itemRewards.length },
               `${itemRewards.length} items`
             )
@@ -78,7 +78,7 @@
         <span class="text-info-300 font-medium">
           {{
             t(
-              'page.tasks.questcard.unlocksCount',
+              'page.tasks.questcard.unlocks_count',
               { count: offerUnlockRewards.length },
               `${offerUnlockRewards.length} unlocks`
             )
@@ -97,7 +97,7 @@
         v-if="unlocksNextCount && unlocksNextCount > 0"
         :text="
           t(
-            'page.tasks.questcard.unlocksNextTooltip',
+            'page.tasks.questcard.unlocks_next_tooltip',
             'Number of quests that become available after completing this task'
           )
         "
@@ -107,7 +107,7 @@
         >
           <UIcon name="i-mdi-arrow-right-circle-outline" class="h-3.5 w-3.5" />
           <span>
-            {{ t('page.tasks.questcard.unlocksNext', 'Unlocks next') }}: {{ unlocksNextCount }}
+            {{ t('page.tasks.questcard.unlocks_next', 'Unlocks next') }}: {{ unlocksNextCount }}
           </span>
         </div>
       </AppTooltip>
@@ -115,7 +115,7 @@
         v-if="impactCount && impactCount > 0"
         :text="
           t(
-            'page.tasks.questcard.impactTooltip',
+            'page.tasks.questcard.impact_tooltip',
             'Number of incomplete quests that depend on this task being completed'
           )
         "
@@ -151,7 +151,7 @@
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <div v-if="showPreviousTasks" class="space-y-2">
             <div class="text-surface-500 text-[10px] font-bold tracking-wider uppercase">
-              {{ t('page.tasks.questcard.previousTasks', 'Previous Tasks:') }}
+              {{ t('page.tasks.questcard.previous_tasks', 'Previous Tasks:') }}
             </div>
             <div class="flex flex-col gap-1.5">
               <NuxtLink
@@ -167,7 +167,7 @@
           </div>
           <div class="space-y-3">
             <div class="text-surface-500 text-[10px] font-bold tracking-wider uppercase">
-              {{ t('page.tasks.questcard.rewardItems', 'Items:') }}
+              {{ t('page.tasks.questcard.reward_items', 'Items:') }}
             </div>
             <div v-if="itemRewards.length > 0" class="flex flex-wrap gap-2">
               <AppTooltip
@@ -204,7 +204,7 @@
           </div>
           <div class="space-y-3">
             <div class="text-surface-500 text-[10px] font-bold tracking-wider uppercase">
-              {{ t('page.tasks.questcard.unlocksPurchase', 'Unlocks Purchase:') }}
+              {{ t('page.tasks.questcard.unlocks_purchase', 'Unlocks Purchase:') }}
             </div>
             <div v-if="offerUnlockRewards.length > 0" class="flex flex-wrap gap-2">
               <AppTooltip
@@ -241,7 +241,7 @@
           </div>
           <div v-if="showNextTasks && childTasks.length > 0" class="space-y-2">
             <div class="text-surface-500 text-[10px] font-bold tracking-wider uppercase">
-              {{ t('page.tasks.questcard.nextTasks', 'Next Tasks:') }}
+              {{ t('page.tasks.questcard.next_tasks', 'Next Tasks:') }}
             </div>
             <div class="flex flex-col gap-1.5">
               <NuxtLink
@@ -336,7 +336,11 @@
   });
   const getItemTooltip = (item?: { shortName?: string; name?: string }) => {
     const name = item?.shortName || item?.name || t('page.tasks.questcard.item', 'Item');
-    return t('page.tasks.questcard.openItemOnTarkovDev', { name }, `Open ${name} on tarkov.dev`);
+    return t(
+      'page.tasks.questcard.open_item_on_tarkov_dev',
+      { name },
+      `Open ${name} on tarkov.dev`
+    );
   };
   const toggleDetails = () => {
     if (!hasExpandableDetails.value) return;

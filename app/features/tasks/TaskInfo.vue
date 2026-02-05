@@ -20,7 +20,7 @@
           icon="mdi-lock-open-outline"
           class="text-surface-400 mb-1 text-sm"
         >
-          <i18n-t keypath="page.tasks.questcard.lockedbefore" scope="global">
+          <i18n-t keypath="page.tasks.questcard.locked_before" scope="global">
             <template #count>{{ lockedBefore }}</template>
           </i18n-t>
         </InfoRow>
@@ -30,7 +30,7 @@
             <UIcon name="i-mdi-arrow-left" class="mt-0.5 mr-1 h-4 w-4 shrink-0" />
             <div>
               <span class="text-surface-500">
-                {{ t('page.tasks.questcard.previousTasks', 'Previous Task(s):') }}
+                {{ t('page.tasks.questcard.previous_tasks', 'Previous Task(s):') }}
               </span>
               <div class="flex flex-col">
                 <router-link
@@ -52,7 +52,7 @@
           icon="mdi-lock"
           class="text-surface-400 mb-1 text-sm"
         >
-          <i18n-t keypath="page.tasks.questcard.lockedbehind" scope="global">
+          <i18n-t keypath="page.tasks.questcard.locked_behind" scope="global">
             <template #count>{{ lockedBehind }}</template>
           </i18n-t>
         </InfoRow>
@@ -62,7 +62,7 @@
             <UIcon name="i-mdi-arrow-right" class="mt-0.5 mr-1 h-4 w-4 shrink-0" />
             <div>
               <span class="text-surface-500">
-                {{ t('page.tasks.questcard.nextTasks', 'Next Task(s):') }}
+                {{ t('page.tasks.questcard.next_tasks', 'Next Task(s):') }}
               </span>
               <div class="flex flex-col">
                 <router-link
@@ -87,10 +87,10 @@
         <!-- Required labels (Kappa, Lightkeeper) -->
         <div v-if="preferencesStore.getShowRequiredLabels" class="mb-1 flex flex-wrap gap-1">
           <UBadge v-if="task.kappaRequired" size="xs" color="primary" variant="solid">
-            {{ t('page.tasks.questcard.kapparequired', 'KAPPA REQUIRED') }}
+            {{ t('page.tasks.questcard.kappa_required', 'KAPPA REQUIRED') }}
           </UBadge>
           <UBadge v-if="task.lightkeeperRequired" size="xs" color="info" variant="solid">
-            {{ t('page.tasks.questcard.lightkeeperrequired', 'LIGHTKEEPER REQUIRED') }}
+            {{ t('page.tasks.questcard.lightkeeper_required', 'LIGHTKEEPER REQUIRED') }}
           </UBadge>
         </div>
         <InfoRow
@@ -98,7 +98,7 @@
           icon="mdi-account-multiple-outline"
           class="text-surface-400 mb-1 text-sm"
         >
-          <i18n-t keypath="page.tasks.questcard.neededby" scope="global">
+          <i18n-t keypath="page.tasks.questcard.needed_by" scope="global">
             <template #names>{{ neededBy.join(', ') }}</template>
           </i18n-t>
         </InfoRow>

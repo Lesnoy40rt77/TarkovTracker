@@ -7,7 +7,7 @@
         <UInput
           :model-value="searchQuery"
           :placeholder="t('page.tasks.search.placeholder', 'Search...')"
-          :aria-label="t('page.tasks.search.ariaLabel', 'Search tasks')"
+          :aria-label="t('page.tasks.search.aria_label', 'Search tasks')"
           icon="i-mdi-magnify"
           size="sm"
           :ui="{ trailing: 'pe-1' }"
@@ -37,7 +37,7 @@
         >
           <UIcon name="i-mdi-checkbox-multiple-marked" class="h-4 w-4 sm:mr-1.5" />
           <span class="hidden text-xs sm:inline">
-            {{ t('page.tasks.primaryviews.all').toUpperCase() }}
+            {{ t('page.tasks.primary_views.all').toUpperCase() }}
           </span>
         </UButton>
         <UButton
@@ -50,7 +50,7 @@
         >
           <UIcon name="i-mdi-account-group" class="h-4 w-4 sm:mr-1.5" />
           <span class="hidden text-xs sm:inline">
-            {{ t('page.tasks.primaryviews.traders').toUpperCase() }}
+            {{ t('page.tasks.primary_views.traders').toUpperCase() }}
           </span>
         </UButton>
         <UButton
@@ -63,7 +63,7 @@
         >
           <UIcon name="i-mdi-map" class="h-4 w-4 sm:mr-1.5" />
           <span class="hidden text-xs sm:inline">
-            {{ t('page.tasks.primaryviews.maps').toUpperCase() }}
+            {{ t('page.tasks.primary_views.maps').toUpperCase() }}
           </span>
         </UButton>
       </div>
@@ -74,7 +74,7 @@
           value-key="value"
           size="sm"
           class="w-36 sm:w-44"
-          :aria-label="t('page.tasks.sort.ariaLabel', 'Sort tasks by')"
+          :aria-label="t('page.tasks.sort.aria_label', 'Sort tasks by')"
         >
           <template #leading>
             <UIcon :name="currentSortIcon" class="h-4 w-4" />
@@ -124,7 +124,7 @@
           >
             <UIcon name="i-mdi-format-list-bulleted" class="hidden h-4 w-4 sm:mr-1 sm:block" />
             <span class="text-xs sm:text-sm">
-              {{ t('page.tasks.primaryviews.all').toUpperCase() }}
+              {{ t('page.tasks.primary_views.all').toUpperCase() }}
             </span>
             <span
               class="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold text-white"
@@ -149,7 +149,7 @@
           >
             <UIcon name="i-mdi-clipboard-text" class="hidden h-4 w-4 sm:mr-1 sm:block" />
             <span class="text-xs sm:text-sm">
-              {{ t('page.tasks.secondaryviews.available').toUpperCase() }}
+              {{ t('page.tasks.secondary_views.available').toUpperCase() }}
             </span>
             <span
               class="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold text-white"
@@ -169,7 +169,7 @@
           >
             <UIcon name="i-mdi-lock" class="hidden h-4 w-4 sm:mr-1 sm:block" />
             <span class="text-xs sm:text-sm">
-              {{ t('page.tasks.secondaryviews.locked').toUpperCase() }}
+              {{ t('page.tasks.secondary_views.locked').toUpperCase() }}
             </span>
             <span
               class="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold text-white"
@@ -189,7 +189,7 @@
           >
             <UIcon name="i-mdi-check-circle" class="hidden h-4 w-4 sm:mr-1 sm:block" />
             <span class="text-xs sm:text-sm">
-              {{ t('page.tasks.secondaryviews.completed').toUpperCase() }}
+              {{ t('page.tasks.secondary_views.completed').toUpperCase() }}
             </span>
             <span
               class="bg-success-500 ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold text-white"
@@ -208,7 +208,7 @@
           >
             <UIcon name="i-mdi-close-circle" class="hidden h-4 w-4 sm:mr-1 sm:block" />
             <span class="text-xs sm:text-sm">
-              {{ t('page.tasks.secondaryviews.failed', 'FAILED').toUpperCase() }}
+              {{ t('page.tasks.secondary_views.failed', 'FAILED').toUpperCase() }}
             </span>
             <span
               class="bg-error-500 ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold text-white"
@@ -236,7 +236,7 @@
               {{ currentUserDisplayName.toUpperCase() }}
             </span>
             <UBadge size="xs" color="primary" variant="solid" class="ml-1">
-              {{ t('page.tasks.userviews.yourself').toUpperCase() }}
+              {{ t('page.tasks.user_views.yourself').toUpperCase() }}
             </UBadge>
           </UButton>
           <UButton
@@ -269,11 +269,11 @@
                 ? 'bg-white/10 text-white'
                 : 'text-surface-400'
             "
-            @click="onUserViewSelect({ label: t('page.tasks.userviews.all'), value: 'all' })"
+            @click="onUserViewSelect({ label: t('page.tasks.user_views.all'), value: 'all' })"
           >
             <UIcon name="i-mdi-account-multiple" class="h-4 w-4 sm:mr-1" />
             <span class="text-xs sm:text-sm">
-              {{ t('page.tasks.userviews.all').toUpperCase() }}
+              {{ t('page.tasks.user_views.all').toUpperCase() }}
             </span>
           </UButton>
         </div>

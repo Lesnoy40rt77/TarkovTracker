@@ -824,6 +824,8 @@ export function useTaskFiltering() {
           case 'failed':
             shouldCount = taskStatuses.some(({ isFailed }) => isFailed);
             break;
+          default:
+            throw new Error(`Unhandled secondaryView: ${secondaryView satisfies never}`);
         }
         if (shouldCount) counts[traderId]++;
       } else {
@@ -850,6 +852,8 @@ export function useTaskFiltering() {
           case 'failed':
             shouldCount = isFailed;
             break;
+          default:
+            throw new Error(`Unhandled secondaryView: ${secondaryView satisfies never}`);
         }
         if (shouldCount) counts[traderId]++;
       }

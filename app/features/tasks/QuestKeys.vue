@@ -1,9 +1,9 @@
 <template>
   <div class="inline-block">
     <div class="text-surface-400 mb-2 text-xs font-medium">
-      {{ $t('page.tasks.questcard.keysHeader', 'Suggested Keys') }}
+      {{ $t('page.tasks.questcard.keys_header', 'Suggested Keys') }}
       <span class="text-surface-500 font-normal">
-        {{ $t('page.tasks.questcard.keysSubtext', '(may help but not always required)') }}
+        {{ $t('page.tasks.questcard.keys_subtext', '(may help but not always required)') }}
       </span>
     </div>
     <div
@@ -11,7 +11,11 @@
       :key="keyMapIndex"
       class="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1"
     >
-      <i18n-t keypath="page.tasks.questcard.keysneeded" :plural="keyMap.keys.length" scope="global">
+      <i18n-t
+        keypath="page.tasks.questcard.keys_needed"
+        :plural="keyMap.keys.length"
+        scope="global"
+      >
         <template #keys>
           <span v-for="(key, keyIndex) in keyMap.keys" :key="keyIndex" class="inline-block">
             <GameItem

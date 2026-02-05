@@ -79,7 +79,7 @@
         </div>
         <div v-if="isFailed" class="text-error-300 text-xs">
           <span class="text-error-200/70">
-            {{ t('page.tasks.questcard.failedbecause', 'Failed because') }}:
+            {{ t('page.tasks.questcard.failed_because', 'Failed because') }}:
           </span>
           <template v-if="failureSources.length > 0">
             <span class="ml-2 inline-flex flex-wrap items-center gap-1.5">
@@ -94,7 +94,9 @@
             </span>
           </template>
           <span v-else class="text-error-200/80 ml-2">
-            {{ t('page.tasks.questcard.failedbecauseunknown', 'Failed manually or data missing') }}
+            {{
+              t('page.tasks.questcard.failed_because_unknown', 'Failed manually or data missing')
+            }}
           </span>
         </div>
         <div v-if="showNeededBy" class="text-surface-400 text-xs">
@@ -102,7 +104,7 @@
             <UIcon name="i-mdi-account-multiple-outline" class="mr-1 inline h-4 w-4" />
             {{
               t(
-                'page.tasks.questcard.neededby',
+                'page.tasks.questcard.needed_by',
                 { names: neededByDisplayText },
                 `Needed by: ${neededByDisplayText}`
               )
@@ -189,7 +191,7 @@
         <ContextMenuItem
           v-if="task.wikiLink"
           icon="/img/logos/wikilogo.webp"
-          :label="t('page.tasks.questcard.viewOnWiki', 'View on Wiki')"
+          :label="t('page.tasks.questcard.view_on_wiki', 'View on Wiki')"
           @click="
             openTaskWiki();
             close();
@@ -197,7 +199,7 @@
         />
         <ContextMenuItem
           icon="/img/logos/tarkovdevlogo.webp"
-          :label="t('page.tasks.questcard.viewOnTarkovDev', 'View on Tarkov.dev')"
+          :label="t('page.tasks.questcard.view_on_tarkov_dev', 'View on Tarkov.dev')"
           @click="
             openTaskOnTarkovDev();
             close();
@@ -205,7 +207,7 @@
         />
         <ContextMenuItem
           icon="i-mdi-link-variant"
-          :label="t('page.tasks.questcard.copyTaskLink', 'Copy Task Link')"
+          :label="t('page.tasks.questcard.copy_task_link', 'Copy Task Link')"
           @click="
             copyTaskLink();
             close();
@@ -213,7 +215,7 @@
         />
         <ContextMenuItem
           icon="i-mdi-alert-circle-outline"
-          :label="t('page.tasks.questcard.reportDataIssue', 'Report Data Issue')"
+          :label="t('page.tasks.questcard.report_data_issue', 'Report Data Issue')"
           @click="
             openTaskDataIssue();
             close();
@@ -222,7 +224,7 @@
         <ContextMenuItem
           v-if="preferencesStore.getEnableManualTaskFail && isOurFaction && !isFailed"
           icon="i-mdi-close-circle"
-          :label="t('page.tasks.questcard.markfailed', 'Mark Failed')"
+          :label="t('page.tasks.questcard.mark_failed', 'Mark Failed')"
           @click="
             confirmMarkFailed();
             close();
@@ -235,7 +237,7 @@
       <template #default="{ close }">
         <ContextMenuItem
           icon="/img/logos/tarkovdevlogo.webp"
-          :label="t('page.tasks.questcard.viewOnTarkovDev', 'View on Tarkov.dev')"
+          :label="t('page.tasks.questcard.view_on_tarkov_dev', 'View on Tarkov.dev')"
           @click="
             openItemOnTarkovDev();
             close();
@@ -243,7 +245,7 @@
         />
         <ContextMenuItem
           icon="/img/logos/wikilogo.webp"
-          :label="t('page.tasks.questcard.viewOnWiki', 'View on Wiki')"
+          :label="t('page.tasks.questcard.view_on_wiki', 'View on Wiki')"
           @click="
             openItemOnWiki();
             close();
@@ -332,13 +334,11 @@
     objectives: () => taskObjectives.value,
   });
   const { isComplete, isFailed, isLocked, isInvalid } = useTaskState(() => props.task.id);
-  const objectivesVisible = ref(
-    !(isComplete.value && preferencesStore.getHideCompletedTaskObjectives)
-  );
+  const shouldShowObjectives = () =>
+    !(isComplete.value && preferencesStore.getHideCompletedTaskObjectives);
+  const objectivesVisible = ref(shouldShowObjectives());
   watch([isComplete, () => preferencesStore.getHideCompletedTaskObjectives], () => {
-    objectivesVisible.value = !(
-      isComplete.value && preferencesStore.getHideCompletedTaskObjectives
-    );
+    objectivesVisible.value = shouldShowObjectives();
   });
   // Use extracted task actions composable
   const { markTaskComplete, markTaskUncomplete, markTaskAvailable, markTaskFailed } =
@@ -391,17 +391,17 @@
   });
   const locationTooltip = computed(() => {
     if (isGlobalTask.value) {
-      return t('page.tasks.questcard.globalTaskTooltip', 'This task can be completed on any map');
+      return t('page.tasks.questcard.global_task_tooltip', 'This task can be completed on any map');
     }
     const mapName = props.task?.map?.name;
     if (mapName) {
       return t(
-        'page.tasks.questcard.locationTooltip',
+        'page.tasks.questcard.location_tooltip',
         { map: mapName },
         `Quest objectives are on ${mapName}`
       );
     }
-    return t('page.tasks.questcard.anyLocationTooltip', 'Quest can be completed on any map');
+    return t('page.tasks.questcard.any_location_tooltip', 'Quest can be completed on any map');
   });
   const exclusiveEditions = computed<GameEdition[]>(() =>
     getExclusiveEditionsForTask(props.task.id, metadataStore.editions)
@@ -585,7 +585,7 @@
   const confirmMarkFailed = () => {
     const confirmed = window.confirm(
       t(
-        'page.tasks.questcard.markfailedconfirm',
+        'page.tasks.questcard.mark_failed_confirm',
         "Mark this task as failed? This is only for data issues, isn't recommended, and may block questlines."
       )
     );

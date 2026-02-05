@@ -12,10 +12,10 @@ const NON_LOCATION_OBJECTIVE_TYPES = new Set([
   'buildWeapon',
 ]);
 interface ObjectiveWithLocation extends TaskObjective {
-  zones?: Array<{ map: { id: string }; outline: { x: number; z: number }[] }>;
+  zones?: Array<{ map: { id: string }; outline: { x: number; y: number; z: number }[] }>;
   possibleLocations?: Array<{
     map: { id: string };
-    positions?: { x: number; y?: number; z: number }[];
+    positions?: { x: number; y: number; z: number }[];
   }>;
 }
 /**

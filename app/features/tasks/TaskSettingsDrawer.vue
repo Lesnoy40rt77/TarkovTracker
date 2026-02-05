@@ -7,7 +7,6 @@
     aria-labelledby="task-settings-drawer-title"
     class="bg-surface-800/95 fixed top-1/2 right-4 z-40 h-fit max-h-[calc(100vh-6rem)] w-72 -translate-y-1/2 overflow-y-auto rounded-lg border border-white/10 p-4 shadow-xl backdrop-blur-sm"
     @keydown="handleKeydown"
-    @keydown.escape="handleClose"
   >
     <div class="mb-3 flex items-center justify-between">
       <h2 id="task-settings-drawer-title" class="text-sm font-semibold text-white">
@@ -40,7 +39,7 @@
             <UCheckbox v-model="showNonSpecialTasks" />
             <div class="min-w-0 flex-1">
               <span class="text-surface-200 text-sm">
-                {{ t('page.tasks.settings.filters.regularTasks', 'Regular Tasks') }}
+                {{ t('page.tasks.settings.filters.regular_tasks', 'Regular Tasks') }}
               </span>
             </div>
           </label>
@@ -50,7 +49,7 @@
             <UCheckbox v-model="showKappaTasks" />
             <div class="flex min-w-0 flex-1 items-center gap-2">
               <span class="text-surface-200 text-sm">
-                {{ t('page.tasks.settings.filters.kappaRequired', 'Kappa Required') }}
+                {{ t('page.tasks.settings.filters.kappa_required', 'Kappa Required') }}
               </span>
               <UBadge color="kappa" variant="soft" size="xs">KAPPA</UBadge>
             </div>
@@ -61,7 +60,7 @@
             <UCheckbox v-model="showLightkeeperTasks" />
             <div class="flex min-w-0 flex-1 items-center gap-2">
               <span class="text-surface-200 text-sm">
-                {{ t('page.tasks.settings.filters.lightkeeperRequired', 'Lightkeeper Required') }}
+                {{ t('page.tasks.settings.filters.lightkeeper_required', 'Lightkeeper Required') }}
               </span>
               <UBadge color="lightkeeper" variant="soft" size="xs">LIGHTKEEPER</UBadge>
             </div>
@@ -73,7 +72,7 @@
             <UCheckbox v-model="sharedByAllOnly" />
             <div class="min-w-0 flex-1">
               <span class="text-surface-200 text-sm">
-                {{ t('page.tasks.settings.filters.teamSharedOnly', 'Team Shared Only') }}
+                {{ t('page.tasks.settings.filters.team_shared_only', 'Team Shared Only') }}
               </span>
             </div>
           </label>
@@ -83,7 +82,7 @@
             <UCheckbox v-model="showGlobalTasks" />
             <div class="min-w-0 flex-1">
               <span class="text-surface-200 text-sm">
-                {{ t('page.tasks.settings.filters.showGlobalTasks', 'Show Global Tasks on Map') }}
+                {{ t('page.tasks.settings.filters.show_global_tasks', 'Show Global Tasks on Map') }}
               </span>
             </div>
           </label>
@@ -105,7 +104,7 @@
           >
             <UCheckbox v-model="showRequiredLabels" />
             <span class="text-surface-200 text-sm">
-              {{ t('page.tasks.settings.appearance.requiredLabels', '"Required" Labels') }}
+              {{ t('page.tasks.settings.appearance.required_labels', '"Required" Labels') }}
             </span>
           </label>
           <label
@@ -113,7 +112,7 @@
           >
             <UCheckbox v-model="showExperienceRewards" />
             <span class="text-surface-200 text-sm">
-              {{ t('page.tasks.settings.appearance.experienceRewards', 'Experience Rewards') }}
+              {{ t('page.tasks.settings.appearance.experience_rewards', 'Experience Rewards') }}
             </span>
           </label>
           <label
@@ -121,7 +120,7 @@
           >
             <UCheckbox v-model="showNextQuests" />
             <span class="text-surface-200 text-sm">
-              {{ t('page.tasks.settings.appearance.nextTasks', 'Next Tasks') }}
+              {{ t('page.tasks.settings.appearance.next_tasks', 'Next Tasks') }}
             </span>
           </label>
           <label
@@ -129,7 +128,7 @@
           >
             <UCheckbox v-model="showPreviousQuests" />
             <span class="text-surface-200 text-sm">
-              {{ t('page.tasks.settings.appearance.previousTasks', 'Previous Tasks') }}
+              {{ t('page.tasks.settings.appearance.previous_tasks', 'Previous Tasks') }}
             </span>
           </label>
           <label
@@ -139,7 +138,7 @@
             <span class="text-surface-200 text-sm">
               {{
                 t(
-                  'page.tasks.settings.appearance.collapseCompletedObjectives',
+                  'page.tasks.settings.appearance.collapse_completed_objectives',
                   'Collapse Objectives on Completed Tasks'
                 )
               }}
@@ -151,11 +150,11 @@
         <div class="mb-2 flex items-center gap-2">
           <UIcon name="i-mdi-filter-variant" class="text-success-400 h-4 w-4" />
           <h3 class="text-xs font-semibold tracking-wide text-white uppercase">
-            {{ t('page.tasks.settings.tabs.filterBar', 'Filter Bar') }}
+            {{ t('page.tasks.settings.tabs.filter_bar', 'Filter Bar') }}
           </h3>
         </div>
         <p class="text-surface-500 mb-2 text-xs">
-          {{ t('page.tasks.settings.filterBar.hint', 'Show or hide status filters.') }}
+          {{ t('page.tasks.settings.filter_bar.hint', 'Show or hide status filters.') }}
         </p>
         <div class="space-y-1">
           <label
@@ -163,7 +162,7 @@
           >
             <UCheckbox v-model="showAllFilter" />
             <span class="text-surface-200 text-sm">
-              {{ t('page.tasks.settings.filterBar.allFilter', 'All Filter') }}
+              {{ t('page.tasks.settings.filter_bar.all_filter', 'All Filter') }}
             </span>
           </label>
           <label
@@ -171,7 +170,7 @@
           >
             <UCheckbox v-model="showAvailableFilter" />
             <span class="text-surface-200 text-sm">
-              {{ t('page.tasks.settings.filterBar.availableFilter', 'Available Filter') }}
+              {{ t('page.tasks.settings.filter_bar.available_filter', 'Available Filter') }}
             </span>
           </label>
           <label
@@ -179,7 +178,7 @@
           >
             <UCheckbox v-model="showLockedFilter" />
             <span class="text-surface-200 text-sm">
-              {{ t('page.tasks.settings.filterBar.lockedFilter', 'Locked Filter') }}
+              {{ t('page.tasks.settings.filter_bar.locked_filter', 'Locked Filter') }}
             </span>
           </label>
           <label
@@ -187,7 +186,7 @@
           >
             <UCheckbox v-model="showCompletedFilter" />
             <span class="text-surface-200 text-sm">
-              {{ t('page.tasks.settings.filterBar.completedFilter', 'Completed Filter') }}
+              {{ t('page.tasks.settings.filter_bar.completed_filter', 'Completed Filter') }}
             </span>
           </label>
           <label
@@ -195,7 +194,7 @@
           >
             <UCheckbox v-model="showFailedFilter" />
             <span class="text-surface-200 text-sm">
-              {{ t('page.tasks.settings.filterBar.failedFilter', 'Failed Filter') }}
+              {{ t('page.tasks.settings.filter_bar.failed_filter', 'Failed Filter') }}
             </span>
           </label>
         </div>
@@ -213,13 +212,13 @@
           >
             <UCheckbox v-model="enableManualTaskFail" />
             <span class="text-surface-200 text-sm">
-              {{ t('page.tasks.settings.advanced.manualFailActions', 'Manual Fail Actions') }}
+              {{ t('page.tasks.settings.advanced.manual_fail_actions', 'Manual Fail Actions') }}
             </span>
           </label>
           <div v-if="failedTasksCount > 0" class="bg-surface-900/50 mt-2 rounded p-2">
             <div class="mb-1.5 flex items-center justify-between">
               <span class="text-surface-400 text-xs">
-                {{ t('page.tasks.settings.advanced.failedTasksLabel', 'Failed tasks') }}
+                {{ t('page.tasks.settings.advanced.failed_tasks_label', 'Failed tasks') }}
               </span>
               <UBadge color="warning" variant="soft" size="xs">
                 {{ failedTasksCount }}
@@ -227,7 +226,7 @@
             </div>
             <UButton color="warning" variant="soft" size="xs" block @click="repairFailedTasks">
               <UIcon name="i-mdi-wrench" class="mr-1 h-3.5 w-3.5" />
-              {{ t('page.tasks.settings.advanced.repairFailedAction', 'Repair') }}
+              {{ t('page.tasks.settings.advanced.repair_failed_action', 'Repair') }}
             </UButton>
           </div>
         </div>
@@ -241,23 +240,23 @@
               <UIcon name="i-mdi-alert" class="text-warning-400 h-5 w-5" />
             </div>
             <h3 class="text-surface-100 text-base font-semibold">
-              {{ t('page.tasks.settings.advanced.repairFailed', 'Repair failed tasks') }}
+              {{ t('page.tasks.settings.advanced.repair_failed', 'Repair failed tasks') }}
             </h3>
           </div>
           <p class="text-surface-300 mb-5 text-sm">
             {{
               t(
-                'page.tasks.settings.advanced.repairFailedConfirm',
+                'page.tasks.settings.advanced.repair_failed_confirm',
                 'Repair failed tasks by clearing failed flags that are not supported by current fail conditions?'
               )
             }}
           </p>
           <div class="flex justify-end gap-2">
             <UButton color="neutral" variant="ghost" @click="resolveRepairConfirm(false)">
-              {{ t('page.tasks.settings.advanced.repairFailedCancel', 'Cancel') }}
+              {{ t('page.tasks.settings.advanced.repair_failed_cancel', 'Cancel') }}
             </UButton>
             <UButton color="warning" variant="soft" @click="resolveRepairConfirm(true)">
-              {{ t('page.tasks.settings.advanced.repairFailedAction', 'Repair') }}
+              {{ t('page.tasks.settings.advanced.repair_failed_action', 'Repair') }}
             </UButton>
           </div>
         </div>
@@ -267,23 +266,32 @@
 </template>
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import { useTaskRepair } from '@/composables/useTaskRepair';
   import { useTaskSettingsDrawer } from '@/composables/useTaskSettingsDrawer';
-  import { useMetadataStore } from '@/stores/useMetadata';
   import { usePreferencesStore } from '@/stores/usePreferences';
-  import { useTarkovStore } from '@/stores/useTarkov';
   import { useTeamStore } from '@/stores/useTeamStore';
-  import { MANUAL_FAIL_TASK_IDS } from '@/utils/constants';
   const { t } = useI18n({ useScope: 'global' });
   const { close } = useTaskSettingsDrawer();
-  const toast = useToast();
   const preferencesStore = usePreferencesStore();
-  const metadataStore = useMetadataStore();
-  const tarkovStore = useTarkovStore();
   const teamStore = useTeamStore();
   const drawerRef = ref<HTMLElement | null>(null);
   const triggerElement = ref<HTMLElement | null>(null);
   const showRepairConfirm = ref(false);
   const repairConfirmResolver = ref<((value: boolean) => void) | null>(null);
+  const requestRepairConfirm = () =>
+    new Promise<boolean>((resolve) => {
+      repairConfirmResolver.value = resolve;
+      showRepairConfirm.value = true;
+    });
+  const resolveRepairConfirm = (confirmed: boolean) => {
+    const resolver = repairConfirmResolver.value;
+    repairConfirmResolver.value = null;
+    showRepairConfirm.value = false;
+    if (resolver) {
+      resolver(confirmed);
+    }
+  };
+  const { failedTasksCount, repairFailedTasks } = useTaskRepair({ requestRepairConfirm });
   const focusDrawer = async () => {
     await nextTick();
     drawerRef.value?.focus({ preventScroll: true });
@@ -315,6 +323,10 @@
     ).filter((element) => !element.hasAttribute('disabled') && element.tabIndex !== -1);
   };
   const handleKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      handleClose();
+      return;
+    }
     if (event.key !== 'Tab') return;
     const focusable = getFocusableElements();
     if (focusable.length === 0) {
@@ -336,19 +348,6 @@
     if (activeElement === last || activeElement === drawerRef.value) {
       event.preventDefault();
       first.focus({ preventScroll: true });
-    }
-  };
-  const requestRepairConfirm = () =>
-    new Promise<boolean>((resolve) => {
-      repairConfirmResolver.value = resolve;
-      showRepairConfirm.value = true;
-    });
-  const resolveRepairConfirm = (confirmed: boolean) => {
-    const resolver = repairConfirmResolver.value;
-    repairConfirmResolver.value = null;
-    showRepairConfirm.value = false;
-    if (resolver) {
-      resolver(confirmed);
     }
   };
   onMounted(() => {
@@ -423,76 +422,4 @@
     get: () => preferencesStore.getShowFailedFilter,
     set: (value) => preferencesStore.setShowFailedFilter(value),
   });
-  const failedTasksCount = computed(
-    () => metadataStore.tasks.filter((task) => tarkovStore.isTaskFailed(task.id)).length
-  );
-  const isTaskSuccessful = (taskId: string) =>
-    tarkovStore.isTaskComplete(taskId) && !tarkovStore.isTaskFailed(taskId);
-  const hasStatus = (status: string[] | undefined, statuses: string[]) => {
-    const normalized = (status ?? []).map((entry) => entry.toLowerCase());
-    return statuses.some((value) => normalized.includes(value));
-  };
-  const buildAlternativeSources = () => {
-    const sourcesByTask = new Map<string, string[]>();
-    metadataStore.tasks.forEach((task) => {
-      (task.alternatives ?? []).forEach((alternativeId) => {
-        const sources = sourcesByTask.get(alternativeId) ?? [];
-        if (!sources.includes(task.id)) {
-          sources.push(task.id);
-          sourcesByTask.set(alternativeId, sources);
-        }
-      });
-    });
-    return sourcesByTask;
-  };
-  const shouldTaskBeFailed = (
-    task: {
-      id: string;
-      failConditions?: Array<{ task?: { id?: string }; status?: string[] }>;
-    },
-    alternativeSources: Map<string, string[]>
-  ) => {
-    if (MANUAL_FAIL_TASK_IDS.includes(task.id)) return true;
-    const failConditions = task.failConditions ?? [];
-    const failedByCondition = failConditions.some((objective) => {
-      if (!objective?.task?.id) return false;
-      if (!hasStatus(objective.status, ['complete', 'completed'])) return false;
-      return isTaskSuccessful(objective.task.id);
-    });
-    if (failedByCondition) return true;
-    const sources = alternativeSources.get(task.id);
-    if (!sources?.length) return false;
-    return sources.some((sourceId) => isTaskSuccessful(sourceId));
-  };
-  const repairFailedTasks = async () => {
-    if (failedTasksCount.value === 0) return;
-    const confirmed = await requestRepairConfirm();
-    if (!confirmed) return;
-    const alternativeSources = buildAlternativeSources();
-    let repaired = 0;
-    const taskIds: string[] = [];
-    const objectiveIds: string[] = [];
-    metadataStore.tasks.forEach((task) => {
-      if (!tarkovStore.isTaskFailed(task.id)) return;
-      if (shouldTaskBeFailed(task, alternativeSources)) return;
-      taskIds.push(task.id);
-      task.objectives?.forEach((objective) => {
-        if (objective?.id) {
-          objectiveIds.push(objective.id);
-        }
-      });
-      repaired += 1;
-    });
-    if (taskIds.length || objectiveIds.length) {
-      tarkovStore.setTasksAndObjectivesUncompleted(taskIds, objectiveIds);
-    }
-    toast.add({
-      title: t(
-        'page.tasks.settings.advanced.repairFailedDone',
-        { count: repaired },
-        'Cleared failed status for {count} tasks.'
-      ),
-      color: 'success',
-    });
-  };
 </script>

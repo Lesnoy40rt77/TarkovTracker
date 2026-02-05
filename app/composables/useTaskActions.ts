@@ -6,7 +6,7 @@ import type { Task, TaskObjective } from '@/types/tarkov';
 export type TaskActionPayload = {
   taskId: string;
   taskName: string;
-  action: 'available' | 'complete' | 'uncomplete' | 'resetfailed' | 'fail';
+  action: 'available' | 'complete' | 'uncomplete' | 'reset_failed' | 'fail';
   undoKey?: string;
   statusKey?: string;
 };
@@ -129,7 +129,7 @@ export function useTaskActions(
         taskId: currentTask.id,
         taskName,
         action: 'complete',
-        statusKey: 'page.tasks.questcard.statuscomplete',
+        statusKey: 'page.tasks.questcard.status_complete',
       });
     }
     tarkovStore.setTaskComplete(currentTask.id);
@@ -144,7 +144,7 @@ export function useTaskActions(
         taskId: currentTask.id,
         taskName,
         action: 'complete',
-        undoKey: 'page.tasks.questcard.undocomplete',
+        undoKey: 'page.tasks.questcard.undo_complete',
       });
     }
   };
@@ -156,10 +156,10 @@ export function useTaskActions(
       emitAction({
         taskId: currentTask.id,
         taskName,
-        action: wasFailed ? 'resetfailed' : 'uncomplete',
+        action: wasFailed ? 'reset_failed' : 'uncomplete',
         statusKey: wasFailed
-          ? 'page.tasks.questcard.statusresetfailed'
-          : 'page.tasks.questcard.statusuncomplete',
+          ? 'page.tasks.questcard.status_reset_failed'
+          : 'page.tasks.questcard.status_uncomplete',
       });
     }
     tarkovStore.setTaskUncompleted(currentTask.id);
@@ -175,10 +175,10 @@ export function useTaskActions(
       emitAction({
         taskId: currentTask.id,
         taskName,
-        action: wasFailed ? 'resetfailed' : 'uncomplete',
+        action: wasFailed ? 'reset_failed' : 'uncomplete',
         undoKey: wasFailed
-          ? 'page.tasks.questcard.undoresetfailed'
-          : 'page.tasks.questcard.undouncomplete',
+          ? 'page.tasks.questcard.undo_reset_failed'
+          : 'page.tasks.questcard.undo_uncomplete',
       });
     }
   };
@@ -209,7 +209,7 @@ export function useTaskActions(
       taskId: currentTask.id,
       taskName,
       action: 'available',
-      statusKey: 'page.tasks.questcard.statusavailable',
+      statusKey: 'page.tasks.questcard.status_available',
     });
   };
   const markTaskFailed = (isUndo = false) => {
@@ -220,7 +220,7 @@ export function useTaskActions(
         taskId: currentTask.id,
         taskName,
         action: 'fail',
-        statusKey: 'page.tasks.questcard.statusfailed',
+        statusKey: 'page.tasks.questcard.status_failed',
       });
     }
     tarkovStore.setTaskFailed(currentTask.id);
@@ -233,7 +233,7 @@ export function useTaskActions(
         taskId: currentTask.id,
         taskName,
         action: 'fail',
-        undoKey: 'page.tasks.questcard.undofailed',
+        undoKey: 'page.tasks.questcard.undo_failed',
       });
     }
   };

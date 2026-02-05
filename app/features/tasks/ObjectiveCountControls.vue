@@ -20,7 +20,7 @@
       <div
         v-if="!isEditing"
         class="text-surface-100 flex h-7 min-w-14 items-center justify-center px-2 text-[11px] font-semibold tabular-nums hover:bg-white/10"
-        :title="t('page.tasks.questcard.clickToEdit', 'Click to edit')"
+        :title="t('page.tasks.questcard.click_to_edit', 'Click to edit')"
         @click="startEditing"
       >
         {{ currentCount }}/{{ neededCount }}
@@ -57,7 +57,7 @@
       :text="
         currentCount >= neededCount
           ? t('page.tasks.questcard.complete', 'Complete')
-          : t('page.tasks.questcard.markComplete', 'Mark complete')
+          : t('page.tasks.questcard.mark_complete', 'Mark complete')
       "
     >
       <button
@@ -67,7 +67,7 @@
         :aria-label="
           currentCount >= neededCount
             ? t('page.tasks.questcard.complete', 'Complete')
-            : t('page.tasks.questcard.markComplete', 'Mark complete')
+            : t('page.tasks.questcard.mark_complete', 'Mark complete')
         "
         :aria-pressed="currentCount >= neededCount"
         :class="
@@ -109,8 +109,8 @@
       },
       onExternalChange: (value) => {
         toast.add({
-          title: t('toast.countEditUpdated.title'),
-          description: t('toast.countEditUpdated.description', { value }),
+          title: t('toast.count_edit_updated.title'),
+          description: t('toast.count_edit_updated.description', { value }),
           color: 'warning',
         });
       },

@@ -12,7 +12,7 @@
     <div v-if="irrelevantCount > 0" class="flex w-full items-center p-1 opacity-50">
       <UIcon name="i-mdi-eye-off" class="mr-1 h-4 w-4" />
       <i18n-t
-        keypath="page.tasks.questcard.objectiveshidden"
+        keypath="page.tasks.questcard.objectives_hidden"
         :plural="irrelevantCount"
         scope="global"
       >
@@ -68,23 +68,23 @@
       if (category === 'both') {
         return {
           title: foundInRaid
-            ? t('page.tasks.questcard.findAndHandOverFir', 'Find and Hand over found in raid')
-            : t('page.tasks.questcard.findAndHandOver', 'Find and Hand over'),
+            ? t('page.tasks.questcard.find_and_hand_over_fir', 'Find and Hand over found in raid')
+            : t('page.tasks.questcard.find_and_hand_over', 'Find and Hand over'),
           iconName: 'mdi-package-variant-closed',
         };
       }
       if (category === 'giveOnly') {
         return {
           title: foundInRaid
-            ? t('page.tasks.questcard.handOverFir', 'Hand over found in raid')
-            : t('page.tasks.questcard.handOver', 'Hand over'),
+            ? t('page.tasks.questcard.hand_over_fir', 'Hand over found in raid')
+            : t('page.tasks.questcard.hand_over', 'Hand over'),
           iconName: 'mdi-package-variant-closed',
         };
       }
       // findOnly
       return {
         title: foundInRaid
-          ? t('page.tasks.questcard.findFir', 'Find in raid')
+          ? t('page.tasks.questcard.find_fir', 'Find in raid')
           : t('page.tasks.questcard.find', 'Find'),
         iconName: 'mdi-magnify',
       };

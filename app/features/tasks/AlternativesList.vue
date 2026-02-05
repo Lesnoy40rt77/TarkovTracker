@@ -24,6 +24,5 @@
       .filter((task): task is Task => Boolean(task))
   );
   const { t } = useI18n({ useScope: 'global' });
-  // Use default label if not provided
   const defaultLabel = t('page.tasks.questcard.alternatives');
 </script>

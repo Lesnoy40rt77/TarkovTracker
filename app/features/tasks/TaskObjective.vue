@@ -46,13 +46,13 @@
       <div class="flex items-center gap-2" @click.stop>
         <AppTooltip
           v-if="hasMapLocation"
-          :text="t('page.tasks.questcard.jumpToMap', 'Jump To Map')"
+          :text="t('page.tasks.questcard.jump_to_map', 'Jump To Map')"
         >
           <button
             type="button"
             class="focus-visible:ring-primary-500 focus-visible:ring-offset-surface-900 text-surface-300 flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             :class="isJumpToMapDisabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-white/10'"
-            :aria-label="t('page.tasks.questcard.jumpToMap', 'Jump To Map')"
+            :aria-label="t('page.tasks.questcard.jump_to_map', 'Jump To Map')"
             :disabled="isJumpToMapDisabled"
             @click.stop="onJumpToMapClick"
           >
@@ -112,9 +112,10 @@
   import { useSystemStoreWithSupabase } from '@/stores/useSystemStore';
   import { useTarkovStore } from '@/stores/useTarkov';
   import type { TaskObjective } from '@/types/tarkov';
+  const FALLBACK_IS_MAP_VIEW_REF = ref(false);
   const { t } = useI18n({ useScope: 'global' });
   const jumpToMapObjective = inject<((id: string) => void) | null>('jumpToMapObjective', null);
-  const isMapView = inject<Ref<boolean>>('isMapView', ref(false));
+  const isMapView = inject<Ref<boolean>>('isMapView', FALLBACK_IS_MAP_VIEW_REF);
   const { systemStore } = useSystemStoreWithSupabase();
   // Define the props for the component
   const props = defineProps<{
@@ -145,7 +146,7 @@
   const objectiveAriaLabel = computed(() => {
     const status = isComplete.value
       ? t('page.tasks.questcard.completed', 'Completed')
-      : t('page.tasks.questcard.notCompleted', 'Not completed');
+      : t('page.tasks.questcard.not_completed', 'Not completed');
     return `${objectiveLabel.value}. ${status}. ${toggleObjectiveLabel.value}`;
   });
   const fullObjective = computed(() => {
