@@ -4,6 +4,7 @@ import { useSupabaseSync } from '@/composables/supabase/useSupabaseSync';
 import { pinia as pluginPinia } from '@/plugins/01.pinia.client';
 import { logger } from '@/utils/logger';
 import { STORAGE_KEYS } from '@/utils/storageKeys';
+import { normalizeSecondaryView, normalizeSortMode } from '@/utils/taskFilterNormalization';
 import type {
   NeededItemsFirFilter,
   NeededItemsFilterType,
@@ -243,13 +244,13 @@ export const usePreferencesStore = defineStore('preferences', {
       return state.taskTraderView ?? 'all';
     },
     getTaskSecondaryView: (state) => {
-      return state.taskSecondaryView ?? 'available';
+      return normalizeSecondaryView(state.taskSecondaryView ?? 'available');
     },
     getTaskUserView: (state) => {
       return state.taskUserView ?? 'self';
     },
     getTaskSortMode: (state) => {
-      return state.taskSortMode ?? 'impact';
+      return normalizeSortMode(state.taskSortMode ?? 'impact');
     },
     getTaskSortDirection: (state) => {
       const sortMode = state.taskSortMode ?? 'impact';
@@ -435,13 +436,13 @@ export const usePreferencesStore = defineStore('preferences', {
       this.taskTraderView = view;
     },
     setTaskSecondaryView(view: string) {
-      this.taskSecondaryView = view;
+      this.taskSecondaryView = normalizeSecondaryView(view);
     },
     setTaskUserView(view: string) {
       this.taskUserView = view;
     },
     setTaskSortMode(mode: TaskSortMode) {
-      this.taskSortMode = mode;
+      this.taskSortMode = normalizeSortMode(mode);
     },
     setTaskSortDirection(direction: TaskSortDirection) {
       this.taskSortDirection = direction;

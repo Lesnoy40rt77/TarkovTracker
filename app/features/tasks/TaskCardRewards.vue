@@ -165,11 +165,11 @@
               </NuxtLink>
             </div>
           </div>
-          <div class="space-y-3">
+          <div v-if="itemRewards.length > 0" class="space-y-3">
             <div class="text-surface-500 text-[10px] font-bold tracking-wider uppercase">
               {{ t('page.tasks.questcard.reward_items', 'Items:') }}
             </div>
-            <div v-if="itemRewards.length > 0" class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap gap-2">
               <AppTooltip
                 v-for="(reward, index) in itemRewards"
                 :key="`item-${reward.item?.id || index}`"
@@ -202,11 +202,11 @@
               </AppTooltip>
             </div>
           </div>
-          <div class="space-y-3">
+          <div v-if="offerUnlockRewards.length > 0" class="space-y-3">
             <div class="text-surface-500 text-[10px] font-bold tracking-wider uppercase">
               {{ t('page.tasks.questcard.unlocks_purchase', 'Unlocks Purchase:') }}
             </div>
-            <div v-if="offerUnlockRewards.length > 0" class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap gap-2">
               <AppTooltip
                 v-for="offer in offerUnlockRewards"
                 :key="`offer-${offer.id}`"

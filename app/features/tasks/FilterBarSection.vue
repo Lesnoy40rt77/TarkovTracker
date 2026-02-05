@@ -11,50 +11,19 @@
     </p>
     <div class="space-y-1">
       <label
+        v-for="filter in filters"
+        :key="filter.key"
         class="hover:bg-surface-700/50 flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 transition-colors"
       >
-        <UCheckbox v-model="showAllFilterModel" />
+        <UCheckbox v-model="filter.model.value" />
         <span class="text-surface-200 text-sm">
-          {{ t('page.tasks.settings.filter_bar.all_filter', 'All Filter') }}
-        </span>
-      </label>
-      <label
-        class="hover:bg-surface-700/50 flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 transition-colors"
-      >
-        <UCheckbox v-model="showAvailableFilterModel" />
-        <span class="text-surface-200 text-sm">
-          {{ t('page.tasks.settings.filter_bar.available_filter', 'Available Filter') }}
-        </span>
-      </label>
-      <label
-        class="hover:bg-surface-700/50 flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 transition-colors"
-      >
-        <UCheckbox v-model="showLockedFilterModel" />
-        <span class="text-surface-200 text-sm">
-          {{ t('page.tasks.settings.filter_bar.locked_filter', 'Locked Filter') }}
-        </span>
-      </label>
-      <label
-        class="hover:bg-surface-700/50 flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 transition-colors"
-      >
-        <UCheckbox v-model="showCompletedFilterModel" />
-        <span class="text-surface-200 text-sm">
-          {{ t('page.tasks.settings.filter_bar.completed_filter', 'Completed Filter') }}
-        </span>
-      </label>
-      <label
-        class="hover:bg-surface-700/50 flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 transition-colors"
-      >
-        <UCheckbox v-model="showFailedFilterModel" />
-        <span class="text-surface-200 text-sm">
-          {{ t('page.tasks.settings.filter_bar.failed_filter', 'Failed Filter') }}
+          {{ t(`page.tasks.settings.filter_bar.${filter.key}`, filter.key) }}
         </span>
       </label>
     </div>
   </section>
 </template>
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
   const props = defineProps<{
     showAllFilter: boolean;
     showAvailableFilter: boolean;
@@ -90,4 +59,11 @@
     get: () => props.showFailedFilter,
     set: (value: boolean) => emit('update:showFailedFilter', value),
   });
+  const filters = [
+    { key: 'all_filter', model: showAllFilterModel },
+    { key: 'available_filter', model: showAvailableFilterModel },
+    { key: 'locked_filter', model: showLockedFilterModel },
+    { key: 'completed_filter', model: showCompletedFilterModel },
+    { key: 'failed_filter', model: showFailedFilterModel },
+  ];
 </script>

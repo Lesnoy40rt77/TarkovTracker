@@ -49,7 +49,6 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
   import type { ActionButtonState } from '@/features/tasks/types';
   defineProps<{
     state: ActionButtonState;

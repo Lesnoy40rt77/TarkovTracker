@@ -327,6 +327,41 @@ export function useNeededItems(options: UseNeededItemsOptions = {}): UseNeededIt
       },
     ];
   });
+  const passesSpecialEquipmentFilter = (
+    need: NeededItemTaskObjective | NeededItemHideoutModule
+  ): boolean => {
+    const applySpecialEquipmentFilter =
+      hideNonFirSpecialEquipment.value && itemsFullLoaded.value === true;
+    return (
+      need.needType !== 'taskObjective' ||
+      !applySpecialEquipmentFilter ||
+      !isNonFirSpecialEquipment(need as NeededItemTaskObjective)
+    );
+  };
+  const passesKappaFilter = (need: NeededItemTaskObjective | NeededItemHideoutModule): boolean => {
+    if (need.needType !== 'taskObjective') {
+      return true;
+    }
+    const task = metadataStore.getTaskById(need.taskId);
+    return task?.kappaRequired === true;
+  };
+  const passesOwnershipFilter = (
+    item: NeededItemTaskObjective | NeededItemHideoutModule
+  ): boolean => {
+    const count = item.count ?? 1;
+    const currentCount =
+      item.needType === 'taskObjective'
+        ? tarkovStore.getObjectiveCount(item.id)
+        : tarkovStore.getHideoutPartCount(item.id);
+    return (currentCount ?? 0) < count;
+  };
+  const passesTeamFilter = (item: NeededItemTaskObjective | NeededItemHideoutModule): boolean => {
+    const teamId = getNeedTeamId(item);
+    if (!teamId) {
+      return true;
+    }
+    return progressStore.getTeamIndex(teamId) === 'self';
+  };
   const filteredItems = computed(() => {
     let result = allItems.value;
     if (activeFilter.value === 'completed') {
@@ -344,44 +379,15 @@ export function useNeededItems(options: UseNeededItemsOptions = {}): UseNeededIt
     } else if (firFilter.value === 'non-fir') {
       result = result.filter((item) => !item.foundInRaid);
     }
-    const applySpecialEquipmentFilter =
-      hideNonFirSpecialEquipment.value && itemsFullLoaded.value === true;
-    const passesSpecialEquipmentFilter = (
-      need: NeededItemTaskObjective | NeededItemHideoutModule
-    ) =>
-      need.needType !== 'taskObjective' ||
-      !applySpecialEquipmentFilter ||
-      !isNonFirSpecialEquipment(need as NeededItemTaskObjective);
     result = result.filter(passesSpecialEquipmentFilter);
     if (kappaOnly.value) {
-      result = result.filter((need) => {
-        if (need.needType !== 'taskObjective') {
-          return true;
-        }
-        const task = metadataStore.getTaskById(need.taskId);
-        return task?.kappaRequired === true;
-      });
+      result = result.filter(passesKappaFilter);
     }
     if (hideOwned.value) {
-      result = result.filter((item) => {
-        const count = item.count ?? 1;
-        let current = 0;
-        if (item.needType === 'taskObjective') {
-          current = tarkovStore.getObjectiveCount(item.id);
-        } else {
-          current = tarkovStore.getHideoutPartCount(item.id);
-        }
-        return current < count;
-      });
+      result = result.filter(passesOwnershipFilter);
     }
     if (hideTeamItems.value) {
-      result = result.filter((item) => {
-        const teamId = getNeedTeamId(item);
-        if (!teamId) {
-          return true;
-        }
-        return progressStore.getTeamIndex(teamId) === 'self';
-      });
+      result = result.filter(passesTeamFilter);
     }
     if (search.value) {
       result = result.filter((item) => {

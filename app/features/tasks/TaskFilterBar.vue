@@ -368,6 +368,7 @@
   import { useTeamStore } from '@/stores/useTeamStore';
   import { TASK_SECONDARY_VIEWS, type TaskSecondaryView } from '@/types/taskFilter';
   import { TASK_SORT_MODES } from '@/types/taskSort';
+  import { normalizeSecondaryView, normalizeSortMode } from '@/utils/taskFilterNormalization';
   import type { TaskSortDirection, TaskSortMode } from '@/types/taskSort';
   defineProps<{
     searchQuery: string;
@@ -450,41 +451,6 @@
       icon: SORT_MODE_ICONS[mode],
     }))
   );
-  const VALID_SORT_MODES = new Set<TaskSortMode>(TASK_SORT_MODES);
-  const VALID_SECONDARY_VIEWS = new Set<TaskSecondaryView>(TASK_SECONDARY_VIEWS);
-  /**
-   * Normalize sort mode value from various input formats.
-   * Handles: string values, objects with 'value' property, or null/undefined.
-   */
-  const normalizeSortMode = (value: unknown): TaskSortMode => {
-    // Extract candidate from value: direct string, object.value, or null
-    let candidate: unknown = null;
-    if (typeof value === 'string') {
-      candidate = value;
-    } else if (value && typeof value === 'object' && 'value' in value) {
-      candidate = (value as { value?: unknown }).value;
-    }
-    // Validate candidate against valid sort modes
-    if (typeof candidate === 'string' && VALID_SORT_MODES.has(candidate as TaskSortMode)) {
-      return candidate as TaskSortMode;
-    }
-    return 'none';
-  };
-  const normalizeSecondaryView = (value: unknown): TaskSecondaryView => {
-    let candidate: unknown = null;
-    if (typeof value === 'string') {
-      candidate = value;
-    } else if (value && typeof value === 'object' && 'value' in value) {
-      candidate = (value as { value?: unknown }).value;
-    }
-    if (
-      typeof candidate === 'string' &&
-      VALID_SECONDARY_VIEWS.has(candidate as TaskSecondaryView)
-    ) {
-      return candidate as TaskSecondaryView;
-    }
-    return 'all';
-  };
   const taskSortMode = computed({
     get: (): TaskSortMode => normalizeSortMode(preferencesStore.getTaskSortMode),
     set: (value: TaskSortMode) => preferencesStore.setTaskSortMode(normalizeSortMode(value)),

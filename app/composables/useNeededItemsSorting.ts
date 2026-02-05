@@ -53,16 +53,23 @@ export function useNeededItemsSorting(
       return sortDirection.value === 'asc' ? cmp : -cmp;
     };
   };
-  // getNeededItemPriority priority order (higher values sort first, descending): NeededItemTaskObjective with
-  // TASK_STATE.ACTIVE = 3, NeededItemHideoutModule = 2, NeededItemTaskObjective with TASK_STATE.AVAILABLE = 1, others = 0.
+  // Descending sort order: ACTIVE > HIDEOUT > AVAILABLE > others.
+  const PRIORITY_ACTIVE = 3;
+  const PRIORITY_HIDEOUT = 2;
+  const PRIORITY_AVAILABLE = 1;
+  const PRIORITY_DEFAULT = 0;
   const getNeededItemPriority = (
     item: NeededItemTaskObjective | NeededItemHideoutModule
   ): number => {
     if (item.needType === 'taskObjective') {
       const state = progressStore.tasksState?.[item.taskId];
-      return state === TASK_STATE.ACTIVE ? 3 : state === TASK_STATE.AVAILABLE ? 1 : 0;
+      return state === TASK_STATE.ACTIVE
+        ? PRIORITY_ACTIVE
+        : state === TASK_STATE.AVAILABLE
+          ? PRIORITY_AVAILABLE
+          : PRIORITY_DEFAULT;
     }
-    return 2;
+    return PRIORITY_HIDEOUT;
   };
   const getNeededItemSortValues = (
     item: NeededItemTaskObjective | NeededItemHideoutModule
