@@ -315,14 +315,6 @@
       navigateTo(redirect, { replace: true });
     };
     let popupConfirmedOpen = false;
-    // Timer hierarchy:
-    // - pollTimer (every 500ms): Checks if popup is closed or open; sets popupConfirmedOpen=true if popup detected.
-    //   Clears loading.value[provider] and calls cleanup() if popup is closed.
-    // - fallbackTimer (3000ms): If popup never confirmed open and didCleanup is false, calls cleanup() and
-    //   fallbackToRedirect(url, provider) to switch to full-page redirect as a fallback.
-    // - abandonedTimer (90000ms): Final safety net; if didCleanup is still false after 90s, clears loading
-    //   and calls cleanup() to abort the flow. All timers check didCleanup to avoid double-execution
-    //   after cleanup() runs.
     const pollTimer = window.setInterval(() => {
       if (isPopupClosed()) {
         loading.value[provider] = false;

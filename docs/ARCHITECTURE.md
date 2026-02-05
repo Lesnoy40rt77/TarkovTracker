@@ -214,6 +214,22 @@ sequenceDiagram
 3. **Max Value Preservation**: For counts and levels, keep the higher value
 4. **Self-Origin Filtering**: Ignore echoed updates from own device (< 3s threshold)
 
+## Authentication
+
+### OAuth Popup Flow (Login)
+
+- `pollTimer` runs every 500ms; if the popup closes, it clears `loading.value[provider]` and runs
+  `cleanup()`, otherwise it sets `popupConfirmedOpen`.
+- `fallbackTimer` runs at 3s; if `didCleanup` is false, loading is still active, the popup was never
+  confirmed open, and the popup is missing or closed, it runs `cleanup()` and then
+  `fallbackToRedirect(url, provider)`.
+- `abandonedTimer` runs at 90s; if `didCleanup` is still false, it clears `loading.value[provider]` and
+  runs `cleanup()` to abort the flow.
+- `popupConfirmedOpen` tracks whether the popup has been detected as open at least once to avoid
+  triggering the redirect fallback unnecessarily.
+- `loading.value[provider]` acts as the gate for the fallback timer; if loading is cleared, fallback exits.
+- `cleanup()` clears timers, removes the message listener, and attempts to close the popup safely.
+
 ## API Architecture
 
 ### Tarkov Data API
