@@ -11,7 +11,7 @@
             to="/changelog"
             class="text-primary-400 hover:text-primary-300 text-xs transition-colors"
           >
-            {{ t('page.dashboard.changelog.viewAll') }}
+            {{ t('page.dashboard.changelog.view_all') }}
           </NuxtLink>
           <span class="text-surface-600">|</span>
           <UButton
@@ -71,9 +71,11 @@
   const SERVER_CHANGELOG_URL = '/api/changelog';
   const GITHUB_RELEASES_KEY = 'dashboard-changelog-github-releases';
   const GITHUB_COMMITS_KEY = 'dashboard-changelog-github-commits';
-  const GITHUB_RELEASES_URL =
-    'https://api.github.com/repos/tarkovtracker-org/TarkovTracker/releases';
-  const GITHUB_COMMITS_URL = 'https://api.github.com/repos/tarkovtracker-org/TarkovTracker/commits';
+  const runtimeConfig = useRuntimeConfig();
+  const githubOwner = runtimeConfig.public.githubOwner || 'tarkovtracker-org';
+  const githubRepo = runtimeConfig.public.githubRepo || 'TarkovTracker';
+  const GITHUB_RELEASES_URL = `https://api.github.com/repos/${githubOwner}/${githubRepo}/releases`;
+  const GITHUB_COMMITS_URL = `https://api.github.com/repos/${githubOwner}/${githubRepo}/commits`;
   const { locale, t } = useI18n({ useScope: 'global' });
   const isOpen = ref(false);
   const hasRequested = ref(false);
@@ -200,8 +202,8 @@
         return null;
       }
       return data.items;
-    } catch (error) {
-      logError('[DashboardChangelog] fetchServerItems error.', error);
+    } catch (err) {
+      logError('[DashboardChangelog] fetchServerItems error.', err);
       return null;
     }
   };
@@ -218,14 +220,15 @@
       const commits = githubCommitRequest.data.value;
       if (!Array.isArray(commits)) return null;
       return buildCommitItems(commits);
-    } catch (error) {
-      logError('[DashboardChangelog] fetchGithubItems error.', error);
+    } catch (err) {
+      logError('[DashboardChangelog] fetchGithubItems error.', err);
       return null;
     }
   };
   const loadChangelog = async (force = false) => {
     if (pending.value) return;
     if (hasRequested.value && !force) return;
+    entries.value = [];
     pending.value = true;
     error.value = false;
     hasRequested.value = true;
@@ -242,6 +245,7 @@
       return;
     }
     entries.value = [];
+    hasRequested.value = false;
     error.value = true;
     pending.value = false;
   };
