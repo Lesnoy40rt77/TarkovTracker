@@ -18,6 +18,25 @@ const createMockUseNeededItems = (options: {
     emptyState = false,
   } = options;
   const items = emptyState || !neededItem ? [] : [neededItem];
+  const grouped = computed(() =>
+    emptyState
+      ? []
+      : [
+          {
+            item: { id: 'item-1', name: 'Test Item' },
+            taskFir: 0,
+            taskFirCurrent: 0,
+            taskNonFir: 1,
+            taskNonFirCurrent: 0,
+            hideoutFir: 0,
+            hideoutFirCurrent: 0,
+            hideoutNonFir: 0,
+            hideoutNonFirCurrent: 0,
+            total: 1,
+            currentCount: 0,
+          },
+        ]
+  );
   return () => ({
     activeFilter: ref('all'),
     firFilter: ref('all'),
@@ -32,26 +51,8 @@ const createMockUseNeededItems = (options: {
     cardStyle: ref('compact'),
     allItems: computed(() => items),
     filteredItems: computed(() => items),
-    groupedItems: computed(() =>
-      emptyState
-        ? []
-        : [
-            {
-              item: { id: 'item-1', name: 'Test Item' },
-              taskFir: 0,
-              taskFirCurrent: 0,
-              taskNonFir: 1,
-              taskNonFirCurrent: 0,
-              hideoutFir: 0,
-              hideoutFirCurrent: 0,
-              hideoutNonFir: 0,
-              hideoutNonFirCurrent: 0,
-              total: 1,
-              currentCount: 0,
-            },
-          ]
-    ),
-    displayItems: computed(() => (groupByItem ? [] : items)),
+    groupedItems: grouped,
+    displayItems: computed(() => (groupByItem ? grouped.value : items)),
     objectivesByItemId: computed(() => new Map()),
     filterTabsWithCounts: computed(() => [
       { label: 'All', value: 'all', icon: 'i-mdi-clipboard-list', count: items.length },
@@ -167,7 +168,7 @@ describe('needed items page', () => {
       const items = wrapper.findAll('[data-testid="needed-item"]');
       expect(items.length).toBeGreaterThan(0);
       items.forEach((item) => {
-        expect(item.attributes('data-style')).toBe('list');
+        expect(item.attributes('data-style')).toBe('row');
       });
     });
     it('renders card style items in grid view mode', async () => {
