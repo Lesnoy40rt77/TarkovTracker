@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { logger } from '@/utils/logger';
 import { get, set, MAX_ARRAY_INDEX } from '@/utils/objectPath';
 describe('objectPath', () => {
   describe('get', () => {
@@ -148,7 +149,7 @@ describe('objectPath', () => {
     });
     it('allows overriding maxArrayIndex via options', () => {
       const obj: Record<string, unknown> = {};
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
       set(obj, 'items[50000]', 'value', { maxArrayIndex: 100_000 });
       expect((obj.items as unknown[])[50000]).toBe('value');
       expect(warnSpy).toHaveBeenCalled();

@@ -366,9 +366,9 @@
   import { usePreferencesStore } from '@/stores/usePreferences';
   import { useProgressStore } from '@/stores/useProgress';
   import { useTeamStore } from '@/stores/useTeamStore';
-  import { TASK_SECONDARY_VIEWS, type TaskSecondaryView } from '@/types/taskFilter';
   import { TASK_SORT_MODES } from '@/types/taskSort';
   import { normalizeSecondaryView, normalizeSortMode } from '@/utils/taskFilterNormalization';
+  import type { TaskSecondaryView } from '@/types/taskFilter';
   import type { TaskSortDirection, TaskSortMode } from '@/types/taskSort';
   defineProps<{
     searchQuery: string;

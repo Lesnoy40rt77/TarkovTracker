@@ -33,7 +33,16 @@
       const { data, error: fetchError } = await supabase.auth.oauth.getAuthorizationDetails(
         authorizationId.value
       );
-      logger.debug('[OAuth] Authorization details:', JSON.stringify(data, null, 2));
+      if (import.meta.dev) {
+        const sanitized = {
+          client_id: data?.client?.id,
+          client_name: data?.client?.name,
+          scope: data?.scope,
+          prompt: (data as Record<string, unknown>)?.prompt,
+          authorization_id: data?.authorization_id,
+        };
+        logger.debug('[OAuth] Authorization details:', JSON.stringify(sanitized, null, 2));
+      }
       if (fetchError) {
         if (fetchError.message?.includes('cannot be processed')) {
           error.value = 'This authorization request has expired or was already processed.';

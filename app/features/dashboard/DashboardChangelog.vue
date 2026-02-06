@@ -436,7 +436,6 @@
       return;
     }
     entries.value = [];
-    hasRequested.value = false;
     error.value = true;
     pending.value = false;
   };
@@ -444,6 +443,7 @@
     isOpen.value = !isOpen.value;
   };
   const retry = async () => {
+    hasRequested.value = false;
     await loadChangelog(true);
   };
   watch(isOpen, async (open) => {

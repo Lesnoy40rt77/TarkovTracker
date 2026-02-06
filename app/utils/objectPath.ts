@@ -4,6 +4,7 @@
  * Provides lodash-like get/set operations using path strings.
  * Supports dot notation ("a.b.c") and bracket notation ("items[0].name").
  */
+import { logger } from '@/utils/logger';
 /**
  * Parse a path string into segments, handling both dot notation and bracket notation.
  * Supports: "a.b.c", "items[0].name", "items.0.name", "a[0][1].b"
@@ -210,7 +211,7 @@ export function set(
     validateMaxIndexValue(options.maxArrayIndex, `set() [path: '${path}']`, MAX_SAFE_ARRAY_INDEX);
     // Warn if exceeding recommended MAX_ARRAY_INDEX (but still within safe bounds)
     if (options.maxArrayIndex > MAX_ARRAY_INDEX) {
-      console.warn(
+      logger.warn(
         `[objectPath] set(): maxArrayIndex ${options.maxArrayIndex} exceeds recommended ` +
           `MAX_ARRAY_INDEX (${MAX_ARRAY_INDEX}). This may cause memory/performance issues. ` +
           `Path: '${path}'`

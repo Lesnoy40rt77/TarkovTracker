@@ -48,7 +48,10 @@ export default defineEventHandler(async (event) => {
       signal: timeoutSignal,
     });
   } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
+    if (
+      (error instanceof Error && error.name === 'AbortError') ||
+      (error instanceof DOMException && error.name === 'TimeoutError')
+    ) {
       logger.warn(`[CacheMeta] Cache meta request timed out after ${requestTimeoutMs}ms.`, error);
       return {
         data: { lastPurgeAt: null },
