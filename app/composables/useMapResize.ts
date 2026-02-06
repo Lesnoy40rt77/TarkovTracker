@@ -84,7 +84,7 @@ export function useMapResize(options: UseMapResizeOptions = {}): UseMapResizeRet
     const handle = resizeHandleRef.value;
     if (!handle) return;
     event.preventDefault();
-    handle?.setPointerCapture?.(event.pointerId);
+    handle.setPointerCapture(event.pointerId);
     resizeState.value = {
       startY: event.clientY,
       startHeight: mapHeight.value,

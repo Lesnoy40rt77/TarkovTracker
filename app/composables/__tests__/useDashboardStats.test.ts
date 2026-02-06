@@ -101,12 +101,14 @@ const createPreferencesStore = () => ({
   getShowLightkeeperTasks: true,
   getShowNonSpecialTasks: true,
 });
+type PreferencesStoreMock = ReturnType<typeof createPreferencesStore>;
 interface SetupOverrides {
   tasks?: Task[];
   objectives?: TaskObjective[];
   traders?: Trader[];
   progressStore?: ReturnType<typeof createProgressStore>;
   tarkovStore?: ReturnType<typeof createTarkovStore>;
+  preferencesStore?: PreferencesStoreMock;
 }
 const setup = async (overrides: SetupOverrides = {}) => {
   const tasks = overrides.tasks ?? createTasks();
@@ -126,7 +128,7 @@ const setup = async (overrides: SetupOverrides = {}) => {
   };
   const progressStore = overrides.progressStore ?? createProgressStore();
   const tarkovStore = overrides.tarkovStore ?? createTarkovStore();
-  const preferencesStore = createPreferencesStore();
+  const preferencesStore = overrides.preferencesStore ?? createPreferencesStore();
   vi.resetModules();
   vi.doMock('@/stores/useMetadata', () => ({
     useMetadataStore: () => metadataStore,

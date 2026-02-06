@@ -1,8 +1,8 @@
 <template>
   <GenericCard icon="mdi-database-import-outline" icon-color="white">
-    <template #title>Data Migration</template>
+    <template #title>{{ t('settings.data_migration.title') }}</template>
     <template #content>
-      <p class="mb-4">Migrate your progress data from the old TarkovTracker site.</p>
+      <p class="mb-4">{{ t('settings.data_migration.description') }}</p>
       <div class="bg-surface-800 mb-3 rounded-lg p-4">
         <MigrationSteps />
         <form @submit.prevent="void migration.fetchWithApiToken()">
@@ -30,14 +30,14 @@
           <div class="flex items-center justify-between">
             <div v-if="migration.fetchingApi?.value" class="flex items-center">
               <UIcon name="i-mdi-loading" class="text-primary mr-2 h-6 w-6 animate-spin" />
-              <span>Fetching data...</span>
+              <span>{{ t('settings.data_migration.fetching') }}</span>
             </div>
             <UAlert
               v-else-if="migration.apiFetchSuccess?.value"
               color="success"
               variant="soft"
               class="mt-0 mr-4 mb-0 grow"
-              title="Data ready to import"
+              :title="t('settings.data_migration.ready')"
             />
             <div v-else class="grow"></div>
             <UButton
@@ -47,7 +47,7 @@
               class="px-4"
               @click="void migration.fetchWithApiToken()"
             >
-              Fetch Data
+              {{ t('settings.data_migration.fetch_button') }}
             </UButton>
           </div>
         </form>
@@ -136,5 +136,6 @@
   import { useDataMigration } from '@/composables/useDataMigration';
   import ImportConfirmDialog from '@/features/settings/ImportConfirmDialog.vue';
   import MigrationSteps from '@/features/settings/MigrationSteps.vue';
+  const { t } = useI18n({ useScope: 'global' });
   const migration = useDataMigration();
 </script>

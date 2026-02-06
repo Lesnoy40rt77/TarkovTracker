@@ -224,7 +224,7 @@
   }
   const { locale, availableLocales } = useI18n({ useScope: 'global' });
   const isAvailableLocale = (value: string): value is typeof locale.value =>
-    availableLocales.includes(value as typeof locale.value);
+    (availableLocales as readonly string[]).includes(value);
   const localeItems = computed(() => {
     return availableLocales.map((localeCode) => ({
       label: localeCode.toUpperCase(),

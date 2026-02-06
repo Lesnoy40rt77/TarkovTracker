@@ -16,6 +16,9 @@ export interface UseTaskRouteSyncReturn {
   isSyncingToRoute: Ref<boolean>;
 }
 type QueryLike = LocationQuery | LocationQueryRaw;
+type MapWithMergedIds = TarkovMap & {
+  mergedIds?: string[];
+};
 const normalizeQuery = (query: QueryLike): string => {
   const normalized: Record<string, string> = {};
   Object.keys(query)
@@ -61,6 +64,25 @@ const buildViewQuery = (
   nextQuery.map = undefined;
   nextQuery.trader = undefined;
   return nextQuery;
+};
+const getMergedMapIds = (map: TarkovMap): string[] => {
+  const mergedIds = (map as MapWithMergedIds).mergedIds;
+  if (!Array.isArray(mergedIds) || mergedIds.length === 0) {
+    return [map.id];
+  }
+  return mergedIds.includes(map.id) ? mergedIds : [map.id, ...mergedIds];
+};
+const resolveMapIdFromRoute = (
+  maps: TarkovMap[],
+  mapParam: string | undefined
+): string | undefined => {
+  const firstMapId = maps[0]?.id;
+  if (!mapParam) return firstMapId;
+  if (maps.some((map) => map.id === mapParam)) {
+    return mapParam;
+  }
+  const mergedMapMatch = maps.find((map) => getMergedMapIds(map).includes(mapParam));
+  return mergedMapMatch?.id ?? firstMapId;
 };
 export function useTaskRouteSync({
   maps,
@@ -116,17 +138,35 @@ export function useTaskRouteSync({
       preferencesStore.setTaskPrimaryView(targetView);
     }
     if (targetView === 'maps') {
-      const mapId = maps.value.some((map) => map.id === mapParam) ? mapParam : maps.value[0]?.id;
-      if (mapId && mapId !== preferencesStore.getTaskMapView) {
-        preferencesStore.setTaskMapView(mapId);
+      if (maps.value.length === 0) {
+        logger.debug('[useTaskRouteSync] Delaying map preference sync until maps are loaded.', {
+          targetView,
+          mapParam,
+        });
+      } else {
+        const mapId = resolveMapIdFromRoute(maps.value, mapParam);
+        if (mapId && mapId !== preferencesStore.getTaskMapView) {
+          preferencesStore.setTaskMapView(mapId);
+        }
       }
     }
     if (targetView === 'traders') {
-      const traderId = traders.value.some((trader) => trader.id === traderParam)
-        ? traderParam
-        : traders.value[0]?.id;
-      if (traderId && traderId !== preferencesStore.getTaskTraderView) {
-        preferencesStore.setTaskTraderView(traderId);
+      if (traders.value.length === 0) {
+        logger.debug(
+          '[useTaskRouteSync] Delaying trader preference sync until traders are loaded.',
+          {
+            targetView,
+            traderParam,
+          }
+        );
+      } else {
+        const firstTraderId = traders.value[0]?.id;
+        const traderId = traders.value.some((trader) => trader.id === traderParam)
+          ? traderParam
+          : firstTraderId;
+        if (traderId && traderId !== preferencesStore.getTaskTraderView) {
+          preferencesStore.setTaskTraderView(traderId);
+        }
       }
     }
     isSyncingFromRoute.value = false;
@@ -164,6 +204,17 @@ export function useTaskRouteSync({
     ([primaryView, mapView, traderView], prevValues) => {
       if (isSyncingFromRoute.value) return;
       const normalizedPrimary = isValidPrimaryView(primaryView) ? primaryView : 'all';
+      const shouldDelayMapRouteSync =
+        normalizedPrimary === 'maps' &&
+        maps.value.length === 0 &&
+        !!getQueryString(route.query.map);
+      const shouldDelayTraderRouteSync =
+        normalizedPrimary === 'traders' &&
+        traders.value.length === 0 &&
+        !!getQueryString(route.query.trader);
+      if (shouldDelayMapRouteSync || shouldDelayTraderRouteSync) {
+        return;
+      }
       const prevPrimaryView = prevValues[0];
       const shouldReplace = normalizedPrimary === prevPrimaryView;
       syncRoute(buildViewQuery(route.query, normalizedPrimary, mapView, traderView), shouldReplace);

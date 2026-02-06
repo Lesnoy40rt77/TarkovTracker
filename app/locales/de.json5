@@ -85,7 +85,6 @@
   offline_mode: {
     title: 'Offline-Modus aktiv',
     description: 'Supabase ist nicht konfiguriert. Anmelde- und Sync-Funktionen sind deaktiviert, aber du kannst alle Tracking-Funktionen lokal nutzen. Siehe {envFile}, um die Anmeldung zu aktivieren.',
-    env_file: '.env.example',
   },
   maps: {
     zoom: 'Zoomgeschwindigkeit',
@@ -791,6 +790,13 @@
       reset_all_warning: 'Dies löscht dauerhaft deinen GESAMTEN Fortschritt für die Modi PvP und PvE. Diese Aktion kann nicht rückgängig gemacht werden!',
       reset_cancel: 'Abbrechen',
       reset_confirm: 'Daten zurücksetzen',
+    },
+    data_migration: {
+      title: 'Datenmigration',
+      description: 'Migriere deine Fortschrittsdaten von der alten TarkovTracker-Seite.',
+      fetching: 'Daten werden abgerufen...',
+      ready: 'Daten sind bereit für den Import',
+      fetch_button: 'Daten abrufen',
     },
     account_data: {
       title: 'Konto- & Datenverwaltung',

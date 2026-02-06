@@ -4,6 +4,7 @@ export const SPECIAL_STATIONS = {
   STASH: 'stash',
   CULTIST_CIRCLE: 'cultist-circle',
 } as const;
+export const OFFLINE_ENV_FILE = '.env.example';
 // PMC faction values
 export const PMC_FACTIONS = ['USEC', 'BEAR'] as const;
 export const DEFAULT_PMC_FACTION = 'USEC' as const;
@@ -135,9 +136,11 @@ export const LIMITS = {
   TEAM_MAX_MEMBERS: 5,
   // Random name generation default length
   RANDOM_NAME_LENGTH: 6,
+  MAX_SKILL_LEVEL: 51,
   // Maximum player level in Tarkov
   GAME_MAX_LEVEL: 79,
 } as const;
+export const MAX_SKILL_LEVEL = LIMITS.MAX_SKILL_LEVEL;
 // Cache configuration (sync with tarkovCache.ts)
 export const CACHE_CONSTANTS = {
   // Cache TTL in hours

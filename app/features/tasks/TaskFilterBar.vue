@@ -526,7 +526,8 @@
     normalizeSecondaryView(preferencesStore.getTaskSecondaryView)
   );
   const setSecondaryView = (view: string) => {
-    preferencesStore.setTaskSecondaryView(view);
+    const normalizedView = normalizeSecondaryView(view);
+    preferencesStore.setTaskSecondaryView(normalizedView);
   };
   // Map selection
   const mapOptions = computed(() => {

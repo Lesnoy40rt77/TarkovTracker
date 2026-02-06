@@ -5,6 +5,7 @@ import { computed, ref } from 'vue';
 import { createI18n } from 'vue-i18n';
 import { useSkillCalculation } from '@/composables/useSkillCalculation';
 import SkillsCard from '@/features/settings/SkillsCard.vue';
+import { MAX_SKILL_LEVEL } from '@/utils/constants';
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
@@ -133,7 +134,7 @@ describe('SkillsCard', () => {
     expect(inputEl.value).toBe('1');
     expect(setTotalSkillLevel).toHaveBeenCalledWith('Strength', 1);
   });
-  it('prevents input resulting in value > 51', async () => {
+  it(`prevents input resulting in value > ${MAX_SKILL_LEVEL}`, async () => {
     const wrapper = createWrapper({
       getSkillLevel: () => 5,
       getQuestSkillLevel: () => 0,
@@ -160,9 +161,10 @@ describe('SkillsCard', () => {
     };
     await input.trigger('keydown', eventAllow);
     expect(eventAllow.preventDefault).not.toHaveBeenCalled();
-    inputEl.value = '51';
-    inputEl.selectionStart = 2;
-    inputEl.selectionEnd = 2;
+    const maxSkillLevelInput = String(MAX_SKILL_LEVEL);
+    inputEl.value = maxSkillLevelInput;
+    inputEl.selectionStart = maxSkillLevelInput.length;
+    inputEl.selectionEnd = maxSkillLevelInput.length;
     const eventLength = {
       key: '0',
       preventDefault: vi.fn(),

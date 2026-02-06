@@ -200,7 +200,17 @@
     if (!setter) return;
     setter(enabled);
   };
-  const hasEnforcedPrereqs = ref(false);
+  const HIDEOUT_PREREQS_ENFORCED_STORAGE_KEY = 'hideout-prereqs-enforced';
+  const hasEnforcedPrereqs = useState<boolean>('hideout-prereqs-enforced', () => false);
+  if (import.meta.client) {
+    hasEnforcedPrereqs.value =
+      localStorage.getItem(HIDEOUT_PREREQS_ENFORCED_STORAGE_KEY) === 'true';
+  }
+  const setHasEnforcedPrereqs = (value: boolean) => {
+    hasEnforcedPrereqs.value = value;
+    if (!import.meta.client) return;
+    localStorage.setItem(HIDEOUT_PREREQS_ENFORCED_STORAGE_KEY, value ? 'true' : 'false');
+  };
   const {
     showPrereqConfirm,
     pendingPrereqToggle,
@@ -211,7 +221,7 @@
     onConfirm: (key: PrereqType) => {
       setPrereqPreference(key, true);
       tarkovStore.enforceHideoutPrereqsNow();
-      hasEnforcedPrereqs.value = true;
+      setHasEnforcedPrereqs(true);
     },
     setPreference: setPrereqPreference,
   });
@@ -285,12 +295,12 @@
     ([loading, shouldEnforce]) => {
       if (loading) return;
       if (!shouldEnforce) {
-        hasEnforcedPrereqs.value = false;
+        setHasEnforcedPrereqs(false);
         return;
       }
       if (hasEnforcedPrereqs.value) return;
       tarkovStore.enforceHideoutPrereqsNow();
-      hasEnforcedPrereqs.value = true;
+      setHasEnforcedPrereqs(true);
     },
     { immediate: true }
   );

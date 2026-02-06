@@ -1,4 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { getLeafletMapOptions, type MapRenderConfig } from '@/utils/mapCoordinates';
 vi.mock('@/utils/logger', () => ({
   logger: {
     warn: vi.fn(),
@@ -47,13 +48,72 @@ describe('LeafletMap utilities', () => {
     });
   });
   describe('leaflet map options', () => {
-    it('getLeafletMapOptions returns map configuration', async () => {
-      const { getLeafletMapOptions } = await import('@/utils/mapCoordinates');
+    it('getLeafletMapOptions returns map configuration', () => {
       const mockL = { CRS: { Simple: {} } } as unknown as typeof import('leaflet');
       const options = getLeafletMapOptions(mockL);
       expect(options).toHaveProperty('crs');
       expect(options).toHaveProperty('minZoom');
       expect(options).toHaveProperty('maxZoom');
+    });
+    it('getLeafletMapOptions uses custom CRS helpers when render config is provided', () => {
+      const extendSpy = vi.fn(
+        (
+          target: Record<string, unknown>,
+          ...sources: Array<Record<string, unknown>>
+        ): Record<string, unknown> => {
+          return Object.assign(target, ...sources);
+        }
+      );
+      const transformationSpy = vi.fn((a: number, b: number, c: number, d: number) => ({
+        a,
+        b,
+        c,
+        d,
+      }));
+      const projectSpy = vi.fn((latLng: { lat: number; lng: number }) => ({
+        x: latLng.lng,
+        y: latLng.lat,
+      }));
+      const unprojectSpy = vi.fn((point: { x: number; y: number }) => ({
+        lat: point.y,
+        lng: point.x,
+      }));
+      const latLngSpy = vi.fn((lat: number, lng: number) => ({ lat, lng }));
+      const mockL = {
+        CRS: { Simple: { simple: true } },
+        Util: { extend: extendSpy },
+        Transformation: transformationSpy,
+        Projection: { LonLat: { project: projectSpy, unproject: unprojectSpy } },
+        latLng: latLngSpy,
+      } as unknown as typeof import('leaflet');
+      const config: MapRenderConfig = {
+        tilePath: 'https://tiles.example.com/{z}/{x}/{y}.png',
+        coordinateRotation: 15,
+        transform: [1.5, 10, 2, -20],
+        bounds: [
+          [0, 0],
+          [100, 100],
+        ],
+        minZoom: 2,
+        maxZoom: 8,
+      };
+      const options = getLeafletMapOptions(mockL, config);
+      expect(options).toHaveProperty('crs');
+      expect(options.minZoom).toBe(2);
+      expect(options.maxZoom).toBe(8);
+      expect(extendSpy).toHaveBeenCalled();
+      expect(transformationSpy).toHaveBeenCalledWith(1.5, 10, -2, -20);
+      const projection = options.crs as unknown as {
+        projection: {
+          project: (latLng: { lat: number; lng: number }) => unknown;
+          unproject: (point: { x: number; y: number }) => unknown;
+        };
+      };
+      projection.projection.project({ lat: 40, lng: 20 });
+      projection.projection.unproject({ x: 15, y: 30 });
+      expect(projectSpy).toHaveBeenCalled();
+      expect(unprojectSpy).toHaveBeenCalled();
+      expect(latLngSpy).toHaveBeenCalledTimes(2);
     });
     it('getLeafletBounds returns bounds array', async () => {
       const { getLeafletBounds } = await import('@/utils/mapCoordinates');

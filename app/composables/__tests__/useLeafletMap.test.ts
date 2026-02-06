@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { defineComponent, nextTick, ref, type Ref } from 'vue';
+import { logger } from '@/utils/logger';
 import type { TarkovMap } from '@/types/tarkov';
 const mockMapInstance = {
   on: vi.fn(),
@@ -17,6 +18,7 @@ const mockMapInstance = {
   hasLayer: vi.fn(() => false),
   removeLayer: vi.fn(),
 };
+let lastSvgElement: SVGElement | null = null;
 const createMockLayerGroup = () => {
   const layers: unknown[] = [];
   const layerGroup = {
@@ -35,7 +37,7 @@ const createMockLayerGroup = () => {
 };
 const mockSvgOverlay = {
   addTo: vi.fn().mockReturnThis(),
-  getElement: vi.fn(() => null),
+  getElement: vi.fn(() => lastSvgElement),
 };
 const mockTileLayer = {
   addTo: vi.fn().mockReturnThis(),
@@ -47,7 +49,10 @@ vi.mock('leaflet', () => ({
   default: {
     map: vi.fn(() => mockMapInstance),
     layerGroup: vi.fn(() => createMockLayerGroup()),
-    svgOverlay: vi.fn(() => mockSvgOverlay),
+    svgOverlay: vi.fn((svgElement: SVGElement) => {
+      lastSvgElement = svgElement;
+      return mockSvgOverlay;
+    }),
     tileLayer: vi.fn(() => mockTileLayer),
     latLngBounds: vi.fn((sw, ne) => ({ sw, ne })),
     control: {
@@ -98,12 +103,22 @@ const waitFor = async (predicate: () => boolean, maxIterations = 10) => {
   }
   throw new Error(`Condition not met after ${maxIterations} iterations`);
 };
+const createDeferred = <T>() => {
+  let resolve: (value: T) => void = () => {};
+  let reject: (reason?: unknown) => void = () => {};
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+};
 describe('useLeafletMap', () => {
   let useLeafletMap: typeof import('../useLeafletMap').useLeafletMap;
   let containerRef: Ref<HTMLElement | null>;
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    lastSvgElement = null;
     containerRef = ref(document.createElement('div')) as Ref<HTMLElement | null>;
     vi.stubGlobal(
       'fetch',
@@ -205,8 +220,101 @@ describe('useLeafletMap', () => {
       expect(result.selectedFloor.value).toBe('parking');
       wrapper.unmount();
     });
+    it('ignores stale async init when map becomes unavailable before layer setup', async () => {
+      const deferredFetch = createDeferred<{ ok: boolean; text: () => Promise<string> }>();
+      const fetchSpy = vi.fn(() => deferredFetch.promise);
+      vi.stubGlobal('fetch', fetchSpy);
+      const mapData = {
+        id: 'customs',
+        name: 'Customs',
+        normalizedName: 'customs',
+        svg: {
+          file: 'customs.svg',
+          floors: ['ground'],
+          defaultFloor: 'ground',
+          coordinateRotation: 0,
+          bounds: [
+            [0, 0],
+            [100, 100],
+          ],
+        },
+      } as TarkovMap;
+      let result: ReturnType<typeof useLeafletMap> | null = null;
+      let mapRef: Ref<TarkovMap | null> | null = null;
+      const wrapper = mount(
+        defineComponent({
+          setup() {
+            mapRef = ref(mapData) as Ref<TarkovMap | null>;
+            result = useLeafletMap({
+              containerRef,
+              map: mapRef,
+              enableIdleDetection: false,
+            });
+            return () => null;
+          },
+        })
+      );
+      await waitFor(() => fetchSpy.mock.calls.length > 0);
+      if (!mapRef || !result) {
+        throw new Error('useLeafletMap did not initialize for stale init test');
+      }
+      mapRef.value = {
+        ...mapData,
+        unavailable: true,
+      } as TarkovMap;
+      await nextTick();
+      deferredFetch.resolve({
+        ok: true,
+        text: async () => '<svg xmlns="http://www.w3.org/2000/svg"></svg>',
+      });
+      await vi.runAllTimersAsync();
+      await nextTick();
+      expect(logger.error).not.toHaveBeenCalledWith(
+        'Failed to initialize Leaflet map:',
+        expect.anything()
+      );
+      expect(result.mapInstance.value).toBe(null);
+      expect(result.leaflet.value).toBe(null);
+      wrapper.unmount();
+    });
   });
   describe('floor management', () => {
+    it('moves underground-style floors to the bottom of floor navigation', async () => {
+      const mapData = {
+        id: 'customs',
+        name: 'Customs',
+        normalizedName: 'customs',
+        svg: {
+          file: 'customs.svg',
+          floors: [
+            'Ground_Level',
+            '2nd Floor',
+            'Underground',
+            'Garage',
+            'Tunnels',
+            'Bunkers',
+            '3rd Floor',
+          ],
+          defaultFloor: 'Ground_Level',
+          coordinateRotation: 0,
+          bounds: [
+            [0, 0],
+            [100, 100],
+          ],
+        },
+      } as TarkovMap;
+      const { result, wrapper } = await mountUseLeafletMap(mapData);
+      expect(result.floors.value).toEqual([
+        'Underground',
+        'Garage',
+        'Tunnels',
+        'Bunkers',
+        'Ground_Level',
+        '2nd Floor',
+        '3rd Floor',
+      ]);
+      wrapper.unmount();
+    });
     it('setFloor updates selectedFloor ref', async () => {
       const mapData = {
         id: 'reserve',
@@ -226,6 +334,154 @@ describe('useLeafletMap', () => {
       const { result, wrapper } = await mountUseLeafletMap(mapData);
       result.setFloor('bunker');
       expect(result.selectedFloor.value).toBe('bunker');
+      wrapper.unmount();
+    });
+    it('maps numbered floor buttons to distinct SVG floor groups', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => ({
+          ok: true,
+          text: async () =>
+            '<svg xmlns="http://www.w3.org/2000/svg"><g id="Ground_Level"></g><g id="First_Floor"></g><g id="Second_Floor"></g><g id="Third_Floor"></g></svg>',
+        }))
+      );
+      const mapData = {
+        id: 'customs',
+        name: 'Customs',
+        normalizedName: 'customs',
+        svg: {
+          file: 'customs.svg',
+          floors: ['Ground_Level', '2nd Floor', '3rd Floor', '4th Floor'],
+          defaultFloor: 'Ground_Level',
+          coordinateRotation: 0,
+          bounds: [
+            [0, 0],
+            [100, 100],
+          ],
+        },
+      } as TarkovMap;
+      const { result, wrapper } = await mountUseLeafletMap(mapData);
+      const svgElement = mockSvgOverlay.getElement();
+      if (!(svgElement instanceof SVGElement)) {
+        throw new Error('Expected SVG element to be available after map load');
+      }
+      const firstFloorLayer = svgElement.querySelector('[id="First_Floor"]');
+      const secondFloorLayer = svgElement.querySelector('[id="Second_Floor"]');
+      const thirdFloorLayer = svgElement.querySelector('[id="Third_Floor"]');
+      if (
+        !(firstFloorLayer instanceof SVGElement) ||
+        !(secondFloorLayer instanceof SVGElement) ||
+        !(thirdFloorLayer instanceof SVGElement)
+      ) {
+        throw new Error('Expected ordinal floor groups were not found in SVG');
+      }
+      result.setFloor('2nd Floor');
+      expect(firstFloorLayer.style.display).toBe('block');
+      expect(secondFloorLayer.style.display).toBe('none');
+      expect(thirdFloorLayer.style.display).toBe('none');
+      result.setFloor('3rd Floor');
+      expect(firstFloorLayer.style.display).toBe('block');
+      expect(secondFloorLayer.style.display).toBe('block');
+      expect(thirdFloorLayer.style.display).toBe('none');
+      result.setFloor('4th Floor');
+      expect(firstFloorLayer.style.display).toBe('block');
+      expect(secondFloorLayer.style.display).toBe('block');
+      expect(thirdFloorLayer.style.display).toBe('block');
+      wrapper.unmount();
+    });
+    it('hides previously visible higher floors when switching to garage overlay', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => ({
+          ok: true,
+          text: async () =>
+            '<svg xmlns="http://www.w3.org/2000/svg"><g id="Ground_Level"></g><g id="Underground_Level"></g><g id="First_Floor"></g><g id="Second_Floor"></g><g id="Third_Floor"></g></svg>',
+        }))
+      );
+      const mapData = {
+        id: 'groundzero',
+        name: 'Ground Zero',
+        normalizedName: 'groundzero',
+        svg: {
+          file: 'groundzero.svg',
+          floors: ['Ground_Level', '2nd Floor', '3rd Floor', 'Garage'],
+          defaultFloor: 'Ground_Level',
+          coordinateRotation: 0,
+          bounds: [
+            [0, 0],
+            [100, 100],
+          ],
+        },
+      } as TarkovMap;
+      const { result, wrapper } = await mountUseLeafletMap(mapData);
+      const svgElement = mockSvgOverlay.getElement();
+      if (!(svgElement instanceof SVGElement)) {
+        throw new Error('Expected SVG element to be available after map load');
+      }
+      const groundLayer = svgElement.querySelector('[id="Ground_Level"]');
+      const undergroundLayer = svgElement.querySelector('[id="Underground_Level"]');
+      const thirdFloorLayer = svgElement.querySelector('[id="Third_Floor"]');
+      if (
+        !(groundLayer instanceof SVGElement) ||
+        !(undergroundLayer instanceof SVGElement) ||
+        !(thirdFloorLayer instanceof SVGElement)
+      ) {
+        throw new Error('Expected floor groups were not found in SVG');
+      }
+      result.setFloor('3rd Floor');
+      expect(thirdFloorLayer.style.display).toBe('block');
+      result.setFloor('Garage');
+      expect(undergroundLayer.style.display).toBe('block');
+      expect(groundLayer.style.display).toBe('block');
+      expect(thirdFloorLayer.style.display).toBe('none');
+      wrapper.unmount();
+    });
+    it('renders underground floor above ground overlay and hides upper floors', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => ({
+          ok: true,
+          text: async () =>
+            '<svg xmlns="http://www.w3.org/2000/svg"><g id="Ground_Level"></g><g id="Upper_Floor"></g><g id="Underground"></g></svg>',
+        }))
+      );
+      const mapData = {
+        id: 'customs',
+        name: 'Customs',
+        normalizedName: 'customs',
+        svg: {
+          file: 'customs.svg',
+          floors: ['Ground_Level', 'Upper_Floor', 'Underground'],
+          defaultFloor: 'Ground_Level',
+          coordinateRotation: 0,
+          bounds: [
+            [0, 0],
+            [100, 100],
+          ],
+        },
+      } as TarkovMap;
+      const { result, wrapper } = await mountUseLeafletMap(mapData);
+      result.setFloor('Underground');
+      const svgElement = mockSvgOverlay.getElement();
+      if (!(svgElement instanceof SVGElement)) {
+        throw new Error('Expected SVG element to be available after map load');
+      }
+      const undergroundLayer = svgElement.querySelector('[id="Underground"]');
+      const groundLayer = svgElement.querySelector('[id="Ground_Level"]');
+      const secondFloorLayer = svgElement.querySelector('[id="Upper_Floor"]');
+      if (
+        !(undergroundLayer instanceof SVGElement) ||
+        !(groundLayer instanceof SVGElement) ||
+        !(secondFloorLayer instanceof SVGElement)
+      ) {
+        throw new Error('Expected floor groups were not found in SVG');
+      }
+      expect(undergroundLayer.style.display).toBe('block');
+      expect(undergroundLayer.style.opacity).toBe('1');
+      expect(groundLayer.style.display).toBe('block');
+      expect(groundLayer.style.opacity).toBe('0.3');
+      expect(secondFloorLayer.style.display).toBe('none');
+      expect(svgElement.lastElementChild?.id).toBe('Underground');
       wrapper.unmount();
     });
     it('hasMultipleFloors returns true when floors > 1', async () => {

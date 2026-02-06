@@ -180,8 +180,7 @@
   import GenericCard from '@/components/ui/GenericCard.vue';
   import { useSkillCalculation } from '@/composables/useSkillCalculation';
   import { usePreferencesStore } from '@/stores/usePreferences';
-  import type { SkillSortMode } from '@/utils/constants';
-  const MAX_SKILL_LEVEL = 51;
+  import { MAX_SKILL_LEVEL, type SkillSortMode } from '@/utils/constants';
   const { t } = useI18n({ useScope: 'global' });
   const skillCalculation = useSkillCalculation();
   const preferencesStore = usePreferencesStore();

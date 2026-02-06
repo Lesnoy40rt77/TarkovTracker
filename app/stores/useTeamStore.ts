@@ -1,5 +1,4 @@
 import { defineStore, type Store } from 'pinia';
-import { useI18n } from 'vue-i18n';
 import { useEdgeFunctions } from '@/composables/api/useEdgeFunctions';
 import { useSupabaseListener } from '@/composables/supabase/useSupabaseListener';
 import { actions, defaultState, getters, type UserState } from '@/stores/progressState';
@@ -420,6 +419,21 @@ export function useTeammateStores() {
   const teammateUnsubscribes = ref<Record<string, () => void>>({});
   const pendingRetryTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
   const pendingRetryAttempts = ref(0);
+  const { $i18n, $supabase } = useNuxtApp();
+  const translate = typeof $i18n?.t === 'function' ? $i18n.t.bind($i18n) : null;
+  const getToastMessage = (
+    key: string,
+    fallback: string,
+    params?: Record<string, string | number>
+  ) => {
+    if (!translate) return fallback;
+    try {
+      const translated = params ? translate(key, params) : translate(key);
+      return translated && translated !== key ? translated : fallback;
+    } catch {
+      return fallback;
+    }
+  };
   function createTeammateStore(teammateId: string): boolean {
     try {
       const storeDefinition = defineStore(`teammate-${teammateId}`, {
@@ -488,8 +502,6 @@ export function useTeammateStores() {
     }
   }
   const toast = useToast();
-  const { t } = useI18n({ useScope: 'global' });
-  const { $supabase } = useNuxtApp();
   function getTeammatesFromState(state: TeamState): string[] {
     const currentUID = $supabase.user?.id;
     return state.members?.filter((member: string) => member !== currentUID) || [];
@@ -504,7 +516,10 @@ export function useTeammateStores() {
         `[TeammateStore] Max retries (${MAX_RETRIES}) reached, giving up on teammate stores`
       );
       toast.add({
-        title: t('toast.teammates.failed', 'Could not load teammate data after multiple attempts'),
+        title: getToastMessage(
+          'toast.teammates.failed',
+          'Could not load teammate data after multiple attempts'
+        ),
         color: 'error',
       });
       pendingRetryAttempts.value = 0;
@@ -513,13 +528,13 @@ export function useTeammateStores() {
     const delay = BASE_RETRY_DELAY_MS * Math.pow(2, pendingRetryAttempts.value);
     pendingRetryAttempts.value++;
     toast.add({
-      title: t(
+      title: getToastMessage(
         'toast.teammates.retrying',
+        `Failed to load teammate data. Retry ${pendingRetryAttempts.value}/${MAX_RETRIES}...`,
         {
           attempt: pendingRetryAttempts.value,
           max: MAX_RETRIES,
-        },
-        `Failed to load teammate data. Retry ${pendingRetryAttempts.value}/${MAX_RETRIES}…`
+        }
       ),
       color: 'warning',
     });
@@ -537,7 +552,7 @@ export function useTeammateStores() {
         }
         if (failedTeammates.length === 0) {
           toast.add({
-            title: t('toast.teammates.loaded', 'Teammate data loaded on retry'),
+            title: getToastMessage('toast.teammates.loaded', 'Teammate data loaded on retry'),
             color: 'primary',
           });
           pendingRetryAttempts.value = 0;

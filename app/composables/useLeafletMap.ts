@@ -178,6 +178,8 @@ export function useLeafletMap(options: UseLeafletMapOptions): UseLeafletMapRetur
   let idleTimer: ReturnType<typeof setTimeout> | null = null;
   // Resize observer
   let resizeObserver: ResizeObserver | null = null;
+  let initializeToken = 0;
+  const isInitializeTokenActive = (token: number): boolean => token === initializeToken;
   // Computed
   const getSvgConfig = (): MapSvgConfig | undefined => {
     const svgConfig = map.value?.svg;
@@ -213,8 +215,15 @@ export function useLeafletMap(options: UseLeafletMapOptions): UseLeafletMapRetur
     return undefined;
   });
   const getRenderKey = (): string | undefined => renderKeyRef.value;
-  const floors = computed<string[]>(() => {
+  const rawFloors = computed<string[]>(() => {
     return getSvgConfig()?.floors ?? [];
+  });
+  const floors = computed<string[]>(() => {
+    if (rawFloors.value.length <= 1) return rawFloors.value;
+    const bottomFloors = rawFloors.value.filter((floorName) => isBottomOverlayFloor(floorName));
+    if (!bottomFloors.length) return rawFloors.value;
+    const remainingFloors = rawFloors.value.filter((floorName) => !isBottomOverlayFloor(floorName));
+    return [...bottomFloors, ...remainingFloors];
   });
   const hasMultipleFloors = computed(() => floors.value.length > 1);
   const getCrsKey = (config?: MapRenderConfig): string => {
@@ -253,7 +262,11 @@ export function useLeafletMap(options: UseLeafletMapOptions): UseLeafletMapRetur
   /**
    * Loads SVG overlay for a standard map (single SVG file).
    */
-  async function loadStandardMapSvg(L: typeof import('leaflet')): Promise<void> {
+  async function loadStandardMapSvg(
+    L: typeof import('leaflet'),
+    initToken?: number
+  ): Promise<void> {
+    if (initToken !== undefined && !isInitializeTokenActive(initToken)) return;
     const svgConfig = map.value?.svg;
     if (!isValidMapSvgConfig(svgConfig)) return;
     const floor = selectedFloor.value || svgConfig.defaultFloor;
@@ -266,6 +279,7 @@ export function useLeafletMap(options: UseLeafletMapOptions): UseLeafletMapRetur
     const primaryUrl = baseUrl;
     const fallbackUrls = hasMultipleFloors ? [fallbackUrl] : [perFloorUrl, fallbackUrl];
     const svgContent = await fetchSvgContent(primaryUrl, fallbackUrls);
+    if (initToken !== undefined && !isInitializeTokenActive(initToken)) return;
     if (!svgContent) {
       logger.error(`Failed to load SVG for map: ${mapName}`);
       return;
@@ -293,8 +307,10 @@ export function useLeafletMap(options: UseLeafletMapOptions): UseLeafletMapRetur
   }
   async function loadTileMap(
     L: typeof import('leaflet'),
-    tileConfig: MapTileConfig
+    tileConfig: MapTileConfig,
+    initToken?: number
   ): Promise<void> {
+    if (initToken !== undefined && !isInitializeTokenActive(initToken)) return;
     const leafletMap = mapInstance.value;
     if (!leafletMap) return;
     if (tileLayer.value) {
@@ -353,92 +369,269 @@ export function useLeafletMap(options: UseLeafletMapOptions): UseLeafletMapRetur
       logger.error('Failed to load tile map layer:', error);
     }
   }
-  /**
-   * Checks if a floor name represents an underground/basement level.
-   */
-  function isUndergroundFloor(floorName: string): boolean {
-    const lowerName = floorName.toLowerCase();
+  function normalizeFloorName(floorName: string): string {
+    return floorName.toLowerCase().replace(/_/g, ' ');
+  }
+  function normalizeFloorIdToken(token: string): string {
+    return token.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+  function parseConfiguredOrdinalFloor(floorName: string): number | null {
+    const match = normalizeFloorName(floorName).match(/^(\d+)(st|nd|rd|th)\s+floor$/);
+    if (!match?.[1]) return null;
+    const parsed = Number.parseInt(match[1], 10);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  function parseSvgOrdinalFloor(groupId: string): number | null {
+    const normalized = groupId.toLowerCase().replace(/[- ]+/g, '_');
+    const numericMatch = normalized.match(/^floor_(\d+)$/);
+    if (numericMatch?.[1]) {
+      const parsed = Number.parseInt(numericMatch[1], 10);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    const textMatch = normalized.match(
+      /^(first|second|third|fourth|fifth|sixth|seventh|eighth)_floor$/
+    );
+    if (!textMatch?.[1]) return null;
+    const ordinalMap: Record<string, number> = {
+      first: 1,
+      second: 2,
+      third: 3,
+      fourth: 4,
+      fifth: 5,
+      sixth: 6,
+      seventh: 7,
+      eighth: 8,
+    };
+    return ordinalMap[textMatch[1]] ?? null;
+  }
+  function getFloorIdCandidates(floorName: string): string[] {
+    const normalized = normalizeFloorName(floorName);
+    const candidates = new Set<string>([
+      floorName,
+      floorName.replace(/\s+/g, '_'),
+      floorName.replace(/\s+/g, '-'),
+      normalized,
+      normalized.replace(/\s+/g, '_'),
+      normalized.replace(/\s+/g, '-'),
+    ]);
+    if (isGroundFloor(floorName)) {
+      candidates.add('Ground_Level');
+      candidates.add('Ground_Floor');
+      candidates.add('Ground');
+    }
+    if (normalized.includes('underground') || normalized.includes('basement')) {
+      candidates.add('Underground_Level');
+      candidates.add('Basement');
+      candidates.add('Floor-U');
+      candidates.add('Floor-b');
+    }
+    if (normalized.includes('tunnel')) {
+      candidates.add('Tunnels');
+      candidates.add('Tunnel');
+      candidates.add('Basement');
+      candidates.add('Floor-b');
+      candidates.add('Floor-U');
+      candidates.add('Underground_Level');
+    }
+    if (normalized.includes('bunker')) {
+      candidates.add('Bunkers');
+      candidates.add('Bunker');
+      candidates.add('Bunker_entr');
+      candidates.add('Basement');
+      candidates.add('Floor-b');
+      candidates.add('Floor-U');
+      candidates.add('Underground_Level');
+    }
+    if (normalized.includes('garage')) {
+      candidates.add('Garage');
+      candidates.add('Garages');
+      candidates.add('Garages-2');
+      candidates.add('Floor-U');
+      candidates.add('Underground_Level');
+    }
+    const configuredOrdinal = parseConfiguredOrdinalFloor(floorName);
+    if (configuredOrdinal !== null) {
+      const ordinalWordMap: Record<number, string> = {
+        1: 'First',
+        2: 'Second',
+        3: 'Third',
+        4: 'Fourth',
+        5: 'Fifth',
+        6: 'Sixth',
+        7: 'Seventh',
+        8: 'Eighth',
+      };
+      const ordinalWord = ordinalWordMap[configuredOrdinal];
+      if (ordinalWord) {
+        candidates.add(`${ordinalWord}_Floor`);
+      }
+      candidates.add(`Floor-${configuredOrdinal}`);
+      const shiftedOrdinal = configuredOrdinal - 1;
+      const shiftedOrdinalWord = ordinalWordMap[shiftedOrdinal];
+      if (shiftedOrdinalWord) {
+        candidates.add(`${shiftedOrdinalWord}_Floor`);
+      }
+      if (shiftedOrdinal > 0) {
+        candidates.add(`Floor-${shiftedOrdinal}`);
+      }
+    }
+    return Array.from(candidates);
+  }
+  function resolveConfiguredFloorToSvgId(
+    floorOrder: string[],
+    availableIds: Set<string>
+  ): Map<string, string> {
+    const floorToId = new Map<string, string>();
+    const canonicalIdLookup = new Map<string, string>();
+    for (const id of availableIds) {
+      canonicalIdLookup.set(normalizeFloorIdToken(id), id);
+    }
+    const ordinalEntries = floorOrder
+      .map((floorName) => ({ floorName, ordinal: parseConfiguredOrdinalFloor(floorName) }))
+      .filter((entry): entry is { floorName: string; ordinal: number } => entry.ordinal !== null);
+    const ordinalSvgIdsByNumber = new Map<number, string>();
+    for (const id of availableIds) {
+      const ordinal = parseSvgOrdinalFloor(id);
+      if (ordinal === null) continue;
+      const existing = ordinalSvgIdsByNumber.get(ordinal);
+      const isPreferred = /_floor$/i.test(id);
+      const existingIsPreferred = existing ? /_floor$/i.test(existing) : false;
+      if (!existing || (isPreferred && !existingIsPreferred)) {
+        ordinalSvgIdsByNumber.set(ordinal, id);
+      }
+    }
+    if (ordinalEntries.length > 0 && ordinalSvgIdsByNumber.size > 0) {
+      const maxConfiguredOrdinal = Math.max(...ordinalEntries.map((entry) => entry.ordinal));
+      const maxSvgOrdinal = Math.max(...ordinalSvgIdsByNumber.keys());
+      const inferredOffset = maxSvgOrdinal - maxConfiguredOrdinal;
+      for (const entry of ordinalEntries) {
+        const svgId = ordinalSvgIdsByNumber.get(entry.ordinal + inferredOffset);
+        if (svgId) {
+          floorToId.set(entry.floorName, svgId);
+        }
+      }
+    }
+    for (const floorName of floorOrder) {
+      if (floorToId.has(floorName)) continue;
+      const candidates = getFloorIdCandidates(floorName);
+      const resolvedId = candidates
+        .map((candidate) => canonicalIdLookup.get(normalizeFloorIdToken(candidate)))
+        .find((candidate): candidate is string => Boolean(candidate));
+      if (resolvedId) {
+        floorToId.set(floorName, resolvedId);
+      }
+    }
+    return floorToId;
+  }
+  const FLOOR_GROUP_ID_PATTERN = /(ground|underground|basement|bunker|tunnel|garage|floor)/i;
+  function getTopLevelFloorGroups(svgElement: SVGElement): SVGGElement[] {
+    return Array.from(svgElement.children).filter(
+      (child): child is SVGGElement =>
+        child instanceof SVGGElement && !!child.id && FLOOR_GROUP_ID_PATTERN.test(child.id)
+    );
+  }
+  function isBottomOverlayFloor(floorName: string): boolean {
+    const lowerName = normalizeFloorName(floorName);
     return (
       lowerName.includes('underground') ||
       lowerName.includes('basement') ||
-      lowerName.includes('bunker')
+      lowerName.includes('bunker') ||
+      lowerName.includes('tunnel') ||
+      lowerName.includes('garage')
     );
   }
-  /**
-   * Finds the ground-level floor index to use as an overlay when viewing underground.
-   * Returns the first floor above the selected floor that contains 'ground' in its name,
-   * or the floor immediately above if no 'ground' floor exists.
-   */
-  function findGroundOverlayIndex(selectedIndex: number): number {
-    // Look for a floor with 'ground' in the name above the selected floor
-    for (let i = selectedIndex + 1; i < floors.value.length; i++) {
-      if (floors.value[i]?.toLowerCase().includes('ground')) {
-        return i;
+  function isGroundFloor(floorName: string): boolean {
+    return /\bground\b/.test(normalizeFloorName(floorName));
+  }
+  function findGroundOverlayIndex(floorNames: string[], selectedFloorName: string): number {
+    const selectedIndex = floorNames.indexOf(selectedFloorName);
+    if (selectedIndex === -1) return -1;
+    let nearestGroundIndex = -1;
+    let nearestDistance = Number.POSITIVE_INFINITY;
+    for (let index = 0; index < floorNames.length; index++) {
+      const floor = floorNames[index];
+      if (!floor || !isGroundFloor(floor)) continue;
+      const distance = Math.abs(index - selectedIndex);
+      if (distance < nearestDistance) {
+        nearestGroundIndex = index;
+        nearestDistance = distance;
       }
     }
-    // Fall back to the floor immediately above
-    if (selectedIndex + 1 < floors.value.length) {
-      return selectedIndex + 1;
-    }
+    if (nearestGroundIndex !== -1) return nearestGroundIndex;
+    const floorAbove = selectedIndex + 1;
+    if (floorAbove < floorNames.length) return floorAbove;
+    const floorBelow = selectedIndex - 1;
+    if (floorBelow >= 0) return floorBelow;
     return -1;
   }
-  /**
-   * Updates floor visibility in the SVG (for single-file maps with multiple floors).
-   */
   function updateFloorVisibility(svgElement: SVGElement): void {
-    const selectedIndex = floors.value.indexOf(selectedFloor.value);
+    const floorOrder = rawFloors.value.length > 0 ? rawFloors.value : floors.value;
+    const selectedIndex = floorOrder.indexOf(selectedFloor.value);
     if (selectedIndex === -1) return;
+    const topLevelFloorGroups = getTopLevelFloorGroups(svgElement);
+    if (topLevelFloorGroups.length === 0) return;
+    const availableFloorIds = new Set<string>(topLevelFloorGroups.map((group) => group.id));
+    const floorToSvgId = resolveConfiguredFloorToSvgId(floorOrder, availableFloorIds);
+    const selectedFloorSvgId = floorToSvgId.get(selectedFloor.value);
+    if (!selectedFloorSvgId) return;
+    const selectedFloorSvgIdToken = normalizeFloorIdToken(selectedFloorSvgId);
     const svgConfig = map.value?.svg;
     const stackFloors =
       isValidMapSvgConfig(svgConfig) && svgConfig.stackFloors === false ? false : true;
     const inactiveFloorOpacity = 0.7;
     const undergroundOverlayOpacity = 0.3;
-    // Detect underground/basement/bunker floors
-    const isUnderground = isUndergroundFloor(selectedFloor.value);
-    const groundFloorIndex = isUnderground ? findGroundOverlayIndex(selectedIndex) : -1;
-    // Track selected floor element for reordering (to render on top)
-    let selectedFloorGroup: SVGElement | null = null;
-    for (let index = 0; index < floors.value.length; index++) {
-      const floor = floors.value[index];
-      if (!floor) continue;
-      const escapedFloorId = CSS.escape(floor);
-      const floorGroup = svgElement.querySelector(`[id="${escapedFloorId}"]`);
-      if (floorGroup instanceof SVGElement) {
-        const keepWith = floorGroup.getAttribute('data-keep-with-group');
-        const isSelected = floor === selectedFloor.value;
-        const isKeptWithSelected = keepWith === selectedFloor.value;
-        const isGroundOverlay = isUnderground && index === groundFloorIndex;
-        const shouldShow =
-          isSelected ||
-          isKeptWithSelected ||
-          isGroundOverlay ||
-          (stackFloors && index <= selectedIndex);
-        floorGroup.style.display = shouldShow ? 'block' : 'none';
-        if (!shouldShow) {
-          floorGroup.style.opacity = '0';
-          floorGroup.style.pointerEvents = 'none';
-          continue;
-        }
-        let opacity = inactiveFloorOpacity;
-        if (isSelected) opacity = 1;
-        else if (isGroundOverlay) opacity = undergroundOverlayOpacity;
-        floorGroup.style.opacity = String(opacity);
-        floorGroup.style.pointerEvents = 'auto';
-        // Track selected floor for z-order fix
-        if (isSelected) {
-          selectedFloorGroup = floorGroup;
-        }
+    const isUnderground = isBottomOverlayFloor(selectedFloor.value);
+    const groundFloorIndex = isUnderground
+      ? findGroundOverlayIndex(floorOrder, selectedFloor.value)
+      : -1;
+    const groundOverlayFloor = groundFloorIndex >= 0 ? floorOrder[groundFloorIndex] : undefined;
+    const groundOverlaySvgId = groundOverlayFloor
+      ? floorToSvgId.get(groundOverlayFloor)
+      : undefined;
+    const mappedFloorIndexBySvgId = new Map<string, number>();
+    for (let index = 0; index < floorOrder.length; index++) {
+      const floor = floorOrder[index];
+      const mappedId = floor ? floorToSvgId.get(floor) : undefined;
+      if (!mappedId) continue;
+      const existing = mappedFloorIndexBySvgId.get(mappedId);
+      if (existing === undefined || index < existing) {
+        mappedFloorIndexBySvgId.set(mappedId, index);
       }
     }
-    // Move selected floor to end of parent so it renders on top of overlay floors
-    // This ensures basement/bunker floors appear above the transparent ground overlay
+    let selectedFloorGroup: SVGElement | null = null;
+    for (const floorGroup of topLevelFloorGroups) {
+      const keepWith = floorGroup.getAttribute('data-keep-with-group');
+      const mappedFloorIndex = mappedFloorIndexBySvgId.get(floorGroup.id);
+      const isSelected = floorGroup.id === selectedFloorSvgId;
+      const isKeptWithSelected = normalizeFloorIdToken(keepWith ?? '') === selectedFloorSvgIdToken;
+      const isGroundOverlay = isUnderground && floorGroup.id === groundOverlaySvgId;
+      const shouldShow =
+        isSelected ||
+        isKeptWithSelected ||
+        isGroundOverlay ||
+        (!isUnderground &&
+          stackFloors &&
+          mappedFloorIndex !== undefined &&
+          mappedFloorIndex <= selectedIndex);
+      floorGroup.style.display = shouldShow ? 'block' : 'none';
+      if (!shouldShow) {
+        floorGroup.style.opacity = '0';
+        floorGroup.style.pointerEvents = 'none';
+        continue;
+      }
+      let opacity = inactiveFloorOpacity;
+      if (isSelected) opacity = 1;
+      else if (isGroundOverlay) opacity = undergroundOverlayOpacity;
+      floorGroup.style.opacity = String(opacity);
+      floorGroup.style.pointerEvents = 'auto';
+      if (isSelected) {
+        selectedFloorGroup = floorGroup;
+      }
+    }
     if (selectedFloorGroup?.parentNode) {
       selectedFloorGroup.parentNode.appendChild(selectedFloorGroup);
     }
   }
-  /**
-   * Sets the current floor and updates visibility.
-   */
   function setFloor(floor: string): void {
     if (!floors.value.includes(floor)) return;
     selectedFloor.value = floor;
@@ -457,10 +650,18 @@ export function useLeafletMap(options: UseLeafletMapOptions): UseLeafletMapRetur
   async function initializeMap(): Promise<void> {
     // Skip initialization for unavailable maps or missing container
     if (!containerRef.value || map.value?.unavailable === true) return;
+    const initToken = ++initializeToken;
     isLoading.value = true;
     try {
       // Dynamic import Leaflet
       const L = await import('leaflet');
+      if (
+        !isInitializeTokenActive(initToken) ||
+        !containerRef.value ||
+        map.value?.unavailable === true
+      ) {
+        return;
+      }
       leaflet.value = L.default || L;
       const svgConfig = getSvgConfig();
       const tileConfig = getTileConfig();
@@ -487,7 +688,10 @@ export function useLeafletMap(options: UseLeafletMapOptions): UseLeafletMapRetur
         selectedFloor.value = '';
       }
       renderKey.value = getRenderKey() ?? '';
-      await loadMapLayer();
+      await loadMapLayer(initToken);
+      if (!isInitializeTokenActive(initToken) || !leaflet.value || !mapInstance.value) {
+        return;
+      }
       // Create layer groups for markers
       objectiveLayer.value = leaflet.value.layerGroup().addTo(mapInstance.value);
       extractLayer.value = leaflet.value.layerGroup().addTo(mapInstance.value);
@@ -505,8 +709,11 @@ export function useLeafletMap(options: UseLeafletMapOptions): UseLeafletMapRetur
     } catch (error) {
       logger.error('Failed to initialize Leaflet map:', error);
     } finally {
-      isLoading.value = false;
+      if (isInitializeTokenActive(initToken)) {
+        isLoading.value = false;
+      }
     }
+    if (!isInitializeTokenActive(initToken)) return;
     // Setup resize observer
     if (containerRef.value) {
       const handleResize = useDebounceFn(() => {
@@ -527,16 +734,17 @@ export function useLeafletMap(options: UseLeafletMapOptions): UseLeafletMapRetur
   /**
    * Loads the appropriate map layer for the current map.
    */
-  async function loadMapLayer(): Promise<void> {
+  async function loadMapLayer(initToken?: number): Promise<void> {
+    if (initToken !== undefined && !isInitializeTokenActive(initToken)) return;
     if (!leaflet.value || !mapInstance.value) return;
     const tileConfig = getTileConfig();
     if (tileConfig) {
-      await loadTileMap(leaflet.value, tileConfig);
+      await loadTileMap(leaflet.value, tileConfig, initToken);
       return;
     }
     const svgConfig = getSvgConfig();
     if (svgConfig) {
-      await loadStandardMapSvg(leaflet.value);
+      await loadStandardMapSvg(leaflet.value, initToken);
     }
   }
   /**
@@ -566,6 +774,8 @@ export function useLeafletMap(options: UseLeafletMapOptions): UseLeafletMapRetur
    * Destroys the map instance and cleans up.
    */
   function destroy(): void {
+    initializeToken += 1;
+    isLoading.value = false;
     if (idleTimer) {
       clearTimeout(idleTimer);
     }

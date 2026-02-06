@@ -13,7 +13,7 @@
     "@nuxtjs/i18n": "^10.2.1",
     "@nuxtjs/sitemap": "^7.6.0",
     "@pinia/nuxt": "^0.11.3",
-    "@supabase/supabase-js": "^2.93.3",
+    "@supabase/supabase-js": "^2.95.2",
     "@unhead/vue": "^2.1.2",
     "@vue-leaflet/vue-leaflet": "^0.10.1",
     "@vueuse/core": "^14.2.0",
@@ -35,7 +35,7 @@
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260203.0",
+    "@cloudflare/workers-types": "^4.20260205.0",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@nuxt/test-utils": "^3.23.0",
@@ -46,7 +46,7 @@
     "@tailwindcss/postcss": "^4.1.18",
     "@types/d3": "^7.4.3",
     "@types/leaflet": "^1.9.21",
-    "@types/node": "^24.10.10",
+    "@types/node": "^24.10.11",
     "@vitest/ui": "^3.2.4",
     "@vue/test-utils": "^2.4.6",
     "autoprefixer": "^10.4.24",
@@ -62,7 +62,7 @@
     "prettier-plugin-tailwindcss": "^0.7.2",
     "semantic-release": "^25.0.3",
     "serve": "^14.2.5",
-    "supabase": "^2.75.1",
+    "supabase": "^2.75.5",
     "tailwindcss": "^4.1.18",
     "vitest": "^3.2.4",
     "wait-on": "^9.0.3"
@@ -103,7 +103,7 @@
     "@tiptap/core": "3.14.0",
     "@tiptap/pm": "3.14.0"
   },
-  "packageManager": "npm@11.8.0",
+  "packageManager": "npm@11.9.0",
   "private": true,
   "scripts": {
     "build": "nuxt build",

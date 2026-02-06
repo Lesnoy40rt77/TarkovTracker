@@ -65,7 +65,6 @@ const mockFetch = vi.fn(
       return { editions: {} };
     }
     if (url.includes('/_nuxt/builds/meta/')) {
-      // Mock Nuxt's build manifest requests during test initialization
       return {
         matcher: {
           dynamic: {},
@@ -76,12 +75,10 @@ const mockFetch = vi.fn(
         routes: { entries: () => [] },
       };
     }
-    // Fail fast for unmatched URLs to maintain test isolation
     throw new Error(`Unmocked fetch call to: ${url}. Add a mock for this URL in test-setup.ts`);
   }
 );
 vi.stubGlobal('$fetch', mockFetch);
-// Auto-unmount VTU wrappers after each test
 try {
   enableAutoUnmount(afterEach);
 } catch (error) {

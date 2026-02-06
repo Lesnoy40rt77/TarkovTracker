@@ -54,7 +54,7 @@ type GitHubCompareResponse = {
   }>;
 };
 type StatsCacheEntry = { stats: ChangelogStats; timestamp: number };
-type GitHubConfig = { owner: string; repo: string; baseUrl: string };
+type GitHubConfig = { owner: string; repo: string; baseUrl: string; timeoutMs: number };
 const logger = createLogger('Changelog');
 const changelogConfig = (() => {
   const MAX_CACHE_ENTRIES = 1000; // Local in-memory only; cross-instance persistence needs useStorage() + external KV/Redis.
@@ -67,6 +67,9 @@ const changelogConfig = (() => {
     RELEASE_LIMIT: 3,
     MAX_BULLETS_PER_GROUP: 5,
     MAX_STATS_FETCHES: 20,
+    DEFAULT_GITHUB_TIMEOUT_MS: 8000,
+    MIN_GITHUB_TIMEOUT_MS: 1000,
+    MAX_GITHUB_TIMEOUT_MS: 20000,
     CACHE_TTL_MS,
     MAX_CACHE_ENTRIES,
     SHARED_CACHE_PREFIX: 'changelog-stats', // Cache API secondary layer key prefix; cache misses always fall back to GitHub API.
@@ -233,9 +236,22 @@ const getGitHubConfig = (runtimeConfig: ReturnType<typeof useRuntimeConfig>): Gi
       runtimeConfig.public.githubRepo.trim()) ||
     changelogConfig.DEFAULT_REPO;
   const baseUrl = `https://api.github.com/repos/${owner}/${repo}`;
-  return { owner, repo, baseUrl };
+  const timeoutMs = clamp(
+    parseNumber(runtimeConfig.githubTimeoutMs, changelogConfig.DEFAULT_GITHUB_TIMEOUT_MS),
+    changelogConfig.MIN_GITHUB_TIMEOUT_MS,
+    changelogConfig.MAX_GITHUB_TIMEOUT_MS
+  );
+  return { owner, repo, baseUrl, timeoutMs };
 };
-const fetchGithub = async <T>(url: string, githubToken?: string): Promise<T | null> => {
+const fetchGithub = async <T>(
+  url: string,
+  githubToken?: string,
+  timeoutMs: number = changelogConfig.DEFAULT_GITHUB_TIMEOUT_MS
+): Promise<T | null> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
   let response: Response;
   try {
     const trimmedToken = typeof githubToken === 'string' ? githubToken.trim() : '';
@@ -245,13 +261,26 @@ const fetchGithub = async <T>(url: string, githubToken?: string): Promise<T | nu
         ...(trimmedToken ? { Authorization: `token ${trimmedToken}` } : {}),
         'User-Agent': 'TarkovTracker',
       },
+      signal: controller.signal,
     });
   } catch (error) {
-    logger.error('[Changelog] Network error fetching GitHub data.', {
-      url,
-      error: error instanceof Error ? error.message : String(error),
-    });
+    const isAbortError =
+      (error instanceof DOMException && error.name === 'AbortError') ||
+      (error instanceof Error && error.name === 'AbortError');
+    logger.error(
+      isAbortError
+        ? '[Changelog] GitHub request timed out.'
+        : '[Changelog] Network error fetching GitHub data.',
+      {
+        url,
+        timeoutMs,
+        aborted: isAbortError,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    );
     return null;
+  } finally {
+    clearTimeout(timeoutId);
   }
   const rateLimitRemaining = response.headers.get('x-ratelimit-remaining');
   const rateLimitReset = response.headers.get('x-ratelimit-reset');
@@ -294,7 +323,8 @@ const fetchGithub = async <T>(url: string, githubToken?: string): Promise<T | nu
 const fetchCommitStats = async (
   sha: string,
   baseUrl: string,
-  githubToken?: string
+  githubToken?: string,
+  timeoutMs: number = changelogConfig.DEFAULT_GITHUB_TIMEOUT_MS
 ): Promise<ChangelogStats | null> => {
   const cacheKey = `commit:${sha}`;
   const cached = getLocalCacheEntry(cacheKey);
@@ -304,7 +334,11 @@ const fetchCommitStats = async (
     setLocalCacheEntry(cacheKey, sharedCached);
     return sharedCached.stats;
   }
-  const detail = await fetchGithub<GitHubCommitDetail>(`${baseUrl}/commits/${sha}`, githubToken);
+  const detail = await fetchGithub<GitHubCommitDetail>(
+    `${baseUrl}/commits/${sha}`,
+    githubToken,
+    timeoutMs
+  );
   if (!detail?.stats) return null;
   const stats: ChangelogStats = {
     additions: detail.stats.additions ?? 0,
@@ -319,7 +353,8 @@ const fetchReleaseStats = async (
   tagName: string,
   prevTagName: string | undefined,
   baseUrl: string,
-  githubToken?: string
+  githubToken?: string,
+  timeoutMs: number = changelogConfig.DEFAULT_GITHUB_TIMEOUT_MS
 ): Promise<ChangelogStats | null> => {
   const cacheKey = `release:${tagName}:${prevTagName || 'initial'}`;
   const cached = getLocalCacheEntry(cacheKey);
@@ -331,7 +366,7 @@ const fetchReleaseStats = async (
   }
   if (!prevTagName) return null;
   const compareUrl = `${baseUrl}/compare/${prevTagName}...${tagName}`;
-  const compare = await fetchGithub<GitHubCompareResponse>(compareUrl, githubToken);
+  const compare = await fetchGithub<GitHubCompareResponse>(compareUrl, githubToken, timeoutMs);
   if (!compare?.files) return null;
   const stats: ChangelogStats = {
     additions: compare.files.reduce((sum, f) => sum + (f.additions ?? 0), 0),
@@ -346,7 +381,8 @@ const buildReleaseItems = async (
   releases: GitHubRelease[],
   limit: number = changelogConfig.RELEASE_LIMIT,
   baseUrl: string,
-  githubToken?: string
+  githubToken?: string,
+  timeoutMs: number = changelogConfig.DEFAULT_GITHUB_TIMEOUT_MS
 ): Promise<ChangelogItem[]> => {
   const validReleases = releases.filter((release) => !release.draft).slice(0, limit);
   type ReleaseItemData = {
@@ -379,7 +415,7 @@ const buildReleaseItems = async (
   }
   const statsPromises = releaseData.map((data) =>
     data.tagName && data.prevTagName
-      ? fetchReleaseStats(data.tagName, data.prevTagName, baseUrl, githubToken)
+      ? fetchReleaseStats(data.tagName, data.prevTagName, baseUrl, githubToken, timeoutMs)
       : Promise.resolve(null)
   );
   const statsResults = await Promise.all(statsPromises);
@@ -399,7 +435,8 @@ const buildCommitItems = async (
   commits: GitHubCommitListItem[],
   limit: number,
   baseUrl: string,
-  githubToken?: string
+  githubToken?: string,
+  timeoutMs: number = changelogConfig.DEFAULT_GITHUB_TIMEOUT_MS
 ): Promise<ChangelogItem[]> => {
   const processed: ProcessedCommit[] = [];
   for (const commit of commits) {
@@ -416,7 +453,7 @@ const buildCommitItems = async (
   const statsMap = new Map<string, ChangelogStats>();
   const settledResults = await Promise.allSettled(
     statsToFetch.map(async ({ sha }) => {
-      const stats = await fetchCommitStats(sha, baseUrl, githubToken);
+      const stats = await fetchCommitStats(sha, baseUrl, githubToken, timeoutMs);
       return { sha, stats };
     })
   );
@@ -455,7 +492,7 @@ export default defineEventHandler(async (event): Promise<ChangelogResponse> => {
   try {
     const runtimeConfig = useRuntimeConfig(event);
     const githubToken = runtimeConfig.githubToken;
-    const { baseUrl } = getGitHubConfig(runtimeConfig);
+    const { baseUrl, timeoutMs } = getGitHubConfig(runtimeConfig);
     const query = getQuery(event);
     const limit = clamp(
       parseNumber(query.limit, changelogConfig.DEFAULT_LIMIT),
@@ -464,9 +501,9 @@ export default defineEventHandler(async (event): Promise<ChangelogResponse> => {
     );
     const releaseLimit = clamp(parseNumber(query.releases, changelogConfig.RELEASE_LIMIT), 1, 10);
     const releaseUrl = `${baseUrl}/releases?per_page=${releaseLimit}`;
-    const releases = await fetchGithub<GitHubRelease[]>(releaseUrl, githubToken);
+    const releases = await fetchGithub<GitHubRelease[]>(releaseUrl, githubToken, timeoutMs);
     const releaseItems = Array.isArray(releases)
-      ? await buildReleaseItems(releases, releaseLimit, baseUrl, githubToken)
+      ? await buildReleaseItems(releases, releaseLimit, baseUrl, githubToken, timeoutMs)
       : [];
     if (releaseItems.length) {
       return { source: 'releases', items: releaseItems, hasMore: false };
@@ -474,9 +511,9 @@ export default defineEventHandler(async (event): Promise<ChangelogResponse> => {
     const fetchLimit = limit + 1;
     const commitFetchCount = Math.min(fetchLimit * 4, 100);
     const commitUrl = `${baseUrl}/commits?per_page=${commitFetchCount}`;
-    const commits = await fetchGithub<GitHubCommitListItem[]>(commitUrl, githubToken);
+    const commits = await fetchGithub<GitHubCommitListItem[]>(commitUrl, githubToken, timeoutMs);
     const commitItems = Array.isArray(commits)
-      ? await buildCommitItems(commits, fetchLimit, baseUrl, githubToken)
+      ? await buildCommitItems(commits, fetchLimit, baseUrl, githubToken, timeoutMs)
       : [];
     const hasMore = commitItems.length > limit;
     const items = hasMore ? commitItems.slice(0, limit) : commitItems;

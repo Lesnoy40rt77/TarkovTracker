@@ -362,67 +362,92 @@ export function useNeededItems(options: UseNeededItemsOptions = {}): UseNeededIt
     }
     return progressStore.getTeamIndex(teamId) === 'self';
   };
-  const filteredItems = computed(() => {
-    let result = allItems.value;
+  const passesCompletionFilter = (
+    item: NeededItemTaskObjective | NeededItemHideoutModule
+  ): boolean => {
     if (activeFilter.value === 'completed') {
-      result = result.filter((item) => isParentCompleted(item));
-    } else {
-      result = result.filter((item) => !isParentCompleted(item));
-      if (activeFilter.value === 'tasks') {
-        result = result.filter((item) => item.needType === 'taskObjective');
-      } else if (activeFilter.value === 'hideout') {
-        result = result.filter((item) => item.needType === 'hideoutModule');
+      return isParentCompleted(item);
+    }
+    return !isParentCompleted(item);
+  };
+  const passesTypeFilter = (item: NeededItemTaskObjective | NeededItemHideoutModule): boolean => {
+    if (activeFilter.value === 'tasks') {
+      return item.needType === 'taskObjective';
+    }
+    if (activeFilter.value === 'hideout') {
+      return item.needType === 'hideoutModule';
+    }
+    return true;
+  };
+  const passesFirFilter = (item: NeededItemTaskObjective | NeededItemHideoutModule): boolean => {
+    if (firFilter.value === 'fir') {
+      return item.foundInRaid === true;
+    }
+    if (firFilter.value === 'non-fir') {
+      return !item.foundInRaid;
+    }
+    return true;
+  };
+  const passesKappaToggleFilter = (
+    item: NeededItemTaskObjective | NeededItemHideoutModule
+  ): boolean => {
+    return !kappaOnly.value || passesKappaFilter(item);
+  };
+  const passesOwnershipToggleFilter = (
+    item: NeededItemTaskObjective | NeededItemHideoutModule
+  ): boolean => {
+    return !hideOwned.value || passesOwnershipFilter(item);
+  };
+  const passesTeamToggleFilter = (
+    item: NeededItemTaskObjective | NeededItemHideoutModule
+  ): boolean => {
+    return !hideTeamItems.value || passesTeamFilter(item);
+  };
+  const passesSearchFilter = (item: NeededItemTaskObjective | NeededItemHideoutModule): boolean => {
+    if (!search.value) {
+      return true;
+    }
+    const itemObj = getNeededItemData(item);
+    const itemName = itemObj?.name ?? '';
+    const itemShortName = itemObj?.shortName ?? '';
+    if (fuzzyMatch(itemName, search.value) || fuzzyMatch(itemShortName, search.value)) {
+      return true;
+    }
+    if (item.needType === 'taskObjective') {
+      const task = metadataStore.getTaskById((item as NeededItemTaskObjective).taskId);
+      if (task?.name && fuzzyMatch(task.name, search.value)) {
+        return true;
       }
     }
-    if (firFilter.value === 'fir') {
-      result = result.filter((item) => item.foundInRaid === true);
-    } else if (firFilter.value === 'non-fir') {
-      result = result.filter((item) => !item.foundInRaid);
-    }
-    result = result.filter(passesSpecialEquipmentFilter);
-    if (kappaOnly.value) {
-      result = result.filter(passesKappaFilter);
-    }
-    if (hideOwned.value) {
-      result = result.filter(passesOwnershipFilter);
-    }
-    if (hideTeamItems.value) {
-      result = result.filter(passesTeamFilter);
-    }
-    if (search.value) {
-      result = result.filter((item) => {
-        const itemObj = getNeededItemData(item);
-        const itemName = itemObj?.name ?? '';
-        const itemShortName = itemObj?.shortName ?? '';
-        if (fuzzyMatch(itemName, search.value) || fuzzyMatch(itemShortName, search.value)) {
+    if (item.needType === 'hideoutModule') {
+      const hideoutModule = (item as NeededItemHideoutModule).hideoutModule;
+      const station = metadataStore.getStationById(hideoutModule.stationId);
+      if (station?.name) {
+        if (fuzzyMatch(station.name, search.value)) {
           return true;
         }
-        if (item.needType === 'taskObjective') {
-          const task = metadataStore.getTaskById((item as NeededItemTaskObjective).taskId);
-          if (task?.name && fuzzyMatch(task.name, search.value)) {
-            return true;
-          }
+        const stationWithLevel = `${station.name} ${hideoutModule.level}`;
+        const stationWithLevelText = `${station.name} level ${hideoutModule.level}`;
+        if (
+          fuzzyMatch(stationWithLevel, search.value) ||
+          fuzzyMatch(stationWithLevelText, search.value)
+        ) {
+          return true;
         }
-        if (item.needType === 'hideoutModule') {
-          const hideoutModule = (item as NeededItemHideoutModule).hideoutModule;
-          const station = metadataStore.getStationById(hideoutModule.stationId);
-          if (station?.name) {
-            if (fuzzyMatch(station.name, search.value)) {
-              return true;
-            }
-            const stationWithLevel = `${station.name} ${hideoutModule.level}`;
-            const stationWithLevelText = `${station.name} level ${hideoutModule.level}`;
-            if (
-              fuzzyMatch(stationWithLevel, search.value) ||
-              fuzzyMatch(stationWithLevelText, search.value)
-            ) {
-              return true;
-            }
-          }
-        }
-        return false;
-      });
+      }
     }
+    return false;
+  };
+  const filteredItems = computed(() => {
+    const result = allItems.value
+      .filter(passesCompletionFilter)
+      .filter(passesTypeFilter)
+      .filter(passesFirFilter)
+      .filter(passesSpecialEquipmentFilter)
+      .filter(passesKappaToggleFilter)
+      .filter(passesOwnershipToggleFilter)
+      .filter(passesTeamToggleFilter)
+      .filter(passesSearchFilter);
     return sortNeededItems(result);
   });
   type GroupedNeededItemAccumulator = Omit<GroupedNeededItem, 'total' | 'currentCount'>;

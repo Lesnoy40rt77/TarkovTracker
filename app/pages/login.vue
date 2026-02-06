@@ -37,7 +37,7 @@
                 <i18n-t keypath="offline_mode.description" tag="span" scope="global">
                   <template #envFile>
                     <code class="rounded bg-amber-500/20 px-1 text-amber-200">
-                      {{ $t('offline_mode.env_file') }}
+                      {{ OFFLINE_ENV_FILE }}
                     </code>
                   </template>
                 </i18n-t>
@@ -165,6 +165,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import DiscordIcon from '@/components/ui/DiscordIcon.vue';
+  import { OFFLINE_ENV_FILE } from '@/utils/constants';
   import { logger } from '@/utils/logger';
   useSeoMeta({
     title: 'Login',

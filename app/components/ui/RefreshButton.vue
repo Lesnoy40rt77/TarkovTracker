@@ -12,7 +12,6 @@
   const { loading, hideoutLoading } = storeToRefs(metadataStore);
   const router = useRouter();
   const refreshEnabled = ref(false);
-  // Wait 10 seconds, then enable the button if we're still loading
   setTimeout(() => {
     if (loading.value || hideoutLoading.value) {
       refreshEnabled.value = true;

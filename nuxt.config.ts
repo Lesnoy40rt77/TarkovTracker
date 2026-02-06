@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SUPPORTED_LOCALES } from './app/utils/locales';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const appDir = resolve(__dirname, 'app');
 const testsDir = resolve(__dirname, 'tests');
@@ -18,6 +19,7 @@ export default defineNuxtConfig({
     supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
     supabaseAnonKey: process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '',
     githubToken: process.env.GITHUB_TOKEN || '',
+    githubTimeoutMs: Number(process.env.GITHUB_TIMEOUT_MS || '8000') || 8000,
     // API protection configuration (server-only)
     apiProtection: {
       // Comma-separated list of allowed hosts (e.g., "tarkovtracker.org,www.tarkovtracker.org")
@@ -179,15 +181,7 @@ export default defineNuxtConfig({
     defaultLocale: 'en',
     restructureDir: 'app',
     langDir: 'locales',
-    locales: [
-      { code: 'en', file: 'en.json5' },
-      { code: 'de', file: 'de.json5' },
-      { code: 'es', file: 'es.json5' },
-      { code: 'fr', file: 'fr.json5' },
-      { code: 'ru', file: 'ru.json5' },
-      { code: 'uk', file: 'uk.json5' },
-      { code: 'zh', file: 'zh.json5' },
-    ],
+    locales: SUPPORTED_LOCALES.map((code) => ({ code, file: `${code}.json5` })),
     vueI18n: 'i18n.config.ts',
   },
   image: {

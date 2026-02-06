@@ -68,7 +68,6 @@
   offline_mode: {
     title: 'Mode hors ligne activé',
     description: "Supabase n'est pas configuré. Les fonctionnalités de connexion et de synchronisation sont désactivées, mais vous pouvez toujours utiliser toutes les fonctionnalités de suivi en local. Consultez {envFile} pour activer la connexion.",
-    env_file: '.env.example',
   },
   maps: {
     zoom: 'Vitesse du zoom',
@@ -777,6 +776,13 @@
       reset_cancel: 'Annuler',
       reset_confirm: 'Réinitialiser',
       reset_hint: 'Réinitialisez votre progression pour des modes de jeu spécifiques ou toutes les données.',
+    },
+    data_migration: {
+      title: 'Migration des données',
+      description: 'Migrez vos données de progression depuis l’ancien site TarkovTracker.',
+      fetching: 'Récupération des données...',
+      ready: 'Données prêtes à être importées',
+      fetch_button: 'Récupérer les données',
     },
     account_data: {
       title: 'Gestion du compte et des données',

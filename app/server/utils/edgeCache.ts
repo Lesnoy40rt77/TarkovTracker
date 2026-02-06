@@ -201,7 +201,9 @@ export async function edgeCache<T>(
 }
 const STATUS_MESSAGE_MAX_LENGTH = 160;
 const REDACTED_PLACEHOLDER = '[redacted]';
+// lgtm[js/redos] -- False positive: static anchored literal key patterns only.
 const SENSITIVE_VARIABLE_PATTERNS = [
+  '^access_token$',
   '^api_?key$',
   '^apikey$',
   '^auth$',
@@ -215,6 +217,7 @@ const SENSITIVE_VARIABLE_PATTERNS = [
   '^cvv$',
   '^dob$',
   '^email$',
+  '^id_token$',
   '^otp$',
   '^passwd$',
   '^password$',

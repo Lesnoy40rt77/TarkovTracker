@@ -5,6 +5,7 @@ import { setActivePinia, createPinia } from 'pinia';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useSkillCalculation } from '@/composables/useSkillCalculation';
 import { useMetadataStore } from '@/stores/useMetadata';
+import { MAX_SKILL_LEVEL } from '@/utils/constants';
 import { logger } from '@/utils/logger';
 // Mock logger
 vi.mock('@/utils/logger', () => ({
@@ -34,9 +35,9 @@ describe('useSkillCalculation', () => {
     setTotalSkillLevel(skillName, -5);
     expect(totalSkills.value[skillName] || 0).toBe(0);
     setTotalSkillLevel(skillName, 100);
-    expect(totalSkills.value[skillName]).toBe(51);
+    expect(totalSkills.value[skillName]).toBe(MAX_SKILL_LEVEL);
     setTotalSkillLevel(skillName, NaN);
-    expect(totalSkills.value[skillName]).toBe(51);
+    expect(totalSkills.value[skillName]).toBe(MAX_SKILL_LEVEL);
     expect(logger.warn).toHaveBeenCalledWith(
       expect.stringContaining('Invalid totalLevel "NaN" for skill "Strength"')
     );

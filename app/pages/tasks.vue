@@ -67,8 +67,7 @@
             </div>
             <div
               v-for="task in pinnedTasksInSlice"
-              :key="task.id"
-              v-memo="[task.id, tasksCompletions?.[task.id], tasksFailed?.[task.id]]"
+              :key="`pinned-${task.id}`"
               class="content-visibility-auto-280 pb-4"
             >
               <TaskCard :task="task" @on-task-action="onTaskAction" />
@@ -76,8 +75,7 @@
           </div>
           <div
             v-for="task in unpinnedTasksInSlice"
-            :key="task.id"
-            v-memo="[task.id, tasksCompletions?.[task.id], tasksFailed?.[task.id]]"
+            :key="`task-${task.id}`"
             class="content-visibility-auto-280 pb-4"
           >
             <TaskCard :task="task" @on-task-action="onTaskAction" />
@@ -207,7 +205,7 @@
   const editions = computed(() => metadataStore.editions);
   const progressStore = useProgressStore();
   const { tasksCompletions, unlockedTasks, tasksFailed } = storeToRefs(progressStore);
-  const { visibleTasks, reloadingTasks, updateVisibleTasks } = useTaskFiltering();
+  const { visibleTasks, updateVisibleTasks } = useTaskFiltering();
   const tarkovStore = useTarkovStore();
   const userGameEdition = computed(() => tarkovStore.getGameEdition());
   const { tarkovTime } = useTarkovTime();
@@ -394,11 +392,9 @@
         logger.error('[Tasks] Debounced refresh failed:', error);
       });
     },
-    { immediate: true }
+    { immediate: true, flush: 'post' }
   );
-  const isLoading = computed(
-    () => !metadataStore.hasInitialized || tasksLoading.value || reloadingTasks.value
-  );
+  const isLoading = computed(() => !metadataStore.hasInitialized || tasksLoading.value);
   const searchQuery = ref('');
   const debouncedSearch = ref('');
   const updateDebouncedSearch = debounce((value: string) => {
@@ -496,6 +492,7 @@
     { immediate: true }
   );
   onBeforeUnmount(() => {
+    debouncedRefreshVisibleTasks.cancel();
     updateDebouncedSearch.cancel();
     stopResize();
     cleanupMapPopup();

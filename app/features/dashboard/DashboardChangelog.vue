@@ -195,7 +195,7 @@
     }
   };
   const shouldPreferCachedData = (remaining: number | null): boolean => {
-    return remaining !== null && remaining > 0 && remaining <= GITHUB_RATE_LIMIT_LOW_THRESHOLD;
+    return remaining !== null && remaining >= 0 && remaining <= GITHUB_RATE_LIMIT_LOW_THRESHOLD;
   };
   const withRateLimitDetails = (
     state: globalThis.Ref<GitHubRateLimitState>,

@@ -3,7 +3,7 @@ import DataMigrationService from '@/utils/dataMigrationService';
 import { logger } from '@/utils/logger';
 import type { GameMode } from '@/utils/constants';
 import type { ProgressData } from '@/utils/dataMigrationService';
-type MigrationStatus = 'idle' | 'migrating' | 'success' | 'error';
+export type MigrationStatus = 'idle' | 'migrating' | 'success' | 'error';
 export type DataMigrationComposable = {
   migrationStatus: ComputedRef<MigrationStatus>;
   migrationMessage: ComputedRef<string>;

@@ -185,19 +185,15 @@
   const isNonFirDecreaseDisabled = computed(() => props.nonFirCurrent <= 0);
   const isNonFirIncreaseDisabled = computed(() => props.nonFirCurrent >= props.nonFirNeeded);
   const handleDecreaseFir = () => {
-    if (isFirDecreaseDisabled.value) return;
     decreaseFir();
   };
   const handleIncreaseFir = () => {
-    if (isFirIncreaseDisabled.value) return;
     increaseFir();
   };
   const handleDecreaseNonFir = () => {
-    if (isNonFirDecreaseDisabled.value) return;
     decreaseNonFir();
   };
   const handleIncreaseNonFir = () => {
-    if (isNonFirIncreaseDisabled.value) return;
     increaseNonFir();
   };
   const startFirEdit = () => {

@@ -37,19 +37,17 @@
           <span class="text-surface-200 text-sm font-semibold">
             {{ $t('settings.experience.current_level', 'Current Level') }}
           </span>
-          <span class="text-primary-400 text-2xl font-bold">
-            {{ xpCalculation.derivedLevel.value }}
-          </span>
+          <span class="text-primary-400 text-2xl font-bold">{{ derivedLevel }}</span>
         </div>
         <div class="space-y-1">
           <div class="text-surface-400 flex justify-between text-xs">
-            <span>{{ formatNumber(xpCalculation.totalXP.value) }} XP</span>
-            <span>{{ formatNumber(xpCalculation.xpToNextLevel.value) }} to next</span>
+            <span>{{ formatNumber(totalXP) }} XP</span>
+            <span>{{ formatNumber(xpToNextLevel) }} to next</span>
           </div>
           <div class="bg-surface-800/35 h-2 overflow-hidden rounded-full">
             <div
               class="bg-primary-500/60 h-full rounded-full transition-[width] duration-300 ease-out"
-              :style="{ width: `${xpCalculation.xpProgress.value}%` }"
+              :style="{ width: `${xpProgress}%` }"
             ></div>
           </div>
         </div>
@@ -74,7 +72,7 @@
               v-model.number="manualXPInput"
               type="number"
               :min="0"
-              :placeholder="xpCalculation.totalXP.value.toString()"
+              :placeholder="totalXP.toString()"
               size="sm"
               class="w-32"
             />
@@ -110,7 +108,7 @@
   import { useLocaleNumberFormatter } from '@/utils/formatters';
   const tarkovStore = useTarkovStore();
   const preferencesStore = usePreferencesStore();
-  const xpCalculation = useXpCalculation();
+  const { derivedLevel, setTotalXP, totalXP, xpProgress, xpToNextLevel } = useXpCalculation();
   const formatNumber = useLocaleNumberFormatter();
   const manualXPInput = ref<number | null>(null);
   const isValidXPInput = computed(() => {
@@ -118,12 +116,12 @@
       manualXPInput.value !== null &&
       !isNaN(manualXPInput.value) &&
       manualXPInput.value >= 0 &&
-      manualXPInput.value !== xpCalculation.totalXP.value
+      manualXPInput.value !== totalXP.value
     );
   });
   const applyManualXP = () => {
     if (isValidXPInput.value && manualXPInput.value !== null) {
-      xpCalculation.setTotalXP(manualXPInput.value);
+      setTotalXP(manualXPInput.value);
       manualXPInput.value = null;
     }
   };
@@ -134,7 +132,7 @@
   const handleAutoLevelToggle = (value: boolean) => {
     preferencesStore.setUseAutomaticLevelCalculation(value);
     if (value) {
-      tarkovStore.setLevel(xpCalculation.derivedLevel.value);
+      tarkovStore.setLevel(derivedLevel.value);
     }
   };
 </script>

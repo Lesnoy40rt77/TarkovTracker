@@ -85,7 +85,6 @@
   offline_mode: {
     title: '离线模式运行中',
     description: 'Supabase 未配置。登录和同步功能已禁用，但你仍可以在本地使用所有追踪功能。请参阅 {envFile} 以启用登录。',
-    env_file: '.env.example',
   },
   maps: {
     zoom: '缩放速度',
@@ -907,6 +906,13 @@
       reset_all_warning: '这将永久删除 PvP 和 PvE 模式的全部进度。此操作无法撤销！',
       reset_cancel: '取消',
       reset_confirm: '重置数据',
+    },
+    data_migration: {
+      title: '数据迁移',
+      description: '将你的进度数据从旧版 TarkovTracker 站点迁移过来。',
+      fetching: '正在获取数据...',
+      ready: '数据已准备好导入',
+      fetch_button: '获取数据',
     },
     account_data: {
       title: '账户与数据管理',

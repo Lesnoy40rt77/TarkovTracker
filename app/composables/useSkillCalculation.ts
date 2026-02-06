@@ -12,7 +12,7 @@
 import { useMetadataStore } from '@/stores/useMetadata';
 import { usePreferencesStore } from '@/stores/usePreferences';
 import { useTarkovStore } from '@/stores/useTarkov';
-import { sortSkillsByGameOrder } from '@/utils/constants';
+import { MAX_SKILL_LEVEL, sortSkillsByGameOrder } from '@/utils/constants';
 import { logger } from '@/utils/logger';
 import type { Skill, SkillRequirement, TaskObjective } from '@/types/tarkov';
 /**
@@ -110,7 +110,7 @@ export function useSkillCalculation() {
       );
       return;
     }
-    const validatedLevel = Math.min(51, Math.max(0, Math.floor(totalLevel)));
+    const validatedLevel = Math.min(MAX_SKILL_LEVEL, Math.max(0, Math.floor(totalLevel)));
     const questLevel = calculatedQuestSkills.value[skillName] || 0;
     const offset = validatedLevel - questLevel;
     tarkovStore.setSkillOffset(skillName, offset);

@@ -136,7 +136,7 @@
     success: 'bg-gradient-to-br from-success-800 via-success-700 to-success-600',
     surface: 'bg-gradient-to-br from-surface-800 via-surface-700 to-surface-600',
     warning: 'bg-gradient-to-br from-warning-800 via-warning-700 to-warning-600',
-  } as const;
+  } as const satisfies Record<SemanticColor, string>;
   const highlightClasses = computed(() => {
     const colorKey = props.highlightColor;
     const selectedClass = highlightClassLookup[colorKey] || highlightClassLookup.accent;

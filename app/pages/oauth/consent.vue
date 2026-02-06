@@ -80,14 +80,20 @@
     loading.value = true;
     error.value = '';
     try {
+      logger.info('[OAuth] Deny authorization start:', authorizationId.value);
       const { data, error: denyError } = await supabase.auth.oauth.denyAuthorization(
         authorizationId.value
       );
+      logger.debug('[OAuth] Deny result:', { data, error: denyError });
       if (denyError) throw denyError;
       if (data?.redirect_url) {
+        logger.info('[OAuth] Redirecting after deny to:', data.redirect_url);
         window.location.href = data.redirect_url;
+      } else {
+        throw new Error('No redirect URL returned');
       }
     } catch (e) {
+      logger.error('[OAuth] Deny error:', e);
       error.value = e instanceof Error ? e.message : 'Failed to deny authorization';
       loading.value = false;
     }

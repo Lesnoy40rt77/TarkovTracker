@@ -92,7 +92,6 @@
   offline_mode: {
     title: 'Running in Offline Mode',
     description: 'Supabase is not configured. Login and sync features are disabled, but you can still use all tracking features locally. See {envFile} to enable login.',
-    env_file: '.env.example',
   },
   maps: {
     zoom: 'Zoom speed',
@@ -885,6 +884,31 @@
       reset_all_warning: 'This will permanently delete ALL your progress for PvP and PvE modes. This action cannot be undone!',
       reset_cancel: 'Cancel',
       reset_confirm: 'Reset Data',
+    },
+    data_migration: {
+      title: 'Data Migration',
+      description: 'Migrate your progress data from the old TarkovTracker site.',
+      fetching: 'Fetching data...',
+      ready: 'Data ready to import',
+      fetch_button: 'Fetch Data',
+    },
+    reset: {
+      error_title: 'Reset Failed',
+    },
+    reset_pvp: {
+      success_title: 'PvP Data Reset',
+      success_description: 'Your PvP progress has been reset successfully.',
+      error_description: 'Failed to reset PvP data. Please try again.',
+    },
+    reset_pve: {
+      success_title: 'PvE Data Reset',
+      success_description: 'Your PvE progress has been reset successfully.',
+      error_description: 'Failed to reset PvE data. Please try again.',
+    },
+    reset_all: {
+      success_title: 'All Data Reset',
+      success_description: 'All your progress has been reset successfully.',
+      error_description: 'Failed to reset data. Please try again.',
     },
     account_data: {
       title: 'Account & Data Management',

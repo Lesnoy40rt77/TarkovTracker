@@ -118,7 +118,7 @@
       focusFirstItem();
     }
   });
-  onClickOutside(menuRef, close);
+  onClickOutside(menuRef, closeMenu);
   // handleGlobalKeydown intentionally also handles Escape, duplicating the check in
   // handleMenuKeydown. handleMenuKeydown stops propagation for focused menu interactions,
   // while handleGlobalKeydown catches Escape when focus is outside the menu element.
