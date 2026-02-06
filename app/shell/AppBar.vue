@@ -44,6 +44,7 @@
             href="https://discord.gg/M8nBgA2sT6"
             target="_blank"
             rel="noopener noreferrer"
+            :aria-label="t('footer.call_to_action.discord', 'Discord')"
             class="hover:bg-surface-700 flex h-7 w-7 items-center justify-center rounded transition-colors"
           >
             <DiscordIcon class="text-discord hover:text-white" />
@@ -54,80 +55,68 @@
             href="https://github.com/tarkovtracker-org/TarkovTracker"
             target="_blank"
             rel="noopener noreferrer"
+            :aria-label="t('footer.call_to_action.github', 'GitHub')"
             class="hover:bg-surface-700 flex h-7 w-7 items-center justify-center rounded transition-colors"
           >
             <UIcon name="i-mdi-github" class="text-surface-300 h-4.5 w-4.5 hover:text-white" />
           </a>
         </AppTooltip>
-        <!-- Language selector (compact) -->
-        <SelectMenuFixed
-          v-model="selectedLocale"
-          :items="localeItems"
-          value-key="value"
-          :search-input="false"
-          :content="{ side: 'bottom', align: 'end', sideOffset: 8 }"
+        <label
+          class="bg-surface-800/60 border-surface-700 flex items-center gap-1 rounded border px-2"
         >
-          <template #leading>
-            <UIcon name="i-mdi-translate" class="text-surface-300 h-4 w-4" />
-          </template>
-          <template #default>
-            <span class="text-xs font-medium text-white/80">
-              {{ selectedLocaleLabel }}
-            </span>
-          </template>
-          <template #trailing>
-            <UIcon name="i-mdi-chevron-down" class="text-surface-400 h-3 w-3" />
-          </template>
-        </SelectMenuFixed>
+          <UIcon name="i-mdi-translate" class="text-surface-300 h-4 w-4" />
+          <span class="sr-only">{{ t('settings.locale') }}</span>
+          <select
+            v-model="selectedLocale"
+            :aria-label="t('settings.locale')"
+            class="text-surface-200 bg-transparent py-1 text-xs font-medium outline-none"
+          >
+            <option
+              v-for="item in localeItems"
+              :key="item.value"
+              :value="item.value"
+              class="bg-surface-900 text-surface-100"
+            >
+              {{ item.label }}
+            </option>
+          </select>
+        </label>
         <!-- Account section -->
         <template v-if="isLoggedIn">
           <div class="bg-surface-700/50 mx-1 h-5 w-px" />
-          <UDropdownMenu
-            :items="accountItems"
-            :content="{ side: 'bottom', align: 'end', sideOffset: 0 }"
-            :modal="false"
-            :ui="DROPDOWN_MENU_UI_CONFIG"
+          <button
+            type="button"
+            class="bg-surface-800/50 border-surface-600 hover:bg-surface-800 flex items-center gap-2 rounded-md border px-2.5 py-1.5 transition-colors"
+            :aria-label="t('navigation_drawer.logout', 'Logout')"
+            @click="logout"
           >
-            <button
-              type="button"
-              class="bg-surface-800/50 border-surface-600 hover:bg-surface-800 data-[state=open]:bg-surface-800 flex items-center gap-2 rounded-md border px-2.5 py-1.5 ring-0 transition-colors outline-none data-[state=open]:rounded-b-none data-[state=open]:border-b-transparent"
-              :aria-label="t('navigation_drawer.account_menu', 'Account menu')"
-            >
-              <UAvatar
-                :src="avatarSrc"
-                size="2xs"
-                :alt="t('app_bar.user_avatar_alt', 'User avatar')"
-              />
-              <span class="text-surface-200 hidden text-sm font-medium sm:inline">
-                {{ userDisplayName }}
-              </span>
-              <UIcon
-                name="i-heroicons-chevron-down-20-solid"
-                class="text-surface-400 h-3.5 w-3.5 transition-transform duration-200 in-data-[state=open]:rotate-180"
-              />
-            </button>
-          </UDropdownMenu>
+            <img
+              :src="avatarSrc"
+              :alt="t('app_bar.user_avatar_alt', 'User avatar')"
+              class="h-4 w-4 rounded-full"
+              loading="lazy"
+            />
+            <span class="text-surface-200 hidden text-sm font-medium sm:inline">
+              {{ userDisplayName }}
+            </span>
+            <UIcon name="i-mdi-logout" class="text-surface-400 h-3.5 w-3.5" />
+          </button>
         </template>
         <template v-else>
           <div class="bg-surface-700/50 mx-1 h-5 w-px" />
-          <UButton
+          <NuxtLink
             to="/login"
-            icon="i-mdi-fingerprint"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            :label="t('navigation_drawer.login', 'Login')"
-            class="hidden sm:flex"
-          />
-          <UButton
+            class="hover:bg-surface-700 hidden rounded px-2 py-1 text-sm text-white sm:inline-flex"
+          >
+            {{ t('navigation_drawer.login', 'Login') }}
+          </NuxtLink>
+          <NuxtLink
             to="/login"
-            icon="i-mdi-fingerprint"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            class="sm:hidden"
+            class="hover:bg-surface-700 rounded p-1 text-white sm:hidden"
             :aria-label="t('navigation_drawer.login', 'Login')"
-          />
+          >
+            <UIcon name="i-mdi-fingerprint" class="h-4 w-4" />
+          </NuxtLink>
         </template>
       </div>
     </div>
@@ -141,7 +130,6 @@
   import { useMetadataStore } from '@/stores/useMetadata';
   import { usePreferencesStore } from '@/stores/usePreferences';
   import { useTarkovStore } from '@/stores/useTarkov';
-  import { DROPDOWN_MENU_UI_CONFIG } from '@/utils/dropdownMenuUIConfig';
   import { logger } from '@/utils/logger';
   const { t } = useI18n({ useScope: 'global' });
   const appStore = useAppStore();
@@ -177,13 +165,6 @@
       });
     }
   }
-  const accountItems = computed(() => [
-    {
-      label: t('navigation_drawer.logout'),
-      icon: 'i-mdi-logout',
-      onSelect: logout,
-    },
-  ]);
   const { width } = useWindowSize();
   const mdAndDown = computed(() => width.value < 960);
   const isDrawerCollapsed = computed(() => {
@@ -231,25 +212,18 @@
       value: localeCode,
     }));
   });
-  const selectedLocaleLabel = computed(() => locale.value.toUpperCase());
   const selectedLocale = computed({
     get() {
-      // Return the current locale string directly
       return locale.value;
     },
-    set(newValue: string | { value: string }) {
+    set(newValue: string) {
       if (!newValue) return;
-      // Handle both string and object values
-      const newLocale = typeof newValue === 'string' ? newValue : newValue.value;
+      const newLocale = newValue;
       if (!isAvailableLocale(newLocale) || newLocale === locale.value) return;
-      // Set the i18n locale (this updates the UI translations)
       locale.value = newLocale;
-      // Persist in preferences
       preferencesStore.localeOverride = newLocale;
       logger.debug('[AppBar] Setting locale to:', newLocale);
-      // Update metadata store and refetch data with new language
       metadataStore.updateLanguageAndGameMode(newLocale);
-      // Use cached data if available (forceRefresh = false)
       metadataStore
         .fetchAllData(false)
         .then(() => {

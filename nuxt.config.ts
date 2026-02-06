@@ -121,21 +121,9 @@ export default defineNuxtConfig({
           content: 'https://tarkovtracker.org/img/logos/tarkovtrackerlogo-light.webp',
         },
       ],
-      link: [
-        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        {
-          rel: 'preconnect',
-          href: 'https://fonts.gstatic.com',
-          crossorigin: '',
-        },
-        {
-          rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&display=swap',
-        },
-      ],
     },
   },
-  css: ['~/assets/css/tailwind.css', 'leaflet/dist/leaflet.css'],
+  css: ['~/assets/css/tailwind.css'],
   alias: {
     '@': appDir,
     '#tests': testsDir,
@@ -171,7 +159,7 @@ export default defineNuxtConfig({
   i18n: {
     bundle: {
       compositionOnly: true,
-      runtimeOnly: false,
+      runtimeOnly: true,
     },
     compilation: {
       strictMessage: false,
@@ -271,9 +259,6 @@ export default defineNuxtConfig({
             }
             if (id.includes('node_modules/@supabase')) {
               return 'vendor-supabase';
-            }
-            if (id.includes('node_modules/@nuxt/ui') || id.includes('node_modules/@vueuse')) {
-              return 'vendor-ui';
             }
             if (
               id.includes('node_modules/vue') ||

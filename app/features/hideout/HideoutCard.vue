@@ -47,7 +47,7 @@
                   </i18n-t>
                 </template>
                 <template v-else>
-                  {{ $t('page.hideout.stationcard.levelnotready') }}
+                  {{ $t('page.hideout.stationcard.level_not_ready') }}
                 </template>
               </span>
             </div>
@@ -88,10 +88,10 @@
           class="bg-surface-700 mb-3 rounded-lg p-3 text-center"
         >
           <div class="mb-2 text-sm">
-            {{ $t('page.hideout.stationcard.gameeditiondescription') }}
+            {{ $t('page.hideout.stationcard.game_edition_description') }}
           </div>
           <UButton variant="soft" to="/settings" color="neutral">
-            {{ $t('page.hideout.stationcard.settingsbutton') }}
+            {{ $t('page.hideout.stationcard.settings_button') }}
           </UButton>
         </div>
         <!-- Next level requirements -->
@@ -107,7 +107,7 @@
                 name="i-mdi-package-variant-closed-check"
                 class="text-success-500 mr-2 h-5 w-5"
               />
-              {{ $t('page.hideout.stationcard.nextlevel') }}
+              {{ $t('page.hideout.stationcard.next_level') }}
             </div>
             <!-- Item Requirements Grid -->
             <div class="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -202,7 +202,7 @@
             class="text-warning-500 flex items-center justify-center text-center text-base font-medium"
           >
             <UIcon name="i-mdi-star-check" class="mr-2 h-6 w-6" />
-            {{ $t('page.hideout.stationcard.maxlevel') }}
+            {{ $t('page.hideout.stationcard.max_level') }}
           </div>
         </div>
       </div>
@@ -220,7 +220,7 @@
             @click="upgradeStation()"
           >
             <i18n-t
-              keypath="page.hideout.stationcard.upgradebutton"
+              keypath="page.hideout.stationcard.upgrade_button"
               scope="global"
               :plural="nextLevel?.level"
             >
@@ -237,7 +237,7 @@
             @click="downgradeStation()"
           >
             <i18n-t
-              keypath="page.hideout.stationcard.downgradebutton"
+              keypath="page.hideout.stationcard.downgrade_button"
               scope="global"
               :plural="(progressStore.hideoutLevels?.[props.station.id]?.self || 0) - 1"
             >
@@ -255,7 +255,7 @@
             @click="downgradeStation()"
           >
             <i18n-t
-              keypath="page.hideout.stationcard.downgradebutton"
+              keypath="page.hideout.stationcard.downgrade_button"
               scope="global"
               :plural="(progressStore.hideoutLevels?.[props.station.id]?.self || 0) - 1"
             >
@@ -268,7 +268,7 @@
             v-if="nextLevel && (!currentLevel || downgradeDisabled)"
             class="text-surface-400 text-sm"
           >
-            {{ t('page.hideout.stationcard.upgradeunavailable') }}
+            {{ t('page.hideout.stationcard.upgrade_unavailable') }}
           </span>
         </div>
       </div>
@@ -482,7 +482,7 @@
       tarkovStore.setHideoutPartComplete(o.id);
     });
     toast.add({
-      title: t('page.hideout.stationcard.statusupgraded', {
+      title: t('page.hideout.stationcard.status_upgraded', {
         name: props.station.name,
         level: upgradeLevel.level,
       }),
@@ -499,7 +499,7 @@
       tarkovStore.setHideoutPartUncomplete(o.id);
     });
     toast.add({
-      title: t('page.hideout.stationcard.statusdowngraded', {
+      title: t('page.hideout.stationcard.status_downgraded', {
         name: props.station.name,
         level: downgradeLevel.level,
       }),

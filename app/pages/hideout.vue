@@ -39,7 +39,13 @@
             </div>
             <div class="flex justify-end">
               <UPopover>
-                <UButton icon="i-mdi-cog" color="neutral" variant="ghost" size="sm">
+                <UButton
+                  icon="i-mdi-cog"
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  :aria-label="t('settings.title', 'Settings')"
+                >
                   <span class="hidden sm:inline">
                     {{ t('settings.title', 'Settings').toUpperCase() }}
                   </span>
@@ -146,18 +152,27 @@
         />
       </div>
       <div v-else class="mt-2 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-        <HideoutCard
-          v-for="(hStation, hIndex) in visibleStations"
+        <div
+          v-for="(hStation, hIndex) in visibleStationsSlice"
           :key="hIndex"
-          :station="hStation"
-          :collapsed="
-            getStationStatus(hStation) === 'maxed' && preferencesStore.hideoutCollapseCompleted
-          "
-          :highlighted="highlightedStationId === hStation.id"
-          :highlight-module-id="
-            highlightedStationId === hStation.id ? highlightedModuleId : undefined
-          "
-        />
+          class="content-visibility-auto-240 h-full"
+        >
+          <HideoutCard
+            :station="hStation"
+            :collapsed="
+              getStationStatus(hStation) === 'maxed' && preferencesStore.hideoutCollapseCompleted
+            "
+            :highlighted="highlightedStationId === hStation.id"
+            :highlight-module-id="
+              highlightedStationId === hStation.id ? highlightedModuleId : undefined
+            "
+          />
+        </div>
+      </div>
+      <div v-if="visibleStationCount < visibleStations.length" class="mt-4 flex justify-center">
+        <UButton color="neutral" variant="outline" size="sm" @click="loadMoreStations">
+          {{ t('page.hideout.load_more_stations', 'Load more stations') }}
+        </UButton>
       </div>
     </div>
   </div>
@@ -228,6 +243,32 @@
   // Hideout filtering composable
   const { activePrimaryView, isStoreLoading, visibleStations, stationCounts } =
     useHideoutFiltering();
+  const INITIAL_STATION_BATCH = 6;
+  const IDLE_STATION_BATCH = 15;
+  const STATION_BATCH_SIZE = 6;
+  const visibleStationCount = ref(INITIAL_STATION_BATCH);
+  const visibleStationsSlice = computed(() =>
+    visibleStations.value.slice(0, visibleStationCount.value)
+  );
+  const loadMoreStations = () => {
+    visibleStationCount.value = Math.min(
+      visibleStationCount.value + STATION_BATCH_SIZE,
+      visibleStations.value.length
+    );
+  };
+  onMounted(() => {
+    const expandInitialStations = () => {
+      visibleStationCount.value = Math.min(IDLE_STATION_BATCH, visibleStations.value.length);
+    };
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(expandInitialStations, { timeout: 1200 });
+    } else {
+      globalThis.setTimeout(expandInitialStations, 0);
+    }
+  });
+  watch(visibleStations, () => {
+    visibleStationCount.value = INITIAL_STATION_BATCH;
+  });
   type HideoutPrimaryViewOption = {
     badgeColor: string;
     count: number;

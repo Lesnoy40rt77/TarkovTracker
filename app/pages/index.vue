@@ -32,7 +32,7 @@
     </div>
     <DashboardChangelog />
     <!-- Progress Breakdown Section -->
-    <div class="mb-8">
+    <div class="content-visibility-auto-280 mb-8">
       <button
         type="button"
         class="group mb-4 flex w-full cursor-pointer items-center text-2xl font-bold text-white"
@@ -125,18 +125,22 @@
         v-show="!tradersSectionCollapsed"
         class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
       >
-        <DashboardTraderCard
+        <div
           v-for="trader in traderStats"
           :key="trader.id"
-          :trader="trader"
-          :completed-tasks="trader.completedTasks"
-          :total-tasks="trader.totalTasks"
-          :percentage="trader.percentage"
-        />
+          class="content-visibility-auto-220 h-full"
+        >
+          <DashboardTraderCard
+            :trader="trader"
+            :completed-tasks="trader.completedTasks"
+            :total-tasks="trader.totalTasks"
+            :percentage="trader.percentage"
+          />
+        </div>
       </div>
     </div>
     <!-- Milestones Section -->
-    <div>
+    <div class="content-visibility-auto-240">
       <button
         type="button"
         class="group mb-4 flex w-full cursor-pointer items-center text-2xl font-bold text-white"

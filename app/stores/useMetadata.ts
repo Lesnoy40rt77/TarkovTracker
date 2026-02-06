@@ -908,7 +908,9 @@ export const useMetadataStore = defineStore('metadata', {
     ) {
       const { deferHeavy = false, cachedData = null } = options;
       const perfTimer = perfStart('[Metadata] fetchAllData', { forceRefresh, deferHeavy });
-      await this.checkCachePurge();
+      this.checkCachePurge().catch((err) =>
+        logger.warn('[MetadataStore] Background cache purge check failed:', err)
+      );
       // Run cleanup once per session
       if (typeof window !== 'undefined') {
         cleanupExpiredCache().catch((err) =>
@@ -918,8 +920,8 @@ export const useMetadataStore = defineStore('metadata', {
       await this.fetchBootstrapData(forceRefresh);
       // Use pre-loaded cache data if available, otherwise fetch
       let hideoutPromise: Promise<void>;
-      let prestigePromise: Promise<void>;
-      let editionsPromise: Promise<void>;
+      let prestigePromise: Promise<void> = Promise.resolve();
+      let editionsPromise: Promise<void> = Promise.resolve();
       let tasksCorePromise: Promise<void>;
       if (cachedData && !forceRefresh) {
         // Process pre-loaded cache data directly (skip redundant fetches)
@@ -927,15 +929,30 @@ export const useMetadataStore = defineStore('metadata', {
         this.hydrateHideoutItems();
         hideoutPromise = Promise.resolve();
         this.prestigeLevels = markRaw(cachedData.prestige.prestige || []);
-        prestigePromise = Promise.resolve();
         this.editions = markRaw(cachedData.editions.editions || []);
-        editionsPromise = Promise.resolve();
         this.processTasksCoreData(cachedData.tasksCore);
         tasksCorePromise = Promise.resolve();
       } else {
         hideoutPromise = this.fetchHideoutData(forceRefresh);
-        prestigePromise = this.fetchPrestigeData(forceRefresh);
-        editionsPromise = this.fetchEditionsData(forceRefresh);
+        if (deferHeavy) {
+          queueIdleTask(
+            () =>
+              this.fetchPrestigeData(forceRefresh).catch((err) =>
+                logger.error('[MetadataStore] Error fetching deferred prestige data:', err)
+              ),
+            { timeout: 3000, minTime: 8, priority: 'normal' }
+          );
+          queueIdleTask(
+            () =>
+              this.fetchEditionsData(forceRefresh).catch((err) =>
+                logger.error('[MetadataStore] Error fetching deferred editions data:', err)
+              ),
+            { timeout: 3500, minTime: 8, priority: 'normal' }
+          );
+        } else {
+          prestigePromise = this.fetchPrestigeData(forceRefresh);
+          editionsPromise = this.fetchEditionsData(forceRefresh);
+        }
         tasksCorePromise = this.fetchTasksCoreData(forceRefresh);
       }
       await tasksCorePromise;
@@ -945,7 +962,18 @@ export const useMetadataStore = defineStore('metadata', {
       }
       // Fetch critical data directly (not deferred) - needed for UI to render
       const itemsLitePromise = this.fetchItemsLiteData(forceRefresh);
-      const taskObjectivesPromise = this.fetchTaskObjectivesData(forceRefresh);
+      let taskObjectivesPromise: Promise<void> = Promise.resolve();
+      if (this.tasks.length && deferHeavy) {
+        queueIdleTask(
+          () =>
+            this.fetchTaskObjectivesData(forceRefresh).catch((err) =>
+              logger.error('[MetadataStore] Error fetching deferred task objectives data:', err)
+            ),
+          { timeout: 3000, minTime: 8, priority: 'normal' }
+        );
+      } else {
+        taskObjectivesPromise = this.fetchTaskObjectivesData(forceRefresh);
+      }
       // Only defer non-critical task rewards
       if (this.tasks.length && deferHeavy) {
         queueIdleTask(
@@ -959,8 +987,8 @@ export const useMetadataStore = defineStore('metadata', {
         await this.fetchTaskRewardsData(forceRefresh);
       }
       // Full items are heavy; load on-demand via ensureItemsFullLoaded.
-      await Promise.all([hideoutPromise, prestigePromise, editionsPromise]);
-      await Promise.all([itemsLitePromise, taskObjectivesPromise]);
+      await Promise.all([hideoutPromise, itemsLitePromise, taskObjectivesPromise]);
+      await Promise.all([prestigePromise, editionsPromise]);
       perfEnd(perfTimer, {
         tasks: this.tasks.length,
         items: this.items.length,

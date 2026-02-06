@@ -182,6 +182,7 @@
 - **Find root cause**. When fixing issues, identify and address the root cause, not just the symptoms.
 - **Self-assess code**. Don't ask "what does this do?" Read and understand it. Only clarify ambiguous intent ("Is this supposed to do X or Y?").
 - **Ask before acting on complex requests**. Clarify ambiguous or multi-interpretation tasks before proceeding—it's better to ask one question than redo work.
+- **Never run destructive git commands without explicit user approval in the current conversation**. This includes `git restore`, `git checkout --`, `git reset` (any mode), `git clean`, and force-push operations. Always ask first.
 
 ## Plan Mode
 

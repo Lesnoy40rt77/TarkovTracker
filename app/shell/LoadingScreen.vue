@@ -29,38 +29,6 @@
           {{ hasErrors ? 'Some data failed to load' : 'Downloading required game data...' }}
         </p>
       </div>
-      <!-- Loading Progress Details -->
-      <div class="text-surface-500 flex flex-col gap-2 text-xs">
-        <div class="flex items-center gap-2">
-          <UIcon
-            :name="getStatusIcon(metadataStore.loading, metadataStore.error)"
-            :class="getStatusClass(metadataStore.loading, metadataStore.error)"
-          />
-          <span>Tasks, Maps & Traders</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <UIcon
-            :name="getStatusIcon(metadataStore.hideoutLoading, metadataStore.hideoutError)"
-            :class="getStatusClass(metadataStore.hideoutLoading, metadataStore.hideoutError)"
-          />
-          <span>Hideout Stations</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <UIcon
-            :name="getStatusIcon(metadataStore.prestigeLoading, metadataStore.prestigeError)"
-            :class="getStatusClass(metadataStore.prestigeLoading, metadataStore.prestigeError)"
-          />
-          <span>Prestige Data</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <UIcon
-            :name="getStatusIcon(metadataStore.editionsLoading, metadataStore.editionsError)"
-            :class="getStatusClass(metadataStore.editionsLoading, metadataStore.editionsError)"
-          />
-          <span>Game Editions</span>
-        </div>
-      </div>
-      <!-- User Reassurance or Error Actions -->
       <div v-if="!hasErrors" class="text-surface-600 mt-4 max-w-md text-center text-xs">
         This may take a moment on first load. Data will be cached for future visits.
       </div>
@@ -182,17 +150,6 @@
     window.removeEventListener('keydown', trapFocus);
     setSiblingsInert(false);
   });
-  function getStatusIcon(loading: boolean, error: Error | null): string {
-    if (error) return 'i-heroicons-x-circle';
-    if (loading) return 'i-heroicons-arrow-path';
-    return 'i-heroicons-check-circle';
-  }
-  function getStatusClass(loading: boolean, error: Error | null): string {
-    const baseClass = 'h-4 w-4';
-    if (error) return `${baseClass} text-error-500`;
-    if (loading) return `${baseClass} animate-spin text-primary-500`;
-    return `${baseClass} text-success-500`;
-  }
   function handleRetry() {
     // Reset dismissal status so the loading screen can appear again if retry fails
     userDismissed.value = false;

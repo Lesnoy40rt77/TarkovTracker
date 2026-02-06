@@ -1,7 +1,7 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { logger } from '@/utils/logger';
 import { STORAGE_KEYS } from '@/utils/storageKeys';
 import { hydrateUserFromSession } from '@/utils/userHydration';
+import type { SupabaseClient, User } from '@supabase/supabase-js';
 type OAuthProvider = 'twitch' | 'discord' | 'google' | 'github';
 type SupabaseUser = {
   id: string | null;
@@ -19,7 +19,40 @@ type SupabaseUser = {
 export default defineNuxtPlugin(() => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-  // Build a safe stub so components can still render in environments without Supabase env vars
+  const buildStubBuilder = () => {
+    const result = Promise.resolve({ data: null, error: null });
+    const proxy = new Proxy(
+      {},
+      {
+        get(_target, prop) {
+          if (prop === 'then') {
+            return result.then.bind(result);
+          }
+          if (prop === 'catch') {
+            return result.catch.bind(result);
+          }
+          if (prop === 'finally') {
+            return result.finally.bind(result);
+          }
+          return () => proxy;
+        },
+      }
+    );
+    return proxy;
+  };
+  const buildStubChannel = () => {
+    return {
+      on() {
+        return this;
+      },
+      subscribe(_callback?: (status: string) => void) {
+        return this;
+      },
+      async unsubscribe() {
+        return 'ok';
+      },
+    };
+  };
   const buildStub = () => {
     const stubUser = reactive<SupabaseUser>({
       id: null,
@@ -34,40 +67,46 @@ export default defineNuxtPlugin(() => {
       provider: null,
       providers: null,
     });
-    const noopPromise = async () => {
-      logger.debug('[Supabase Stub] Operation called in offline mode');
-      return {} as unknown;
-    };
     const stubClient = {
-      from: (table: string) => {
+      from(table: string) {
         logger.debug(`[Supabase Stub] from('${table}') called in offline mode`);
-        return { upsert: noopPromise };
+        return buildStubBuilder();
+      },
+      channel(channelName: string) {
+        logger.debug(`[Supabase Stub] channel('${channelName}') called in offline mode`);
+        return buildStubChannel();
+      },
+      removeChannel() {
+        logger.debug('[Supabase Stub] removeChannel called in offline mode');
+      },
+      removeAllChannels() {
+        logger.debug('[Supabase Stub] removeAllChannels called in offline mode');
       },
       functions: {
-        invoke: async (fnName: string) => {
+        async invoke(fnName: string) {
           logger.debug(`[Supabase Stub] functions.invoke('${fnName}') called in offline mode`);
-          return {};
+          return { data: null, error: null };
         },
       },
       auth: {
-        getSession: async () => {
+        async getSession() {
           logger.debug('[Supabase Stub] auth.getSession called in offline mode');
-          return { data: { session: null } };
+          return { data: { session: null }, error: null };
         },
-        onAuthStateChange: () => {
+        onAuthStateChange() {
           logger.debug('[Supabase Stub] auth.onAuthStateChange called in offline mode');
           return { data: { subscription: { unsubscribe() {} } } };
         },
-        signInWithOAuth: async () => {
+        async signInWithOAuth() {
           logger.debug('[Supabase Stub] auth.signInWithOAuth called in offline mode');
           return {
             data: { provider: '', url: null },
             error: new Error('OAuth not available in offline mode'),
           };
         },
-        signOut: async () => {
+        async signOut() {
           logger.debug('[Supabase Stub] auth.signOut called in offline mode');
-          return {};
+          return { error: null };
         },
       },
     } as unknown as SupabaseClient;
@@ -100,7 +139,6 @@ export default defineNuxtPlugin(() => {
     const stub = buildStub();
     return { provide: { supabase: stub } };
   }
-  const supabase = createClient(supabaseUrl, supabaseKey);
   const user = reactive<SupabaseUser>({
     id: null,
     loggedIn: false,
@@ -114,27 +152,64 @@ export default defineNuxtPlugin(() => {
     provider: null,
     providers: null,
   });
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    hydrateUserFromSession(user, session?.user || null);
-    // Clean up OAuth hash after session is established
+  const stub = buildStub();
+  let initPromise: Promise<void> | null = null;
+  let supabaseClient: SupabaseClient | null = null;
+  const hasOAuthHash = () => {
+    const hash = window.location.hash || '';
+    return hash.includes('access_token') || hash.includes('refresh_token');
+  };
+  const hasStoredSession = () => {
+    try {
+      for (const key of Object.keys(localStorage)) {
+        if (key.endsWith('-auth-token')) {
+          return true;
+        }
+      }
+    } catch (error) {
+      logger.warn('[Supabase] Could not inspect localStorage for session hint', error);
+    }
+    return false;
+  };
+  const hydrateFromSession = (session: { user?: User } | null) => {
+    hydrateUserFromSession(user, session?.user ?? null);
     if (session && window.location.hash.includes('access_token')) {
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
-      logger.debug('[Supabase] Cleaned OAuth hash from URL after session established');
+      logger.debug('[Supabase] Cleaned OAuth hash from URL');
     }
-  });
-  supabase.auth.onAuthStateChange((_event, session) => {
-    hydrateUserFromSession(user, session?.user || null);
-    // Clean up OAuth hash on auth state change
-    if (session && window.location.hash.includes('access_token')) {
-      window.history.replaceState(null, '', window.location.pathname + window.location.search);
-      logger.debug('[Supabase] Cleaned OAuth hash from URL on auth state change');
+  };
+  const ensureClientInitialized = async () => {
+    if (supabaseClient) return;
+    if (!initPromise) {
+      initPromise = (async () => {
+        const { createClient } = await import('@supabase/supabase-js');
+        const client = createClient(supabaseUrl, supabaseKey);
+        supabaseClient = client;
+        api.client = client;
+        const sessionResult = await client.auth.getSession();
+        hydrateFromSession(sessionResult.data?.session ?? null);
+        client.auth.onAuthStateChange((_event, session) => {
+          hydrateFromSession(session);
+        });
+      })()
+        .catch((error) => {
+          logger.error('[Supabase] Failed to initialize client', error);
+        })
+        .finally(() => {
+          initPromise = null;
+        });
     }
-  });
+    await initPromise;
+  };
   const signInWithOAuth = async (
     provider: OAuthProvider,
     options?: { skipBrowserRedirect?: boolean; redirectTo?: string }
   ) => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    await ensureClientInitialized();
+    if (!supabaseClient) {
+      throw new Error('Supabase client unavailable');
+    }
+    const { data, error } = await supabaseClient.auth.signInWithOAuth({
       provider,
       options: {
         skipBrowserRedirect: options?.skipBrowserRedirect,
@@ -145,26 +220,30 @@ export default defineNuxtPlugin(() => {
     return data;
   };
   const signOut = async () => {
-    // Clear game progress from localStorage to prevent cross-user contamination
-    // This prevents User A's data from being migrated to User B's account
     if (typeof window !== 'undefined') {
       logger.debug('[Supabase] Clearing game progress localStorage on logout');
       localStorage.removeItem(STORAGE_KEYS.progress);
-      // Keep UI preferences (user store) but you may want to clear user-specific data
-      // localStorage.removeItem("user"); // Uncomment if user data should also be cleared
     }
-    const { error } = await supabase.auth.signOut();
+    await ensureClientInitialized();
+    if (!supabaseClient) {
+      return;
+    }
+    const { error } = await supabaseClient.auth.signOut();
     if (error) throw error;
   };
+  const api = reactive({
+    client: stub.client,
+    user,
+    isOfflineMode: false,
+    signInWithOAuth,
+    signOut,
+  });
+  if (hasOAuthHash() || hasStoredSession()) {
+    void ensureClientInitialized();
+  }
   return {
     provide: {
-      supabase: {
-        client: supabase,
-        user,
-        isOfflineMode: false,
-        signInWithOAuth,
-        signOut,
-      },
+      supabase: api,
     },
   };
 });

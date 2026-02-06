@@ -116,9 +116,11 @@
         )
       "
     >
-      <UBadge size="xs" color="kappa" variant="soft" class="shrink-0 cursor-help text-[11px]">
-        {{ t('page.tasks.questcard.kappa', 'Kappa') }}
-      </UBadge>
+      <UIcon
+        name="i-mdi-trophy"
+        class="text-kappa h-4 w-4 shrink-0 cursor-help"
+        aria-hidden="true"
+      />
     </AppTooltip>
     <AppTooltip
       v-if="showRequiredLabels && task.lightkeeperRequired"
@@ -129,9 +131,11 @@
         )
       "
     >
-      <UBadge size="xs" color="lightkeeper" variant="soft" class="shrink-0 cursor-help text-[11px]">
-        {{ t('page.tasks.questcard.lightkeeper', 'Lightkeeper') }}
-      </UBadge>
+      <UIcon
+        name="i-mdi-lighthouse"
+        class="text-lightkeeper h-4 w-4 shrink-0 cursor-help"
+        aria-hidden="true"
+      />
     </AppTooltip>
     <AppTooltip
       v-if="showRequiredLabels && exclusiveEditionBadge"

@@ -495,6 +495,7 @@
       title: 'Hideout',
       loading: 'Loading hideout data',
       no_stations_found: 'No stations found. Try changing your filters.',
+      load_more_stations: 'Load more stations',
       collapse_completed: 'Collapse completed stations',
       sort: {
         ready_first: 'Sort ready to build first',
@@ -533,6 +534,15 @@
         downgrade_button: 'Remove station | Downgrade to level {level} | Downgrade to level {level}',
         status_upgraded: 'Upgraded {name} to level {level}',
         status_downgraded: 'Downgraded {name} from level {level}',
+        requirement: {
+          found_in_raid: 'Found in Raid required',
+          mark_complete: 'Mark Complete ({count})',
+          mark_incomplete: 'Mark Incomplete',
+          set_custom_amount: 'Set Custom Amount:',
+          apply: 'Apply',
+          view_tarkov_dev: 'View on tarkov.dev',
+          view_wiki: 'View on Wiki',
+        },
       },
     },
     needed_items: {
@@ -809,6 +819,7 @@
   },
   settings: {
     title: 'Settings',
+    locale: 'Language',
     tabs: {
       gameplay: 'Gameplay',
       interface: 'Interface',

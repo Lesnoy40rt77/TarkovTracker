@@ -159,7 +159,6 @@
   import TaskCard from '@/features/tasks/TaskCard.vue';
   import TaskEmptyState from '@/features/tasks/TaskEmptyState.vue';
   import TaskLoadingState from '@/features/tasks/TaskLoadingState.vue';
-  import TaskSettingsDrawer from '@/features/tasks/TaskSettingsDrawer.vue';
   import { useMetadataStore } from '@/stores/useMetadata';
   import { usePreferencesStore } from '@/stores/usePreferences';
   import { useProgressStore } from '@/stores/useProgress';
@@ -177,6 +176,9 @@
     usesWindowScroll: true,
   });
   const LeafletMapComponent = defineAsyncComponent(() => import('@/features/maps/LeafletMap.vue'));
+  const TaskSettingsDrawer = defineAsyncComponent(
+    () => import('@/features/tasks/TaskSettingsDrawer.vue')
+  );
   useSeoMeta({
     title: 'Tasks',
     description:
@@ -439,8 +441,9 @@
   provide('jumpToMapObjective', jumpToMapObjective);
   provide('isMapView', showMapDisplay);
   provide('clearPinnedTask', clearPinnedTask);
-  const INITIAL_BATCH = 15;
-  const BATCH_SIZE = 10;
+  const INITIAL_BATCH = 4;
+  const IDEAL_INITIAL_BATCH = 8;
+  const BATCH_SIZE = 6;
   const visibleTaskCount = ref(INITIAL_BATCH);
   const loadMoreSentinel = ref<HTMLElement | null>(null);
   const visibleTasksSlice = computed(() => {
@@ -474,6 +477,20 @@
   const { checkAndLoadMore } = useInfiniteScroll(loadMoreSentinel, loadMoreTasks, {
     enabled: hasMoreTasks,
     useScrollFallback: true,
+  });
+  onMounted(() => {
+    const expandInitialBatch = () => {
+      if (normalizedSearch.value || visibleTaskCount.value >= IDEAL_INITIAL_BATCH) return;
+      visibleTaskCount.value = Math.min(IDEAL_INITIAL_BATCH, filteredTasks.value.length);
+      nextTick(() => {
+        checkAndLoadMore();
+      });
+    };
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(expandInitialBatch, { timeout: 3000 });
+    } else {
+      setTimeout(expandInitialBatch, 750);
+    }
   });
   watch(filteredTasks, () => {
     visibleTaskCount.value = INITIAL_BATCH;

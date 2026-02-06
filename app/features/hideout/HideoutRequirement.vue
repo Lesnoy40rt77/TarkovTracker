@@ -29,7 +29,10 @@
         <UIcon name="i-mdi-check-circle" class="text-success-300 h-8 w-8" />
       </div>
       <!-- FiR Badge -->
-      <AppTooltip v-if="isFoundInRaid" text="Found in Raid required">
+      <AppTooltip
+        v-if="isFoundInRaid"
+        :text="$t('page.hideout.stationcard.requirement.found_in_raid')"
+      >
         <UIcon
           name="i-mdi-checkbox-marked-circle-outline"
           class="text-warning-400 absolute -top-1 -right-1 h-3 w-3"
@@ -59,7 +62,11 @@
       <ContextMenuItem
         v-if="!isComplete"
         icon="i-mdi-check-circle"
-        :label="`Mark Complete (${formatNumber(requiredCount)})`"
+        :label="
+          $t('page.hideout.stationcard.requirement.mark_complete', {
+            count: formatNumber(requiredCount),
+          })
+        "
         @click="
           markComplete();
           close();
@@ -68,7 +75,7 @@
       <ContextMenuItem
         v-if="isComplete"
         icon="i-mdi-close-circle"
-        label="Mark Incomplete"
+        :label="$t('page.hideout.stationcard.requirement.mark_incomplete')"
         @click="
           markIncomplete();
           close();
@@ -77,7 +84,9 @@
       <div v-if="requiredCount > 1" class="border-surface-700 my-1 border-t" />
       <template v-if="requiredCount > 1">
         <div class="space-y-2 px-3 py-2">
-          <div class="text-surface-400 text-xs">Set Custom Amount:</div>
+          <div class="text-surface-400 text-xs">
+            {{ $t('page.hideout.stationcard.requirement.set_custom_amount') }}
+          </div>
           <div class="flex items-center gap-2">
             <UButton
               size="xs"
@@ -117,7 +126,7 @@
               close();
             "
           >
-            Apply
+            {{ $t('page.hideout.stationcard.requirement.apply') }}
           </UButton>
         </div>
       </template>
@@ -125,7 +134,7 @@
       <ContextMenuItem
         v-if="requirement.item.link"
         icon="/img/logos/tarkovdevlogo.webp"
-        label="View on tarkov.dev"
+        :label="$t('page.hideout.stationcard.requirement.view_tarkov_dev')"
         @click="
           openTarkovDev();
           close();
@@ -134,7 +143,7 @@
       <ContextMenuItem
         v-if="requirement.item.wikiLink"
         icon="/img/logos/wikilogo.webp"
-        label="View on Wiki"
+        :label="$t('page.hideout.stationcard.requirement.view_wiki')"
         @click="
           openWiki();
           close();
@@ -175,7 +184,6 @@
   const requiredCount = computed(() => props.requirement.count);
   // Context menu
   const contextMenu = ref<InstanceType<typeof ContextMenu>>();
-  const inputRef = ref<HTMLInputElement | null>(null);
   const editValue = ref(0);
   // Check if item requires Found in Raid status
   const isFoundInRaid = computed(() => {

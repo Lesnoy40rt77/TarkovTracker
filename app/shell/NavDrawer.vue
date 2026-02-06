@@ -14,8 +14,7 @@
       @click="closeMobileDrawer"
     />
   </Transition>
-  <aside
-    role="navigation"
+  <nav
     :aria-label="t('navigation_drawer.main_navigation', 'Main navigation')"
     class="bg-sidebar border-surface-700/50 shadow-nav-drawer fixed inset-y-0 left-0 z-50 flex flex-col border-r transition-all duration-300"
     :class="[sidebarWidth]"
@@ -25,18 +24,23 @@
     >
       <NuxtLink
         to="/"
+        :aria-label="t('navigation_drawer.home', 'Dashboard')"
         class="group mt-1 flex shrink-0 flex-col items-center px-3 py-1.5 transition-opacity hover:opacity-90"
       >
         <div
           :class="isCollapsed ? 'w-8' : 'w-32.5'"
           class="relative mx-auto transition-all duration-200"
         >
+          <div
+            v-if="isCollapsed"
+            class="bg-primary-500/15 ring-primary-400/30 mx-auto flex h-8 w-8 items-center justify-center rounded-md ring-1"
+          >
+            <UIcon name="i-mdi-target-account" class="text-primary-300 h-5 w-5" />
+          </div>
           <NuxtImg
-            :src="
-              isCollapsed
-                ? '/img/logos/tarkovtrackerlogo-mini.webp'
-                : '/img/logos/tarkovtrackerlogo-light.webp'
-            "
+            v-else
+            src="/img/logos/tarkovtrackerlogo-light.webp"
+            :alt="t('navigation_drawer.brand_name')"
             class="h-auto w-full"
             preload
           />
@@ -65,25 +69,25 @@
         </div>
         <ul class="flex flex-col gap-0.5 px-1">
           <DrawerItem
-            avatar="/img/logos/tarkovdevlogo.webp"
+            icon="i-mdi-earth"
             locale-key="tarkovdev"
             href="https://tarkov.dev/"
             :is-collapsed="isCollapsed"
           />
           <DrawerItem
-            avatar="/img/logos/tarkovmonitorlogo.avif"
+            icon="i-mdi-radar"
             locale-key="tarkovmonitor"
             href="https://github.com/the-hideout/TarkovMonitor"
             :is-collapsed="isCollapsed"
           />
           <DrawerItem
-            avatar="/img/logos/ratscannerlogo.webp"
+            icon="i-mdi-crosshairs-gps"
             locale-key="ratscanner"
             href="https://github.com/RatScanner/RatScanner"
             :is-collapsed="isCollapsed"
           />
           <DrawerItem
-            avatar="/img/logos/tarkovchangeslogo.svg"
+            icon="i-mdi-chart-line"
             locale-key="tarkovchanges"
             href="https://tarkov-changes.com/"
             :is-collapsed="isCollapsed"
@@ -91,7 +95,7 @@
         </ul>
       </div>
     </div>
-  </aside>
+  </nav>
 </template>
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

@@ -18,11 +18,11 @@
         >
           {{ t('footer.terms_of_service') }}
         </router-link>
-        <span class="text-surface-600">·</span>
+        <span class="text-surface-500">·</span>
         <router-link to="/privacy" class="text-info-400 hover:text-info-300 transition-colors">
           {{ t('footer.privacy_policy') }}
         </router-link>
-        <span class="text-surface-600">·</span>
+        <span class="text-surface-500">·</span>
         <router-link to="/credits" class="text-info-400 hover:text-info-300 transition-colors">
           {{ t('footer.credits') }}
         </router-link>
@@ -30,10 +30,10 @@
       <div class="text-surface-500 text-center text-xs">
         <div class="text-surface-400 flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
           <span>TarkovTracker &copy; 2020–{{ new Date().getFullYear() }}</span>
-          <span class="text-surface-600">·</span>
-          <span class="text-surface-600 font-mono">v{{ tarkovVersion }}</span>
+          <span class="text-surface-500">·</span>
+          <span class="text-surface-400 font-mono">v{{ tarkovVersion }}</span>
         </div>
-        <p class="text-surface-600 mt-1">{{ t('footer.game_attribution') }}</p>
+        <p class="text-surface-400 mt-1">{{ t('footer.game_attribution') }}</p>
       </div>
     </div>
   </footer>

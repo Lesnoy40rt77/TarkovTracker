@@ -31,8 +31,9 @@
           variant="ghost"
           color="neutral"
           size="sm"
+          :aria-label="t('page.tasks.primary_views.all')"
           :aria-pressed="primaryView === 'all'"
-          :class="primaryView === 'all' ? 'bg-white/10 text-white' : 'text-surface-400'"
+          :class="primaryView === 'all' ? 'bg-white/10 text-white' : 'text-surface-200'"
           @click="setPrimaryView('all')"
         >
           <UIcon name="i-mdi-checkbox-multiple-marked" class="h-4 w-4 sm:mr-1.5" />
@@ -44,8 +45,9 @@
           variant="ghost"
           color="neutral"
           size="sm"
+          :aria-label="t('page.tasks.primary_views.traders')"
           :aria-pressed="primaryView === 'traders'"
-          :class="primaryView === 'traders' ? 'bg-white/10 text-white' : 'text-surface-400'"
+          :class="primaryView === 'traders' ? 'bg-white/10 text-white' : 'text-surface-200'"
           @click="setPrimaryView('traders')"
         >
           <UIcon name="i-mdi-account-group" class="h-4 w-4 sm:mr-1.5" />
@@ -57,8 +59,9 @@
           variant="ghost"
           color="neutral"
           size="sm"
+          :aria-label="t('page.tasks.primary_views.maps')"
           :aria-pressed="primaryView === 'maps'"
-          :class="primaryView === 'maps' ? 'bg-white/10 text-white' : 'text-surface-400'"
+          :class="primaryView === 'maps' ? 'bg-white/10 text-white' : 'text-surface-200'"
           @click="setPrimaryView('maps')"
         >
           <UIcon name="i-mdi-map" class="h-4 w-4 sm:mr-1.5" />
@@ -235,7 +238,7 @@
             <span class="hidden text-xs sm:inline sm:text-sm">
               {{ currentUserDisplayName.toUpperCase() }}
             </span>
-            <UBadge size="xs" color="primary" variant="solid" class="ml-1">
+            <UBadge size="sm" color="primary" variant="solid" class="ml-1">
               {{ t('page.tasks.user_views.yourself').toUpperCase() }}
             </UBadge>
           </UButton>
