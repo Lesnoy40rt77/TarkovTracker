@@ -73,6 +73,10 @@
       title: 'Copied!',
       description: '{value}',
     },
+    clipboard_error: {
+      title: 'Copy failed',
+      description: 'Unable to copy "{value}" to clipboard.',
+    },
   },
   common: {
     cancel: 'Cancel',
@@ -365,6 +369,7 @@
           repair_failed_count: 'Failed tasks detected: {count}',
           repair_failed_confirm: 'Repair failed tasks by clearing failed flags that are not supported by current fail conditions?',
           repair_failed_done: 'Cleared failed status for {count} tasks.',
+          repair_failed_error: 'Failed to repair tasks',
           repair_failed_action: 'Repair',
           repair_failed_cancel: 'Cancel',
         },
@@ -581,6 +586,11 @@
         name: 'Name',
         category: 'Category',
         count: 'Count',
+      },
+      view: {
+        list: 'List view',
+        grid: 'Grid view',
+        combined: 'Combined view',
       },
       needed_views: {
         all: 'All',

@@ -5,6 +5,9 @@
   <AppTooltip v-if="kappaRequired" :text="kappaTitleText">
     <UIcon name="i-mdi-trophy" :class="kappaIconClass" />
   </AppTooltip>
+  <AppTooltip v-if="lightkeeperRequired" :text="lightkeeperTitleText">
+    <UIcon name="i-mdi-lighthouse" :class="lightkeeperIconClass" />
+  </AppTooltip>
   <AppTooltip v-if="isCraftable" :text="craftableTitleText">
     <button
       type="button"
@@ -29,6 +32,9 @@
       kappaIconClass?: string;
       kappaRequired?: boolean;
       kappaTitle?: string;
+      lightkeeperIconClass?: string;
+      lightkeeperRequired?: boolean;
+      lightkeeperTitle?: string;
     }>(),
     {
       craftableIconBaseClass: 'ml-1 h-5 w-5',
@@ -36,9 +42,12 @@
       craftableTitle: 'Craftable',
       firIconClass: 'ml-1 h-5 w-5',
       foundInRaidTitle: 'Found in Raid required',
-      kappaIconClass: 'ml-1 h-5 w-5 text-warning-400',
+      kappaIconClass: 'ml-1 h-5 w-5 text-kappa',
       kappaRequired: false,
       kappaTitle: 'Required for Kappa quest',
+      lightkeeperIconClass: 'ml-1 h-5 w-5 text-lightkeeper',
+      lightkeeperRequired: false,
+      lightkeeperTitle: 'This quest is required to unlock the Lightkeeper trader',
     }
   );
   const emit = defineEmits<{
@@ -52,5 +61,11 @@
   const kappaTitleText = computed(() => {
     const title = props.kappaTitle?.trim();
     return title && title.length > 0 ? title : 'Required for Kappa quest';
+  });
+  const lightkeeperTitleText = computed(() => {
+    const title = props.lightkeeperTitle?.trim();
+    return title && title.length > 0
+      ? title
+      : 'This quest is required to unlock the Lightkeeper trader';
   });
 </script>

@@ -32,9 +32,13 @@
   const triggerRef = ref<HTMLElement | null>(null);
   const getMenuItems = (): HTMLElement[] => {
     if (!menuRef.value) return [];
-    return Array.from(
-      menuRef.value.querySelectorAll('[role="menuitem"], button, a')
+    const candidates = Array.from(
+      menuRef.value.querySelectorAll('[role="menuitem"], button, a, [tabindex]')
     ) as HTMLElement[];
+    return candidates.filter(
+      (el) =>
+        !el.hasAttribute('disabled') && !(el as HTMLButtonElement).disabled && el.tabIndex >= 0
+    );
   };
   const focusFirstItem = () => {
     nextTick(() => {

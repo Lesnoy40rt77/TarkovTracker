@@ -83,11 +83,7 @@ export function useTaskRepair({ requestRepairConfirm }: UseTaskRepairOptions): U
         tarkovStore.setTasksAndObjectivesUncompleted(taskIds, objectiveIds);
       }
       toast.add({
-        title: t(
-          'page.tasks.settings.advanced.repair_failed_done',
-          { count: repaired },
-          'Cleared failed status for {count} tasks.'
-        ),
+        title: t('page.tasks.settings.advanced.repair_failed_done', { count: repaired }),
         color: 'success',
       });
     } catch (error) {
@@ -95,7 +91,7 @@ export function useTaskRepair({ requestRepairConfirm }: UseTaskRepairOptions): U
         error: error instanceof Error ? error.message : String(error),
       });
       toast.add({
-        title: t('page.tasks.settings.advanced.repair_failed_error', 'Failed to repair tasks'),
+        title: t('page.tasks.settings.advanced.repair_failed_error'),
         color: 'error',
       });
     }

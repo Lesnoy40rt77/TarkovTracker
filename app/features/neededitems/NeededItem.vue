@@ -262,6 +262,12 @@
     }
     return relatedTask.value?.kappaRequired === true;
   });
+  const isLightkeeperRequired = computed(() => {
+    if (props.need.needType !== 'taskObjective') {
+      return false;
+    }
+    return relatedTask.value?.lightkeeperRequired === true;
+  });
   const isTaskSuccessful = (taskId: string) =>
     tarkovStore.isTaskComplete(taskId) && !tarkovStore.isTaskFailed(taskId);
   const item = computed(() => {
@@ -403,6 +409,7 @@
     selfCompletedNeed,
     isParentCompleted,
     isKappaRequired,
+    isLightkeeperRequired,
     lockedBefore,
     currentCount,
     neededCount,

@@ -27,6 +27,13 @@
                   :craftable-icon-class="craftableIconClass"
                   :kappa-required="isKappaRequired"
                   :kappa-title="$t('needed_items.task_kappa_req', 'Required for Kappa quest')"
+                  :lightkeeper-required="isLightkeeperRequired"
+                  :lightkeeper-title="
+                    $t(
+                      'page.tasks.questcard.lightkeeper_tooltip',
+                      'This quest is required to unlock the Lightkeeper trader'
+                    )
+                  "
                   @craft="goToCraftStation"
                 />
               </span>
@@ -108,7 +115,15 @@
                           :kappa-title="
                             $t('needed_items.task_kappa_req', 'Required for Kappa quest')
                           "
-                          kappa-icon-class="ml-1 h-4 w-4 text-warning-400"
+                          kappa-icon-class="ml-1 h-4 w-4 text-kappa"
+                          :lightkeeper-required="isLightkeeperRequired"
+                          :lightkeeper-title="
+                            $t(
+                              'page.tasks.questcard.lightkeeper_tooltip',
+                              'This quest is required to unlock the Lightkeeper trader'
+                            )
+                          "
+                          lightkeeper-icon-class="ml-1 h-4 w-4 text-lightkeeper"
                           @craft="goToCraftStation"
                         />
                       </div>
@@ -345,6 +360,7 @@
     currentCount,
     isCraftable,
     isKappaRequired,
+    isLightkeeperRequired,
     levelRequired,
     item,
     teamNeeds,

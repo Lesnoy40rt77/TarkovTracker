@@ -24,7 +24,7 @@
           Return Home
         </UButton>
       </div>
-      <p class="text-surface-500 mt-6 text-xs">Error {{ error.statusCode }}::{{ error.message }}</p>
+      <p class="text-surface-500 mt-6 text-xs">Error {{ statusCode }}</p>
     </div>
   </div>
 </template>
@@ -37,16 +37,16 @@
       required: true,
     },
   });
-  logger.error('Error page displayed', {
-    statusCode: props.error.statusCode,
-    message: props.error.message,
+  const statusCode = computed(() => props.error.statusCode ?? 500);
+  onMounted(() => {
+    logger.error(props.error, { context: 'ErrorComponent' });
   });
   const handleError = () => clearError({ redirect: '/' });
   const errorTitle = computed(() =>
-    props.error.statusCode === 404 ? 'Page Not Found' : 'Something Went Wrong'
+    statusCode.value === 404 ? 'Page Not Found' : 'Something Went Wrong'
   );
   const errorDescription = computed(() =>
-    props.error.statusCode === 404
+    statusCode.value === 404
       ? 'The page you are looking for does not exist.'
       : 'An unexpected error occurred while processing your request.'
   );

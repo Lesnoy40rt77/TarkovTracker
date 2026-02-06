@@ -258,7 +258,7 @@
     toggle: [];
   }>();
   const { t } = useI18n({ useScope: 'global' });
-  const toast = useToast();
+  const { copyToClipboard } = useCopyToClipboard();
   const formatNumber = useLocaleNumberFormatter();
   const backgroundClassMap = {
     violet: 'bg-rarity-violet',
@@ -369,31 +369,7 @@
   const copyItemName = async () => {
     const textToCopy = props.copyValue || props.itemName;
     if (textToCopy) {
-      try {
-        await navigator.clipboard.writeText(textToCopy);
-        toast.add({
-          title: t('toast.clipboard_copied.title'),
-          description: t('toast.clipboard_copied.description', { value: textToCopy }),
-          color: 'success',
-        });
-      } catch (error) {
-        const clipboardErrorTitle = t('toast.clipboard_error.title');
-        const clipboardErrorDescription = t('toast.clipboard_error.description', {
-          value: textToCopy,
-        });
-        toast.add({
-          title:
-            clipboardErrorTitle === 'toast.clipboard_error.title'
-              ? 'Copy failed'
-              : clipboardErrorTitle,
-          description:
-            clipboardErrorDescription === 'toast.clipboard_error.description'
-              ? `Unable to copy "${textToCopy}" to clipboard.`
-              : clipboardErrorDescription,
-          color: 'error',
-        });
-        logger.error('[GameItem] Failed to copy item name:', error);
-      }
+      await copyToClipboard(textToCopy);
     }
   };
   const handleClick = (event: MouseEvent) => {

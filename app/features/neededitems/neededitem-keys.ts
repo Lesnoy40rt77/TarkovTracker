@@ -1,3 +1,4 @@
+import type { ComputedRef, InjectionKey } from '#imports';
 import type { HideoutStation, Task, TarkovItem } from '@/types/tarkov';
 export type NeededItemTeamNeed = { user: string; count: number };
 export type NeededItemImageItem = {
@@ -13,6 +14,7 @@ export type NeededItemContext = {
   imageItem: ComputedRef<NeededItemImageItem>;
   isCraftable: ComputedRef<boolean>;
   isKappaRequired: ComputedRef<boolean>;
+  isLightkeeperRequired: ComputedRef<boolean>;
   isParentCompleted: ComputedRef<boolean>;
   item: ComputedRef<TarkovItem | null>;
   levelRequired: ComputedRef<number>;
@@ -35,6 +37,7 @@ export const createDefaultNeededItemContext = (): NeededItemContext => {
     imageItem: asComputed(null),
     isCraftable: asComputed(false),
     isKappaRequired: asComputed(false),
+    isLightkeeperRequired: asComputed(false),
     isParentCompleted: asComputed(false),
     item: asComputed(null),
     levelRequired: asComputed(0),

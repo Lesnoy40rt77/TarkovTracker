@@ -84,6 +84,7 @@
     "generate": "nuxt generate",
     "i18n:check": "node scripts/lint-i18n.mjs",
     "i18n:sync": "node scripts/sync-i18n.mjs",
+    "i18n:translate": "node scripts/translate-i18n.mjs",
     "lint": "eslint app --max-warnings=0",
     "typecheck": "nuxt typecheck",
     "lint:fix": "eslint app --fix",

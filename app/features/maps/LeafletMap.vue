@@ -846,10 +846,18 @@
         baseZoomDelta.value = instance.options.zoomDelta ?? 0.35;
         baseZoomSnap.value = instance.options.zoomSnap ?? 0.25;
         applyZoomSpeed(instance, mapZoomSpeed.value);
-        waitForSvgAndUpdateMarkers(instance);
       }
     },
     { immediate: true }
+  );
+  watch(
+    [isLoading, objectiveLayer, extractLayer, mapInstance],
+    ([loading, objectiveMarkersLayer, extractMarkersLayer, instance]) => {
+      if (loading || !instance || !objectiveMarkersLayer || !extractMarkersLayer) return;
+      lastMarksHash.value = '';
+      waitForSvgAndUpdateMarkers(instance);
+    },
+    { immediate: true, flush: 'post' }
   );
   const activateObjectivePopup = (objectiveId: string): boolean => {
     const markerData = objectiveMarkers.get(objectiveId);

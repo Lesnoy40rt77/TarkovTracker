@@ -109,7 +109,7 @@
   "reserve": {
     "svg": {
       "file": "Reserve.svg",
-      "floors": ["Bunkers", "Ground_Level", "2nd Floor", "3rd Floor", "4th Floor", "5th Floor"],
+      "floors": ["Bunkers", "Ground_Level"],
       "defaultFloor": "Ground_Level",
       "coordinateRotation": 180,
       "transform": [0.395, 122, 0.395, 137.65],

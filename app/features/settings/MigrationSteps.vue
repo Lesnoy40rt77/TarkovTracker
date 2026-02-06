@@ -6,17 +6,7 @@
       >
         1
       </span>
-      <span class="pt-0.5 text-left">
-        Get API token from
-        <a
-          href="https://tarkovtracker.io/settings"
-          target="_blank"
-          class="text-info-400 no-underline hover:underline"
-        >
-          tarkovtracker.io/settings
-        </a>
-        (API Tokens section)
-      </span>
+      <span class="pt-0.5 text-left">Migration from tarkovtracker.io is no longer supported</span>
     </div>
     <div class="flex items-start gap-3">
       <span

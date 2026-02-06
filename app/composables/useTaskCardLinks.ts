@@ -1,5 +1,5 @@
+import { writeToClipboard } from '@/composables/useCopyToClipboard';
 import { useTarkovStore } from '@/stores/useTarkov';
-import { logger } from '@/utils/logger';
 import type { Task, TaskObjective } from '@/types/tarkov';
 export interface UseTaskCardLinksOptions {
   task: () => Task;
@@ -30,29 +30,7 @@ export function useTaskCardLinks(options: UseTaskCardLinksOptions): UseTaskCardL
   const selectedItem = ref<SelectedTaskItem | null>(null);
   const tarkovDevTaskUrl = computed(() => `https://tarkov.dev/task/${task().id}`);
   const copyTextToClipboard = async (text: string): Promise<boolean> => {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch (error) {
-      logger.warn('[TaskCardLinks] Clipboard API failed, trying fallback:', error);
-    }
-    try {
-      // Note: document.execCommand('copy') is deprecated but intentionally retained
-      // as a legacy fallback for browsers without navigator.clipboard support
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      textarea.setAttribute('readonly', 'true');
-      textarea.style.position = 'fixed';
-      textarea.style.left = '-9999px';
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-      return true;
-    } catch (error) {
-      logger.error('[TaskCardLinks] Fallback copy failed:', error);
-      return false;
-    }
+    return writeToClipboard(text);
   };
   const copyTaskLink = async (): Promise<boolean> => {
     const href = router.resolve(`/tasks?task=${task().id}`).href;

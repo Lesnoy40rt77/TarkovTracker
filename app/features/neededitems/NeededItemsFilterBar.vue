@@ -114,11 +114,15 @@
         <div class="hidden h-6 w-px bg-white/10 sm:block" />
         <!-- Sort Popover -->
         <UPopover>
-          <UButton icon="i-mdi-sort" color="neutral" variant="ghost" size="sm" class="shrink-0">
-            <span class="hidden sm:inline">
-              {{ $t('page.needed_items.sort.label', 'Sort') }}
-            </span>
-          </UButton>
+          <UButton
+            icon="i-mdi-sort"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            class="shrink-0"
+            :title="$t('page.needed_items.sort.label', 'Sort')"
+            :aria-label="$t('page.needed_items.sort.label', 'Sort')"
+          />
           <template #content>
             <div class="w-64 space-y-3 p-3">
               <div class="text-surface-400 text-xs font-medium">
@@ -156,16 +160,15 @@
             variant="ghost"
             size="sm"
             class="shrink-0"
+            :title="$t('page.needed_items.filters.label', 'Filters')"
+            :aria-label="$t('page.needed_items.filters.label', 'Filters')"
           >
-            <span class="hidden sm:inline">
-              {{ $t('page.needed_items.filters.label', 'Filters') }}
-            </span>
             <UBadge
               v-if="activeFiltersCount > 0"
               color="primary"
               variant="soft"
               size="sm"
-              class="ml-1 px-1.5 py-0.5 sm:ml-2"
+              class="ml-1 px-1.5 py-0.5"
             >
               {{ activeFiltersCount }}
             </UBadge>
@@ -286,6 +289,8 @@
             :color="!groupByItem && viewMode === 'list' ? 'primary' : 'neutral'"
             :variant="!groupByItem && viewMode === 'list' ? 'soft' : 'ghost'"
             size="sm"
+            :title="$t('page.needed_items.view.list', 'List view')"
+            :aria-label="$t('page.needed_items.view.list', 'List view')"
             @click="setViewMode('list')"
           />
           <UButton
@@ -293,6 +298,8 @@
             :color="!groupByItem && viewMode === 'grid' ? 'primary' : 'neutral'"
             :variant="!groupByItem && viewMode === 'grid' ? 'soft' : 'ghost'"
             size="sm"
+            :title="$t('page.needed_items.view.grid', 'Grid view')"
+            :aria-label="$t('page.needed_items.view.grid', 'Grid view')"
             @click="setViewMode('grid')"
           />
           <UButton
@@ -300,6 +307,8 @@
             :color="groupByItem ? 'primary' : 'neutral'"
             :variant="groupByItem ? 'soft' : 'ghost'"
             size="sm"
+            :title="$t('page.needed_items.view.combined', 'Combined view')"
+            :aria-label="$t('page.needed_items.view.combined', 'Combined view')"
             @click="setGroupedView"
           />
           <!-- Card Style Toggle (Only visible in Grid View and not Grouped) -->
@@ -313,6 +322,11 @@
               variant="ghost"
               size="sm"
               :title="
+                cardStyle === 'compact'
+                  ? $t('needed_items.switch_to_expanded', 'Switch to Expanded view')
+                  : $t('needed_items.switch_to_compact', 'Switch to Compact view')
+              "
+              :aria-label="
                 cardStyle === 'compact'
                   ? $t('needed_items.switch_to_expanded', 'Switch to Expanded view')
                   : $t('needed_items.switch_to_compact', 'Switch to Compact view')
