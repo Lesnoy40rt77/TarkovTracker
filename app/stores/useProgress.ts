@@ -190,6 +190,7 @@ export const useProgressStore = defineStore('progress', () => {
     >();
     for (const teamId of teamIds) {
       const store = visibleTeamStores.value[teamId];
+      if (!store) continue;
       const currentData = getGameModeData(store);
       teamDataCache.set(teamId, {
         mode: store.$state.currentGameMode === GAME_MODES.PVE ? GAME_MODES.PVE : GAME_MODES.PVP,
@@ -211,7 +212,8 @@ export const useProgressStore = defineStore('progress', () => {
     }
     // Compute availability per team with memoization to keep status-aware chains consistent
     for (const teamId of teamIds) {
-      const teamData = teamDataCache.get(teamId)!;
+      const teamData = teamDataCache.get(teamId);
+      if (!teamData) continue;
       const availabilityMemo = new Map<string, boolean>();
       const unlockableMemo = new Map<string, boolean>();
       const visitingAvailable = new Set<string>();

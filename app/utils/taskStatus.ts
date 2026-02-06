@@ -1,5 +1,5 @@
 export type RawTaskCompletion =
-  | { complete?: boolean; failed?: boolean }
+  | { complete?: boolean; failed?: boolean; timestamp?: number }
   | boolean
   | null
   | undefined;
