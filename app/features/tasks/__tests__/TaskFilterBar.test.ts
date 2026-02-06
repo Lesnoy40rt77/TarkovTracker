@@ -91,6 +91,7 @@ const mountTaskFilterBar = (TaskFilterBar: Parameters<typeof mount>[0], searchQu
     props: { searchQuery },
     global: {
       stubs: {
+        AppTooltip: { template: '<span><slot /></span>' },
         UBadge: true,
         UButton: UButtonStub,
         UIcon: true,

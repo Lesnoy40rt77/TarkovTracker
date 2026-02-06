@@ -94,18 +94,18 @@
           :aria-label="sortDirectionLabel"
           @click="toggleSortDirection"
         />
-        <UButton
-          variant="ghost"
-          color="neutral"
-          size="sm"
-          :class="isDrawerOpen ? 'bg-white/10 text-white' : 'text-surface-400'"
-          @click="toggleDrawer"
-        >
-          <UIcon name="i-mdi-tune" class="h-4 w-4 sm:mr-1.5" />
-          <span class="hidden text-xs sm:inline">
-            {{ t('page.tasks.settings.title', 'Task Settings').toUpperCase() }}
-          </span>
-        </UButton>
+        <AppTooltip :text="t('page.tasks.settings.title', 'Task Settings')">
+          <UButton
+            variant="ghost"
+            color="neutral"
+            size="sm"
+            icon="i-mdi-cog"
+            :aria-label="t('page.tasks.settings.title', 'Task Settings')"
+            :aria-pressed="isDrawerOpen"
+            :class="isDrawerOpen ? 'bg-white/10 text-white' : 'text-surface-400'"
+            @click="toggleDrawer"
+          />
+        </AppTooltip>
       </div>
     </div>
     <div class="space-y-3">
