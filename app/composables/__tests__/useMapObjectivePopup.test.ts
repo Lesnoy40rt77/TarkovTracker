@@ -145,6 +145,12 @@ describe('useMapObjectivePopup', () => {
     });
   });
   describe('jumpToMapObjective map resolution', () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
     it('switches map when objective is on a different map', async () => {
       const mocks = mockSetup({
         objectives: [{ id: 'obj-1', taskId: 'task-1' }],

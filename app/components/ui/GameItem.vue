@@ -99,7 +99,7 @@
         <AppTooltip v-if="props.itemName" text="Copy Name">
           <button
             type="button"
-            class="inline-flex cursor-pointer items-center justify-center rounded p-1.5 text-gray-200 transition-colors hover:bg-white/20 hover:text-white"
+            class="text-surface-200 inline-flex cursor-pointer items-center justify-center rounded p-1.5 transition-colors hover:bg-white/20 hover:text-white"
             @click.stop="copyItemName"
           >
             <UIcon name="i-mdi-content-copy" class="h-5 w-5" />
@@ -257,7 +257,7 @@
     decrease: [];
     toggle: [];
   }>();
-  const { t } = useI18n({ useScope: 'global' });
+  useI18n({ useScope: 'global' });
   const { copyToClipboard } = useCopyToClipboard();
   const formatNumber = useLocaleNumberFormatter();
   const backgroundClassMap = {

@@ -1,5 +1,5 @@
 <template>
-  <template v-if="props.itemStyle == 'card'">
+  <template v-if="props.itemStyle === 'card'">
     <div class="h-full">
       <LazyNeededItemSmallCard
         :need="props.need"
@@ -10,7 +10,7 @@
       />
     </div>
   </template>
-  <template v-else-if="props.itemStyle == 'row'">
+  <template v-else-if="props.itemStyle === 'row'">
     <div class="w-full pt-1">
       <LazyNeededItemRow
         :need="props.need"

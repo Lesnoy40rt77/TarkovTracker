@@ -1,6 +1,5 @@
 <template>
   <div class="relative w-full">
-    <!-- Unavailable map placeholder -->
     <div
       v-if="isMapUnavailable"
       class="bg-surface-900 flex h-100 w-full flex-col items-center justify-center rounded sm:h-125 lg:h-150"
@@ -18,9 +17,7 @@
         }}
       </p>
     </div>
-    <!-- Map content (only shown when map is available) -->
     <template v-else>
-      <!-- Floor selector -->
       <div
         v-if="hasMultipleFloors"
         class="bg-surface-800/90 absolute top-2 left-2 z-1000 flex flex-col gap-1 rounded p-1.5"
@@ -28,7 +25,6 @@
         <span class="text-surface-400 px-1 text-[10px] font-medium tracking-wide uppercase">
           {{ t('maps.floors') }}
         </span>
-        <!-- Display floors in reverse order so lowest floor is at bottom, highest at top -->
         <div class="flex flex-col-reverse gap-1">
           <UButton
             v-for="floor in floors"
@@ -43,18 +39,15 @@
           </UButton>
         </div>
       </div>
-      <!-- Loading indicator -->
       <div
         v-if="isLoading"
         class="bg-surface-900/50 absolute inset-0 z-1001 flex items-center justify-center"
       >
         <UIcon name="i-mdi-loading" class="text-primary-500 h-8 w-8 animate-spin" />
       </div>
-      <!-- Map controls (top right) -->
       <div
         class="bg-surface-800/90 absolute top-2 right-2 z-1000 flex flex-wrap items-center gap-2 rounded p-1.5"
       >
-        <!-- Reset view button -->
         <UButton
           color="primary"
           variant="soft"
@@ -65,7 +58,6 @@
         >
           {{ t('maps.reset') }}
         </UButton>
-        <!-- Extract toggle -->
         <UButton
           v-if="props.showExtractToggle"
           :color="showPmcExtracts ? 'primary' : 'neutral'"
@@ -102,15 +94,12 @@
           <span class="text-surface-300 text-[10px] tabular-nums">{{ zoomSpeedLabel }}</span>
         </div>
       </div>
-      <!-- Map container -->
       <div
         ref="mapContainer"
         class="bg-surface-900 h-100 w-full rounded sm:h-125 lg:h-150"
         :style="mapHeightStyle"
       />
-      <!-- Legends Footer -->
       <div class="mt-2 flex flex-wrap items-start justify-between gap-x-4 gap-y-4">
-        <!-- Main Objective Legend -->
         <div
           v-if="props.showLegend"
           class="text-surface-300 flex flex-wrap items-center gap-4 text-xs"
@@ -146,7 +135,6 @@
             <span>{{ t('maps.legend.coop_extract') }}</span>
           </div>
         </div>
-        <!-- Controls Legend -->
         <div
           class="text-surface-400 ml-auto flex flex-wrap-reverse items-center justify-end gap-x-4 gap-y-1 text-[10px] font-medium"
         >
@@ -181,7 +169,6 @@
   import { MAP_MARKER_COLORS as MAP_COLORS } from '@/utils/theme-colors';
   import type { MapExtract, TarkovMap } from '@/types/tarkov';
   import type L from 'leaflet';
-  // Types for marks (matching TarkovMap.vue structure)
   interface MapZone {
     map: { id: string };
     outline: Array<{ x: number; z: number }>;
@@ -222,15 +209,12 @@
     if (typeof props.height !== 'number' || Number.isNaN(props.height)) return undefined;
     return { height: `${props.height}px` };
   });
-  // Check if map is unavailable
   const isMapUnavailable = computed(() => {
     return props.map?.unavailable === true;
   });
-  // Local state
   const mapContainer = ref<HTMLElement | null>(null);
   const showPmcExtracts = ref(props.showPmcExtracts ?? props.showExtracts);
   const showScavExtracts = ref(props.showScavExtracts ?? props.showExtracts);
-  // Use the Leaflet map composable
   const {
     mapInstance,
     leaflet,
@@ -247,7 +231,6 @@
     containerRef: mapContainer,
     map: toRef(props, 'map'),
   });
-  // Get extracts for the current map
   const mapExtracts = computed<MapExtract[]>(() => {
     if (!props.map?.extracts) return [];
     return props.map.extracts;
@@ -269,7 +252,7 @@
   const ZOOM_SPEED_MAX = 3;
   const FNV1A_OFFSET_BASIS = 0x811c9dc5;
   const FNV1A_PRIME = 0x01000193;
-  const MARKER_SVG_LOAD_DELAY_MS = 500; // Wait for the SVG map layer to finish layout before drawing markers.
+  const MARKER_SVG_LOAD_DELAY_MS = 500;
   const updateFnv1a = (hash: number, value: string | number): number => {
     const token = typeof value === 'number' ? String(value) : value;
     for (let i = 0; i < token.length; i++) {
@@ -577,9 +560,6 @@
       cleanupMountedComponent();
     });
   };
-  /**
-   * Generates a hash for marks data to detect changes.
-   */
   function getMarksHash(marks: MapMark[], mapId: string): string {
     let hash = updateFnv1a(FNV1A_OFFSET_BASIS, mapId);
     hash = updateFnv1a(hash, marks.length);
@@ -609,9 +589,6 @@
     }
     return hash.toString(16).padStart(8, '0');
   }
-  /**
-   * Creates objective markers on the map.
-   */
   function createObjectiveMarkers(): void {
     if (!leaflet.value || !objectiveLayer.value || !props.map) return;
     const L = leaflet.value;
@@ -647,11 +624,9 @@
       }
       return Math.abs(sum / 2);
     };
-    // Create markers and zones, but add zones later sorted by size.
     props.marks.forEach((mark) => {
       const objectiveId = mark.id;
       if (!objectiveId) return;
-      // Handle point markers (possibleLocations)
       mark.possibleLocations?.forEach((location) => {
         if (location.map.id !== props.map.id) return;
         const positions = location.positions;
@@ -670,7 +645,6 @@
         });
         pointEntries.push({ marker, objectiveId });
       });
-      // Handle zone polygons
       mark.zones.forEach((zone) => {
         if (zone.map.id !== props.map.id) return;
         if (zone.outline.length < 3) return;
@@ -695,7 +669,6 @@
         });
       });
     });
-    // Add larger zones first so smaller zones stay on top (clickable)
     zoneEntries
       .sort((a, b) => b.area - a.area)
       .forEach(({ polygon, objectiveId }) => {
@@ -706,7 +679,6 @@
         polygon.on('mouseout', () => polygon.setStyle({ fillOpacity: 0.2, weight: 2 }));
         objectiveLayer.value!.addLayer(polygon);
       });
-    // Add point markers last so they render above zones
     pointEntries.forEach(({ marker, objectiveId }) => {
       if (objectiveId) {
         attachHoverPinPopup(marker, objectiveId, () => marker.getLatLng());
@@ -714,9 +686,6 @@
       objectiveLayer.value!.addLayer(marker);
     });
   }
-  /**
-   * Creates extract markers on the map.
-   */
   function createExtractMarkers(): void {
     if (!leaflet.value || !extractLayer.value || !props.map) return;
     const L = leaflet.value;
@@ -735,7 +704,6 @@
             : showAnyExtracts;
       if (!shouldShow) return;
       const latLng = gameToLatLng(extract.position.x, extract.position.z);
-      // Color based on faction
       let markerColor: string;
       switch (extract.faction) {
         case 'pmc':
@@ -760,26 +728,13 @@
         opacity: 1,
         interactive: false,
       });
-      // Create custom icon for extracts
-      // Use inline styles instead of Tailwind classes since Leaflet injects these outside Vue context
       const extractBadge = document.createElement('div');
       extractBadge.setAttribute('title', extract.name);
       extractBadge.setAttribute('aria-label', extract.name);
-      extractBadge.style.display = 'inline-flex';
-      extractBadge.style.alignItems = 'center';
-      extractBadge.style.gap = '6px';
-      extractBadge.style.padding = '3px 6px';
-      extractBadge.style.borderRadius = '999px';
-      extractBadge.style.backgroundColor = 'var(--color-surface-900)';
-      extractBadge.style.border = `2px solid ${markerColor}`;
-      extractBadge.style.fontSize = '11px';
-      extractBadge.style.lineHeight = '1';
-      extractBadge.style.color = 'var(--color-surface-200)';
-      extractBadge.style.boxShadow = '0 2px 4px rgba(0,0,0,0.5)';
-      extractBadge.style.whiteSpace = 'nowrap';
-      extractBadge.style.transform = 'translate(-50%, calc(-100% - 6px))';
+      extractBadge.className = 'extract-badge';
+      extractBadge.style.borderColor = markerColor;
       const extractLabel = document.createElement('span');
-      extractLabel.style.fontWeight = '600';
+      extractLabel.className = 'extract-badge-label';
       extractLabel.textContent = extract.name;
       extractBadge.appendChild(extractLabel);
       const extractIcon = L.divIcon({
@@ -797,9 +752,6 @@
       extractLayer.value!.addLayer(labelMarker);
     });
   }
-  /**
-   * Updates all markers on the map.
-   */
   function updateMarkers(): void {
     try {
       createObjectiveMarkers();
@@ -823,7 +775,6 @@
       instance.options.zoomSnap = nextZoomSnap;
     }
   };
-  // Watch for changes that require marker updates
   watch(
     () => props.marks,
     () => updateMarkers(),
@@ -837,7 +788,6 @@
     lastMarksHash.value = '';
     updateMarkers();
   });
-  // Wait for map to be ready, then create markers
   watch(
     mapInstance,
     (instance) => {
@@ -875,7 +825,6 @@
     closeActivePopup,
     refreshView,
   });
-  // Cleanup
   onUnmounted(() => {
     teardownSvgReadyWatcher();
     if (activePinnedPopupCleanup) {

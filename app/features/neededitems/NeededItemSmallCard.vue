@@ -4,8 +4,8 @@
       :text="
         isSingleItem && !selfCompletedNeed
           ? currentCount >= neededCount
-            ? 'Click to uncollect'
-            : 'Click to collect'
+            ? t('needed_items.click_to_uncollect', 'Click to uncollect')
+            : t('needed_items.click_to_collect', 'Click to collect')
           : ''
       "
     >
