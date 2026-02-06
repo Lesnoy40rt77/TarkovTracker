@@ -6,10 +6,6 @@ import { isAllUsersView } from '@/types/taskFilter';
 import { TRADER_ORDER } from '@/utils/constants';
 import { logger } from '@/utils/logger';
 import { perfEnabled, perfEnd, perfNow, perfStart } from '@/utils/perf';
-import {
-  buildTaskTypeFilterOptions,
-  filterTasksByTypeSettings as filterTasksByTypeSettingsUtil,
-} from '@/utils/taskTypeFilters';
 import type { Task, TaskObjective } from '@/types/tarkov';
 import type {
   MergedMap,
@@ -309,8 +305,39 @@ export function useTaskFiltering() {
    * Also filters out tasks not available for the user's game edition
    */
   const filterTasksByTypeSettings = (taskList: Task[]): Task[] => {
-    const options = buildTaskTypeFilterOptions(preferencesStore, tarkovStore, metadataStore);
-    return filterTasksByTypeSettingsUtil(taskList, options);
+    const showKappa = !preferencesStore.getHideNonKappaTasks; // Show Kappa Required tasks
+    const showLightkeeper = preferencesStore.getShowLightkeeperTasks;
+    const showNonSpecial = preferencesStore.getShowNonSpecialTasks;
+    // Get prestige filtering data
+    const userPrestigeLevel = tarkovStore.getPrestigeLevel();
+    const prestigeTaskMap = metadataStore.prestigeTaskMap || new Map<string, number>();
+    const prestigeTaskIds = metadataStore.prestigeTaskIds || [];
+    // Get edition-based excluded tasks
+    const userEdition = tarkovStore.getGameEdition();
+    const excludedTaskIds = metadataStore.getExcludedTaskIdsForEdition(userEdition);
+    return taskList.filter((task) => {
+      // Filter out tasks not available for user's game edition
+      if (excludedTaskIds.has(task.id)) return false;
+      // Filter prestige-gated tasks ("New Beginning")
+      // Only show the task that matches the user's current prestige level
+      if (prestigeTaskIds.includes(task.id)) {
+        const taskPrestigeLevel = prestigeTaskMap.get(task.id);
+        if (taskPrestigeLevel !== userPrestigeLevel) {
+          return false;
+        }
+      }
+      const isKappaRequired = task.kappaRequired === true;
+      const isLightkeeperRequired = task.lightkeeperRequired === true;
+      const isNonSpecial = !isKappaRequired && !isLightkeeperRequired;
+      // OR logic: show if task matches ANY enabled category
+      // A task can be both Kappa and Lightkeeper required - show if either filter is on
+      // Note: Lightkeeper's own tasks are treated as normal tasks (gated by unlock requirement)
+      if (isKappaRequired && showKappa) return true;
+      if (isLightkeeperRequired && showLightkeeper) return true;
+      if (isNonSpecial && showNonSpecial) return true;
+      // Task doesn't match any enabled filter
+      return false;
+    });
   };
   /**
    * Helper to extract all map locations from a task
@@ -574,6 +601,7 @@ export function useTaskFiltering() {
     sortDirection: TaskSortDirection
   ): Task[] => {
     const pinnedIds = preferencesStore.getPinnedTaskIds;
+    // Partition tasks into pinned and unpinned
     const pinnedTasks: Task[] = [];
     const unpinnedTasks: Task[] = [];
     for (const task of taskList) {
@@ -604,7 +632,14 @@ export function useTaskFiltering() {
     };
     return [...applySort(pinnedTasks), ...applySort(unpinnedTasks)];
   };
-  const updateVisibleTasks = (options: TaskFilterAndSortOptions, tasksLoading: boolean): void => {
+  /**
+   * Main function to update visible tasks based on all filters.
+   * Uses TaskFilterAndSortOptions parameter object for cleaner API.
+   */
+  const updateVisibleTasks = async (
+    options: TaskFilterAndSortOptions,
+    tasksLoading: boolean
+  ): Promise<void> => {
     const {
       primaryView,
       secondaryView,
@@ -705,8 +740,37 @@ export function useTaskFiltering() {
       userView,
     });
     const counts = { all: 0, available: 0, locked: 0, completed: 0, failed: 0 };
-    const taskList = filterTasksByTypeSettings(metadataStore.tasks);
+    const taskList = metadataStore.tasks;
+    // Get task type filter settings
+    const showKappa = !preferencesStore.getHideNonKappaTasks;
+    const showLightkeeper = preferencesStore.getShowLightkeeperTasks;
+    const showNonSpecial = preferencesStore.getShowNonSpecialTasks;
+    // Get prestige filtering data
+    const userPrestigeLevel = tarkovStore.getPrestigeLevel();
+    const prestigeTaskMap = metadataStore.prestigeTaskMap || new Map<string, number>();
+    const prestigeTaskIds = metadataStore.prestigeTaskIds || [];
+    // Get edition-based excluded tasks
+    const userEdition = tarkovStore.getGameEdition();
+    const excludedTaskIds = metadataStore.getExcludedTaskIdsForEdition(userEdition);
     for (const task of taskList) {
+      // Skip tasks not available for user's game edition
+      if (excludedTaskIds.has(task.id)) continue;
+      // Skip prestige tasks that don't match user's prestige level
+      if (prestigeTaskIds.includes(task.id)) {
+        const taskPrestigeLevel = prestigeTaskMap.get(task.id);
+        if (taskPrestigeLevel !== userPrestigeLevel) continue;
+      }
+      // Skip tasks filtered out by task type settings
+      const isKappaRequired = task.kappaRequired === true;
+      const isLightkeeperRequired = task.lightkeeperRequired === true;
+      const isNonSpecial = !isKappaRequired && !isLightkeeperRequired;
+      if (
+        (isKappaRequired && !showKappa) ||
+        (isLightkeeperRequired && !showLightkeeper) ||
+        (isNonSpecial && !showNonSpecial)
+      ) {
+        continue;
+      }
       if (isAllUsersView(userView)) {
         const teamIds = Object.keys(progressStore.visibleTeamStores || {});
         const relevantTeamIds = teamIds.filter((teamId) => {
@@ -778,13 +842,36 @@ export function useTaskFiltering() {
       secondaryView,
     });
     const counts: Record<string, number> = {};
-    const taskList = filterTasksByTypeSettings(metadataStore.tasks);
+    const taskList = metadataStore.tasks;
+    const showKappa = !preferencesStore.getHideNonKappaTasks;
+    const showLightkeeper = preferencesStore.getShowLightkeeperTasks;
+    const showNonSpecial = preferencesStore.getShowNonSpecialTasks;
+    const userPrestigeLevel = tarkovStore.getPrestigeLevel();
+    const prestigeTaskMap = metadataStore.prestigeTaskMap || new Map<string, number>();
+    const prestigeTaskIds = metadataStore.prestigeTaskIds || [];
+    const userEdition = tarkovStore.getGameEdition();
+    const excludedTaskIds = metadataStore.getExcludedTaskIdsForEdition(userEdition);
     const isAvailableStatus = (status: {
       isUnlocked: boolean;
       isCompleted: boolean;
       isFailed: boolean;
     }) => status.isUnlocked && !status.isCompleted && !status.isFailed;
     for (const task of taskList) {
+      if (excludedTaskIds.has(task.id)) continue;
+      if (prestigeTaskIds.includes(task.id)) {
+        const taskPrestigeLevel = prestigeTaskMap.get(task.id);
+        if (taskPrestigeLevel !== userPrestigeLevel) continue;
+      }
+      const isKappaRequired = task.kappaRequired === true;
+      const isLightkeeperRequired = task.lightkeeperRequired === true;
+      const isNonSpecial = !isKappaRequired && !isLightkeeperRequired;
+      if (
+        (isKappaRequired && !showKappa) ||
+        (isLightkeeperRequired && !showLightkeeper) ||
+        (isNonSpecial && !showNonSpecial)
+      ) {
+        continue;
+      }
       const traderId = task.trader?.id;
       if (!traderId) continue;
       if (!counts[traderId]) counts[traderId] = 0;
@@ -824,8 +911,6 @@ export function useTaskFiltering() {
           case 'failed':
             shouldCount = taskStatuses.some(({ isFailed }) => isFailed);
             break;
-          default:
-            throw new Error(`Unhandled secondaryView: ${secondaryView satisfies never}`);
         }
         if (shouldCount) counts[traderId]++;
       } else {
@@ -852,8 +937,6 @@ export function useTaskFiltering() {
           case 'failed':
             shouldCount = isFailed;
             break;
-          default:
-            throw new Error(`Unhandled secondaryView: ${secondaryView satisfies never}`);
         }
         if (shouldCount) counts[traderId]++;
       }
@@ -875,6 +958,7 @@ export function useTaskFiltering() {
     updateVisibleTasks,
     resetTraderOrderMapCache,
     mapObjectiveTypes,
+    disabledTasks: [] as string[],
     RAID_RELEVANT_OBJECTIVE_TYPES,
     isRaidRelevantObjective,
     isGlobalTask,

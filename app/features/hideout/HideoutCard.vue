@@ -9,17 +9,18 @@
     class="relative rounded-lg"
     :class="cardHighlightClasses"
     header-classes="pb-2"
-    @mouseenter="scheduleDismissHighlight"
-    @focusin="scheduleDismissHighlight"
-    @mouseleave="cancelDismissHighlightDebounce"
-    @focusout="cancelDismissHighlightDebounce"
+    @mouseenter="dismissHighlight"
+    @focusin="dismissHighlight"
   >
     <template #header>
       <div class="flex items-center justify-between pb-2 text-xl">
+        <!-- Left side content (icon and title with level badge) -->
         <div class="flex items-center gap-3">
+          <!-- Station Avatar -->
           <span :class="highlightClasses" class="inline-block rounded-br-lg px-3 py-1 shadow-lg">
-            <img :src="stationAvatar" :alt="station.name" class="block h-12 pt-0" />
+            <img :src="stationAvatar" :height="50" :style="{ height: '50px' }" class="block pt-0" />
           </span>
+          <!-- Title and Level Badge -->
           <div class="flex items-center gap-2">
             <span class="inline-block text-left leading-6">
               {{ station.name }}
@@ -46,7 +47,7 @@
                   </i18n-t>
                 </template>
                 <template v-else>
-                  {{ $t('page.hideout.stationcard.level_not_ready') }}
+                  {{ $t('page.hideout.stationcard.levelnotready') }}
                 </template>
               </span>
             </div>
@@ -65,6 +66,7 @@
             </div>
           </div>
         </div>
+        <!-- Collapse Toggle -->
         <UButton
           :icon="isContentVisible ? 'i-mdi-chevron-up' : 'i-mdi-chevron-down'"
           :aria-label="
@@ -80,18 +82,21 @@
     </template>
     <template #content>
       <div v-if="isContentVisible">
+        <!-- Stash station special content -->
         <div
           v-if="props.station.normalizedName === SPECIAL_STATIONS.STASH"
           class="bg-surface-700 mb-3 rounded-lg p-3 text-center"
         >
           <div class="mb-2 text-sm">
-            {{ $t('page.hideout.stationcard.game_edition_description') }}
+            {{ $t('page.hideout.stationcard.gameeditiondescription') }}
           </div>
           <UButton variant="soft" to="/settings" color="neutral">
-            {{ $t('page.hideout.stationcard.settings_button') }}
+            {{ $t('page.hideout.stationcard.settingsbutton') }}
           </UButton>
         </div>
+        <!-- Next level requirements -->
         <div v-if="nextLevel" class="space-y-3">
+          <!-- Item Requirements Section -->
           <div
             v-if="hasItemRequirements"
             class="bg-surface-800 relative rounded-lg p-3"
@@ -102,8 +107,9 @@
                 name="i-mdi-package-variant-closed-check"
                 class="text-success-500 mr-2 h-5 w-5"
               />
-              {{ $t('page.hideout.stationcard.next_level') }}
+              {{ $t('page.hideout.stationcard.nextlevel') }}
             </div>
+            <!-- Item Requirements Grid -->
             <div class="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               <HideoutRequirement
                 v-for="requirement in nextLevel.itemRequirements"
@@ -113,10 +119,12 @@
                 :level="nextLevel.level"
               />
             </div>
+            <!-- Prerequisites Section -->
             <div v-if="hasPrerequisites" class="border-surface-700 space-y-2 border-t pt-3">
               <div class="text-surface-400 mb-2 text-xs font-medium tracking-wider uppercase">
                 {{ $t('page.hideout.stationcard.prerequisites') || 'Prerequisites' }}
               </div>
+              <!-- Station Level Requirements -->
               <div
                 v-for="(requirement, rIndex) in nextLevel.stationLevelRequirements"
                 :key="`station-${rIndex}`"
@@ -139,6 +147,7 @@
                   </template>
                 </i18n-t>
               </div>
+              <!-- Skill Requirements -->
               <div
                 v-for="(requirement, rIndex) in nextLevel.skillRequirements"
                 :key="`skill-${rIndex}`"
@@ -161,6 +170,7 @@
                   </template>
                 </i18n-t>
               </div>
+              <!-- Trader Requirements -->
               <div
                 v-for="(requirement, rIndex) in nextLevel.traderRequirements"
                 :key="`trader-${rIndex}`"
@@ -186,12 +196,13 @@
             </div>
           </div>
         </div>
+        <!-- Max level indicator -->
         <div v-if="!nextLevel" class="bg-surface-800 rounded p-3">
           <div
             class="text-warning-500 flex items-center justify-center text-center text-base font-medium"
           >
             <UIcon name="i-mdi-star-check" class="mr-2 h-6 w-6" />
-            {{ $t('page.hideout.stationcard.max_level') }}
+            {{ $t('page.hideout.stationcard.maxlevel') }}
           </div>
         </div>
       </div>
@@ -209,7 +220,7 @@
             @click="upgradeStation()"
           >
             <i18n-t
-              keypath="page.hideout.stationcard.upgrade_button"
+              keypath="page.hideout.stationcard.upgradebutton"
               scope="global"
               :plural="nextLevel?.level"
             >
@@ -226,7 +237,7 @@
             @click="downgradeStation()"
           >
             <i18n-t
-              keypath="page.hideout.stationcard.downgrade_button"
+              keypath="page.hideout.stationcard.downgradebutton"
               scope="global"
               :plural="(progressStore.hideoutLevels?.[props.station.id]?.self || 0) - 1"
             >
@@ -244,7 +255,7 @@
             @click="downgradeStation()"
           >
             <i18n-t
-              keypath="page.hideout.stationcard.downgrade_button"
+              keypath="page.hideout.stationcard.downgradebutton"
               scope="global"
               :plural="(progressStore.hideoutLevels?.[props.station.id]?.self || 0) - 1"
             >
@@ -257,7 +268,7 @@
             v-if="nextLevel && (!currentLevel || downgradeDisabled)"
             class="text-surface-400 text-sm"
           >
-            {{ t('page.hideout.stationcard.upgrade_unavailable') }}
+            {{ t('page.hideout.stationcard.upgradeunavailable') }}
           </span>
         </div>
       </div>
@@ -266,14 +277,20 @@
 </template>
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import { useToast } from '#imports';
   import { useProgressStore } from '@/stores/useProgress';
   import { useTarkovStore } from '@/stores/useTarkov';
   import { SPECIAL_STATIONS } from '@/utils/constants';
-  import type { HideoutLevel, HideoutStation, ItemRequirement } from '@/types/tarkov';
+  import type {
+    HideoutLevel,
+    HideoutStation,
+    ItemRequirement,
+    SkillRequirement,
+    StationLevelRequirement,
+    TraderRequirement,
+  } from '@/types/tarkov';
   const GenericCard = defineAsyncComponent(() => import('@/components/ui/GenericCard.vue'));
-  const HideoutRequirement = defineAsyncComponent(
-    () => import('@/features/hideout/HideoutRequirement.vue')
-  );
+  const HideoutRequirement = defineAsyncComponent(() => import('./HideoutRequirement.vue'));
   const props = withDefaults(
     defineProps<{
       station: HideoutStation;
@@ -289,8 +306,6 @@
   );
   const progressStore = useProgressStore();
   const tarkovStore = useTarkovStore();
-  const { arePrereqsMet, isSkillReqMet, isStationReqMet, isTraderReqMet } =
-    useHideoutStationStatus();
   const { t } = useI18n({ useScope: 'global' });
   const toast = useToast();
   const isContentVisible = ref(!props.collapsed);
@@ -345,9 +360,44 @@
     }
     return classes;
   });
+  const isStationReqMet = (requirement: StationLevelRequirement) => {
+    const currentStationLevel = progressStore.hideoutLevels?.[requirement.station.id]?.self || 0;
+    return currentStationLevel >= requirement.level;
+  };
+  const isSkillReqMet = (requirement: SkillRequirement) => {
+    if (!requirement?.name || typeof requirement?.level !== 'number') return true;
+    const currentSkills =
+      (tarkovStore.getCurrentProgressData?.() || {}).skills ||
+      // progressStore currently stores skills under current progress data; fallback to empty
+      {};
+    const currentLevel =
+      currentSkills?.[requirement.name] ?? tarkovStore.getSkillLevel(requirement.name);
+    return currentLevel >= requirement.level;
+  };
+  const isTraderReqMet = (requirement: TraderRequirement) => {
+    // Check user's current trader loyalty level against requirement
+    if (!requirement?.trader?.id || typeof requirement?.value !== 'number') return true;
+    const currentLevel = tarkovStore.getTraderLevel(requirement.trader.id);
+    return currentLevel >= requirement.value;
+  };
   const prerequisitesMet = computed(() => {
     if (!nextLevel.value) return true;
-    return arePrereqsMet(nextLevel.value);
+    // Check station level requirements
+    const stationReqsMet =
+      nextLevel.value.stationLevelRequirements?.every((req: StationLevelRequirement) => {
+        return isStationReqMet(req);
+      }) ?? true;
+    // Check skill requirements
+    const skillReqsMet =
+      nextLevel.value.skillRequirements?.every((req: SkillRequirement) => {
+        return isSkillReqMet(req);
+      }) ?? true;
+    // Check trader requirements
+    const traderReqsMet =
+      nextLevel.value.traderRequirements?.every((req: TraderRequirement) => {
+        return isTraderReqMet(req);
+      }) ?? true;
+    return stationReqsMet && skillReqsMet && traderReqsMet;
   });
   const upgradeDisabled = computed(() => {
     return nextLevel.value === null;
@@ -410,39 +460,17 @@
   const highlightTargetsModule = computed(() => {
     return highlightMatchesNext.value && hasItemRequirements.value;
   });
-  const HIGHLIGHT_BASE_CLASSES =
-    'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-2 after:ring-primary-400/70 after:ring-offset-2 after:content-[""] after:animate-pulse';
-  const buildHighlightClasses = (offsetClass: string) => {
-    return `${HIGHLIGHT_BASE_CLASSES} ${offsetClass}`;
-  };
   const cardHighlightClasses = computed(() => {
     if (!highlightActive.value || highlightTargetsModule.value) return '';
-    return buildHighlightClasses('after:ring-offset-surface-900');
+    return 'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-2 after:ring-primary-400/70 after:ring-offset-2 after:ring-offset-surface-900 after:content-[""] after:animate-pulse';
   });
   const moduleHighlightClasses = computed(() => {
     if (!highlightActive.value || !highlightTargetsModule.value) return '';
-    return buildHighlightClasses('after:ring-offset-surface-800');
+    return 'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-2 after:ring-primary-400/70 after:ring-offset-2 after:ring-offset-surface-800 after:content-[""] after:animate-pulse';
   });
-  const HIGHLIGHT_DISMISS_DELAY_MS = 200;
-  let dismissHighlightTimer: ReturnType<typeof setTimeout> | null = null;
-  const clearDismissHighlightTimer = () => {
-    if (!dismissHighlightTimer) return;
-    clearTimeout(dismissHighlightTimer);
-    dismissHighlightTimer = null;
-  };
   const dismissHighlight = () => {
     if (!highlightActive.value) return;
     highlightDismissed.value = true;
-  };
-  const scheduleDismissHighlight = () => {
-    clearDismissHighlightTimer();
-    dismissHighlightTimer = setTimeout(() => {
-      dismissHighlightTimer = null;
-      dismissHighlight();
-    }, HIGHLIGHT_DISMISS_DELAY_MS);
-  };
-  const cancelDismissHighlightDebounce = () => {
-    clearDismissHighlightTimer();
   };
   const upgradeStation = () => {
     // Store next level to a variable because it can change mid-function
@@ -454,7 +482,7 @@
       tarkovStore.setHideoutPartComplete(o.id);
     });
     toast.add({
-      title: t('page.hideout.stationcard.status_upgraded', {
+      title: t('page.hideout.stationcard.statusupgraded', {
         name: props.station.name,
         level: upgradeLevel.level,
       }),
@@ -471,14 +499,11 @@
       tarkovStore.setHideoutPartUncomplete(o.id);
     });
     toast.add({
-      title: t('page.hideout.stationcard.status_downgraded', {
+      title: t('page.hideout.stationcard.statusdowngraded', {
         name: props.station.name,
         level: downgradeLevel.level,
       }),
       color: 'error',
     });
   };
-  onUnmounted(() => {
-    clearDismissHighlightTimer();
-  });
 </script>

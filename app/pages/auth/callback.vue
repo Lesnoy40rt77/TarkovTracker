@@ -13,12 +13,7 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { logger } from '@/utils/logger';
-  const route = useRoute();
-  useSeoMeta({
-    title: 'Authenticating',
-    robots: 'noindex, nofollow',
-  });
+  import { sanitizeInternalRedirect } from '@/utils/redirect';
   onMounted(async () => {
     // Check if this is a popup window (has opener)
     const isPopup = window.opener && !window.opener.closed;
@@ -37,22 +32,9 @@
       // This is a full redirect (not popup) - redirect to original page or dashboard
       // Wait a moment for the session to be established
       await new Promise((resolve) => setTimeout(resolve, 500));
-      const redirectParam = route.query.redirect;
-      const redirectValue = Array.isArray(redirectParam) ? redirectParam[0] : redirectParam;
-      const redirectRaw = typeof redirectValue === 'string' ? redirectValue.trim() : '';
-      const isSafeRedirect =
-        redirectRaw.length > 0 &&
-        redirectRaw.startsWith('/') &&
-        !redirectRaw.startsWith('//') &&
-        !/https?:/i.test(redirectRaw) &&
-        !/^[a-z][a-z0-9+.-]*:/i.test(redirectRaw);
-      const redirect = isSafeRedirect ? redirectRaw : '/';
-      try {
-        await navigateTo(redirect, { replace: true });
-      } catch (error) {
-        logger.error('[AuthCallback] Navigation failed:', error);
-        await navigateTo('/', { replace: true });
-      }
+      const route = useRoute();
+      const redirect = sanitizeInternalRedirect(route.query.redirect);
+      await navigateTo(redirect, { replace: true });
     }
   });
 </script>

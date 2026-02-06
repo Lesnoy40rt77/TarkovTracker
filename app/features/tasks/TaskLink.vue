@@ -44,6 +44,7 @@
 </template>
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import { getFactionIconPath } from '@/utils/factionIcons';
   const props = defineProps({
     task: {
       type: Object,
@@ -61,12 +62,8 @@
     },
   });
   const { t } = useI18n({ useScope: 'global' });
-  const isFactionTask = computed(() => {
-    return props.task?.factionName != 'Any';
-  });
-  const factionImage = computed(() => {
-    return `/img/factions/${props.task.factionName}.webp`;
-  });
+  const factionImage = computed(() => getFactionIconPath(props.task?.factionName));
+  const isFactionTask = computed(() => Boolean(factionImage.value));
   const factionAlt = computed(() => props.task?.factionName || 'Faction image');
   const traderAlt = computed(() => props.task?.trader?.name || 'Trader');
   const fallbackAvatar = '/img/default-avatar.svg';

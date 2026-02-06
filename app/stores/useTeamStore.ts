@@ -1,4 +1,5 @@
-import { defineStore, type Store } from 'pinia';
+import { defineStore } from 'pinia';
+import { useToast } from '#imports';
 import { useEdgeFunctions } from '@/composables/api/useEdgeFunctions';
 import { useSupabaseListener } from '@/composables/supabase/useSupabaseListener';
 import { actions, defaultState, getters, type UserState } from '@/stores/progressState';
@@ -8,15 +9,15 @@ import { GAME_MODES } from '@/utils/constants';
 import { logger } from '@/utils/logger';
 import type { MemberProfile, TeamGetters, TeamState } from '@/types/tarkov';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import type { Store } from 'pinia';
+/**
+ * Helper to get current game mode
+ */
 function getCurrentGameMode(): 'pvp' | 'pve' {
   try {
     const tarkovStore = useTarkovStore();
-    return (tarkovStore.getCurrentGameMode() as 'pvp' | 'pve') || GAME_MODES.PVP;
-  } catch (error) {
-    logger.error(
-      'useTeamStore.getCurrentGameMode: failed to obtain current game mode from useTarkovStore',
-      { error }
-    );
+    return (tarkovStore.getCurrentGameMode?.() as 'pvp' | 'pve') || GAME_MODES.PVP;
+  } catch {
     return GAME_MODES.PVP;
   }
 }
@@ -411,31 +412,74 @@ export function useTeamStoreWithSupabase(): TeamStoreInstance {
 /**
  * Composable for managing teammate stores dynamically
  */
-const MAX_RETRIES = 3;
-const BASE_RETRY_DELAY_MS = 1000;
 export function useTeammateStores() {
   const { teamStore } = useTeamStoreWithSupabase();
   const teammateStores = ref<Record<string, Store<string, UserState>>>({});
   const teammateUnsubscribes = ref<Record<string, () => void>>({});
+  // Track pending retry timeouts for cleanup
   const pendingRetryTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
-  const pendingRetryAttempts = ref(0);
-  const { $i18n, $supabase } = useNuxtApp();
-  const translate = typeof $i18n?.t === 'function' ? $i18n.t.bind($i18n) : null;
-  const getToastMessage = (
-    key: string,
-    fallback: string,
-    params?: Record<string, string | number>
-  ) => {
-    if (!translate) return fallback;
-    try {
-      const translated = params ? translate(key, params) : translate(key);
-      return translated && translated !== key ? translated : fallback;
-    } catch {
-      return fallback;
+  // Watch team state changes to manage teammate stores
+  watch(
+    () => teamStore.$state,
+    async (newState, _oldState) => {
+      await nextTick();
+      const { $supabase } = useNuxtApp();
+      const currentUID = $supabase.user?.id;
+      const newTeammatesArray =
+        newState.members?.filter((member: string) => member !== currentUID) || [];
+      // Remove stores for teammates no longer in the team
+      for (const teammate of Object.keys(teammateStores.value)) {
+        if (!newTeammatesArray.includes(teammate)) {
+          if (teammateUnsubscribes.value[teammate]) {
+            teammateUnsubscribes.value[teammate]();
+            const { [teammate]: _removed, ...rest } = teammateUnsubscribes.value;
+            teammateUnsubscribes.value = rest;
+          }
+          const { [teammate]: _storeRemoved, ...restStores } = teammateStores.value;
+          teammateStores.value = restStores as typeof teammateStores.value;
+        }
+      }
+      // Add stores for new teammates
+      try {
+        for (const teammate of newTeammatesArray) {
+          if (!teammateStores.value[teammate]) {
+            createTeammateStore(teammate);
+          }
+        }
+      } catch (error) {
+        logger.error('Error managing teammate stores:', error);
+        const toast = useToast();
+        toast.add({ title: 'Failed to load teammate data. Retrying…', color: 'warning' });
+        // Clear any existing retry timeout before setting a new one
+        if (pendingRetryTimeout.value) {
+          clearTimeout(pendingRetryTimeout.value);
+        }
+        // Basic retry once after a short delay for transient issues
+        pendingRetryTimeout.value = setTimeout(() => {
+          pendingRetryTimeout.value = null;
+          try {
+            for (const teammate of newTeammatesArray) {
+              if (!teammateStores.value[teammate]) {
+                createTeammateStore(teammate);
+              }
+            }
+            toast.add({ title: 'Teammate data loaded on retry', color: 'primary' });
+          } catch (e) {
+            logger.error('Retry failed for teammate stores:', e);
+            toast.add({ title: 'Could not load teammate data', color: 'error' });
+          }
+        }, 1500);
+      }
+    },
+    {
+      immediate: true,
+      deep: true,
     }
-  };
-  function createTeammateStore(teammateId: string): boolean {
+  );
+  // Create a store for a specific teammate
+  const createTeammateStore = (teammateId: string) => {
     try {
+      // Define the teammate store
       const storeDefinition = defineStore(`teammate-${teammateId}`, {
         state: () => JSON.parse(JSON.stringify(defaultState)),
         getters: getters,
@@ -443,6 +487,8 @@ export function useTeammateStores() {
       });
       const storeInstance = storeDefinition();
       teammateStores.value[teammateId] = storeInstance;
+      // Setup Supabase listener for this teammate with data transformation
+      // Transform Supabase field names to match store structure
       const handleTeammateData = (data: Record<string, unknown> | null) => {
         if (data) {
           storeInstance.$patch({
@@ -461,6 +507,7 @@ export function useTeammateStores() {
         onData: handleTeammateData,
       });
       teammateUnsubscribes.value[teammateId] = cleanup;
+      // Listen for task-update broadcasts for this teammate
       const handleTaskUpdate = (event: Event) => {
         const data = (event as CustomEvent).detail as {
           userId: string;
@@ -470,6 +517,7 @@ export function useTeammateStores() {
           failed: boolean;
         };
         if (data.userId !== teammateId) return;
+        // Update the teammate store with the task change
         const modeKey = data.gameMode === 'pve' ? 'pve' : 'pvp';
         const currentModeData = storeInstance.$state[modeKey] || {};
         const currentCompletions =
@@ -490,132 +538,23 @@ export function useTeammateStores() {
         logger.debug(`[TeammateStore] Applied task-update for ${teammateId}:`, data);
       };
       window.addEventListener('teammate-task-update', handleTaskUpdate);
+      // Update cleanup to also remove the event listener
       const originalCleanup = teammateUnsubscribes.value[teammateId];
       teammateUnsubscribes.value[teammateId] = () => {
         window.removeEventListener('teammate-task-update', handleTaskUpdate);
         originalCleanup?.();
       };
-      return true;
     } catch (error) {
       logger.error(`Error creating store for teammate ${teammateId}:`, error);
-      return false;
     }
-  }
-  const toast = useToast();
-  function getTeammatesFromState(state: TeamState): string[] {
-    const currentUID = $supabase.user?.id;
-    return state.members?.filter((member: string) => member !== currentUID) || [];
-  }
-  function scheduleRetry(teammatesArray: string[]) {
-    if (pendingRetryTimeout.value) {
-      clearTimeout(pendingRetryTimeout.value);
-      pendingRetryTimeout.value = null;
-    }
-    if (pendingRetryAttempts.value >= MAX_RETRIES) {
-      logger.error(
-        `[TeammateStore] Max retries (${MAX_RETRIES}) reached, giving up on teammate stores`
-      );
-      toast.add({
-        title: getToastMessage(
-          'toast.teammates.failed',
-          'Could not load teammate data after multiple attempts'
-        ),
-        color: 'error',
-      });
-      pendingRetryAttempts.value = 0;
-      return;
-    }
-    const delay = BASE_RETRY_DELAY_MS * Math.pow(2, pendingRetryAttempts.value);
-    pendingRetryAttempts.value++;
-    toast.add({
-      title: getToastMessage(
-        'toast.teammates.retrying',
-        `Failed to load teammate data. Retry ${pendingRetryAttempts.value}/${MAX_RETRIES}...`,
-        {
-          attempt: pendingRetryAttempts.value,
-          max: MAX_RETRIES,
-        }
-      ),
-      color: 'warning',
-    });
-    pendingRetryTimeout.value = setTimeout(() => {
-      pendingRetryTimeout.value = null;
-      try {
-        const failedTeammates: string[] = [];
-        for (const teammate of teammatesArray) {
-          if (!teammateStores.value[teammate]) {
-            const created = createTeammateStore(teammate);
-            if (!created) {
-              failedTeammates.push(teammate);
-            }
-          }
-        }
-        if (failedTeammates.length === 0) {
-          toast.add({
-            title: getToastMessage('toast.teammates.loaded', 'Teammate data loaded on retry'),
-            color: 'primary',
-          });
-          pendingRetryAttempts.value = 0;
-          return;
-        }
-        logger.error('Retry failed for teammate stores:', {
-          failedTeammates,
-        });
-        scheduleRetry(teammatesArray);
-      } catch (e) {
-        logger.error('Retry failed for teammate stores:', {
-          error: e,
-          attemptedTeammates: teammatesArray,
-        });
-        scheduleRetry(teammatesArray);
-      }
-    }, delay);
-  }
-  watch(
-    () => teamStore.$state,
-    async (newState, _oldState) => {
-      try {
-        await nextTick();
-        const newTeammatesArray = getTeammatesFromState(newState);
-        for (const teammate of Object.keys(teammateStores.value)) {
-          if (!newTeammatesArray.includes(teammate)) {
-            if (teammateUnsubscribes.value[teammate]) {
-              teammateUnsubscribes.value[teammate]();
-              const { [teammate]: _removed, ...rest } = teammateUnsubscribes.value;
-              teammateUnsubscribes.value = rest;
-            }
-            const { [teammate]: _storeRemoved, ...restStores } = teammateStores.value;
-            teammateStores.value = restStores as typeof teammateStores.value;
-          }
-        }
-        let creationFailed = false;
-        for (const teammate of newTeammatesArray) {
-          if (!teammateStores.value[teammate]) {
-            if (!createTeammateStore(teammate)) {
-              creationFailed = true;
-            }
-          }
-        }
-        if (creationFailed) {
-          throw new Error('Failed to create teammate store');
-        }
-        pendingRetryAttempts.value = 0;
-      } catch (error) {
-        logger.error('Error managing teammate stores:', error);
-        scheduleRetry(getTeammatesFromState(newState));
-      }
-    },
-    {
-      immediate: true,
-      deep: true,
-    }
-  );
+  };
+  // Cleanup all teammate stores
   const cleanup = () => {
+    // Clear any pending retry timeout
     if (pendingRetryTimeout.value) {
       clearTimeout(pendingRetryTimeout.value);
       pendingRetryTimeout.value = null;
     }
-    pendingRetryAttempts.value = 0;
     Object.values(teammateUnsubscribes.value).forEach((unsubscribe) => {
       if (unsubscribe) unsubscribe();
     });
