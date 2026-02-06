@@ -322,6 +322,7 @@
           lightkeeper_required: 'Lightkeeper Необхідно',
           team_shared_only: 'Лише спільний доступ до команди',
           show_global_tasks: 'Показати глобальні завдання на карті',
+          impact_respects_filters: 'Вплив враховує фільтри завдань',
           show_non_special_tasks: 'Показати завдання без вимог Lightkeeper або Kappa',
           show_non_special_tasks_tooltip: 'Показати звичайні завдання, які не вимагають Kappa або Lightkeeper',
           show_kappa_tasks: 'Показати завдання "Kappa Required".',

@@ -324,6 +324,7 @@ export type Database = {
           needed_type_view: string | null
           neededitems_style: string | null
           pinned_task_ids: Json | null
+          respect_task_filters_for_impact: boolean
           show_all_filter: boolean | null
           show_available_filter: boolean | null
           show_completed_filter: boolean | null
@@ -390,6 +391,7 @@ export type Database = {
           needed_type_view?: string | null
           neededitems_style?: string | null
           pinned_task_ids?: Json | null
+          respect_task_filters_for_impact?: boolean
           show_all_filter?: boolean | null
           show_available_filter?: boolean | null
           show_completed_filter?: boolean | null
@@ -456,6 +458,7 @@ export type Database = {
           needed_type_view?: string | null
           neededitems_style?: string | null
           pinned_task_ids?: Json | null
+          respect_task_filters_for_impact?: boolean
           show_all_filter?: boolean | null
           show_available_filter?: boolean | null
           show_completed_filter?: boolean | null

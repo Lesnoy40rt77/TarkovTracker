@@ -271,9 +271,12 @@
   import TaskCardHeader from '@/features/tasks/TaskCardHeader.vue';
   import { useMetadataStore } from '@/stores/useMetadata';
   import { usePreferencesStore } from '@/stores/usePreferences';
+  import { useProgressStore } from '@/stores/useProgress';
   import { useTarkovStore } from '@/stores/useTarkov';
   import { HOT_WHEELS_TASK_ID } from '@/utils/constants';
   import { getExclusiveEditionsForTask } from '@/utils/editionHelpers';
+  import { countIncompleteSuccessors, resolveImpactTeamIds } from '@/utils/taskImpact';
+  import { buildTaskTypeFilterOptions, filterTasksByTypeSettings } from '@/utils/taskTypeFilters';
   import type { ActionButtonState } from '@/features/tasks/types';
   import type { GameEdition, Task, TaskObjective } from '@/types/tarkov';
   type ContextMenuRef = { open: (event: MouseEvent) => void };
@@ -316,7 +319,12 @@
   const { xs } = useSharedBreakpoints();
   const tarkovStore = useTarkovStore();
   const preferencesStore = usePreferencesStore();
+  const progressStore = useProgressStore();
   const metadataStore = useMetadataStore();
+  const injectedImpactEligibleTaskIds = inject<{ value: Set<string> | undefined } | undefined>(
+    'impactEligibleTaskIds',
+    undefined
+  );
   const { isGlobalTask: isGlobalTaskFn } = useTaskFiltering();
   const isGlobalTask = computed(() => isGlobalTaskFn(props.task));
   const taskContextMenu = ref<ContextMenuRef | null>(null);
@@ -444,8 +452,27 @@
     const names = displayedNeededByNames.value.join(', ');
     return extraNeededByCount.value > 0 ? `${names} +${extraNeededByCount.value} more` : names;
   });
+  const impactEligibleTaskIds = computed<Set<string> | undefined>(() => {
+    if (injectedImpactEligibleTaskIds) return injectedImpactEligibleTaskIds.value;
+    if (!preferencesStore.getRespectTaskFiltersForImpact) return undefined;
+    const options = buildTaskTypeFilterOptions(preferencesStore, tarkovStore, metadataStore);
+    return new Set(filterTasksByTypeSettings(metadataStore.tasks, options).map((task) => task.id));
+  });
   const lockedBehind = computed(() => {
-    return props.task.successors?.filter((s) => !isTaskSuccessful(s)).length || 0;
+    const successors = props.task.successors ?? [];
+    const teamIds = resolveImpactTeamIds(
+      preferencesStore.getTaskUserView,
+      progressStore.visibleTeamStores
+    );
+    return countIncompleteSuccessors(
+      successors,
+      teamIds,
+      {
+        tasksCompletions: progressStore.tasksCompletions,
+        tasksFailed: progressStore.tasksFailed,
+      },
+      impactEligibleTaskIds.value
+    );
   });
   const lockedBefore = computed(() => {
     return props.task.predecessors?.filter((s) => !isTaskSuccessful(s)).length || 0;

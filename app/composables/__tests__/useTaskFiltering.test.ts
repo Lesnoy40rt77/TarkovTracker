@@ -59,6 +59,7 @@ const createTasks = (): Task[] => [
     name: 'Kappa Task',
     factionName: 'Any',
     kappaRequired: true,
+    successors: ['task-map'],
     trader: { id: 'trader-1', name: 'Trader One' },
   },
   {
@@ -139,10 +140,12 @@ const createPreferencesStore = () => ({
   getHideNonKappaTasks: false,
   getShowLightkeeperTasks: true,
   getShowNonSpecialTasks: true,
+  getRespectTaskFiltersForImpact: true,
   getTaskSharedByAllOnly: false,
   getHideGlobalTasks: false,
   getTaskUserView: 'self',
   getTaskSecondaryView: 'available',
+  getPinnedTaskIds: [],
 });
 const createTarkovStore = () => ({
   getPrestigeLevel: () => 0,
@@ -241,6 +244,54 @@ describe('useTaskFiltering', () => {
     const kappaCounts = taskFiltering.calculateTraderCounts('self', 'all');
     expect(kappaCounts['trader-1']).toBe(1);
     expect(kappaCounts['trader-2']).toBeUndefined();
+  });
+  it('sorts impact using filtered successors when enforcement is enabled', async () => {
+    const { taskFiltering, preferencesStore } = await setup();
+    preferencesStore.getShowNonSpecialTasks = false;
+    preferencesStore.getShowLightkeeperTasks = true;
+    preferencesStore.getHideNonKappaTasks = false;
+    preferencesStore.getRespectTaskFiltersForImpact = true;
+    await taskFiltering.updateVisibleTasks(
+      {
+        primaryView: 'all',
+        secondaryView: 'available',
+        userView: 'self',
+        mapView: 'all',
+        traderView: 'all',
+        mergedMaps: [],
+        sortMode: 'impact',
+        sortDirection: 'desc',
+      },
+      false
+    );
+    expect(taskFiltering.visibleTasks.value.map((task) => task.id)).toEqual([
+      'task-lightkeeper',
+      'task-kappa',
+    ]);
+  });
+  it('sorts impact using all successors when enforcement is disabled', async () => {
+    const { taskFiltering, preferencesStore } = await setup();
+    preferencesStore.getShowNonSpecialTasks = false;
+    preferencesStore.getShowLightkeeperTasks = true;
+    preferencesStore.getHideNonKappaTasks = false;
+    preferencesStore.getRespectTaskFiltersForImpact = false;
+    await taskFiltering.updateVisibleTasks(
+      {
+        primaryView: 'all',
+        secondaryView: 'available',
+        userView: 'self',
+        mapView: 'all',
+        traderView: 'all',
+        mergedMaps: [],
+        sortMode: 'impact',
+        sortDirection: 'desc',
+      },
+      false
+    );
+    expect(taskFiltering.visibleTasks.value.map((task) => task.id)).toEqual([
+      'task-kappa',
+      'task-lightkeeper',
+    ]);
   });
   describe('isRaidRelevantObjective', () => {
     it('returns true for all raid-relevant objective types', async () => {

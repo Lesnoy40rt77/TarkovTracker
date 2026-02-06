@@ -322,6 +322,7 @@
           lightkeeper_required: '灯塔守护者必需',
           team_shared_only: '仅全队共享',
           show_global_tasks: '在地图上显示全局任务',
+          impact_respects_filters: '影响值遵循任务筛选',
           show_non_special_tasks: '显示非Kappa安全箱或灯塔守护者任务',
           show_non_special_tasks_tooltip: '显示与Kappa安全箱或者灯塔守护者不相关的常规任务',
           show_kappa_tasks: '显示"Kappa必需"任务',

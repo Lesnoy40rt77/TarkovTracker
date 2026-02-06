@@ -25,6 +25,7 @@ export type TaskFilterSettings = {
   hideNonKappaTasks: boolean;
   showNonSpecialTasks: boolean;
   showLightkeeperTasks: boolean;
+  respectTaskFiltersForImpact: boolean;
   showAllFilter: boolean;
   showAvailableFilter: boolean;
   showLockedFilter: boolean;
@@ -77,6 +78,7 @@ export interface PreferencesState {
   // Task filter settings
   showNonSpecialTasks: boolean;
   showLightkeeperTasks: boolean;
+  respectTaskFiltersForImpact: boolean;
   // Task appearance settings
   showRequiredLabels: boolean;
   showExperienceRewards: boolean;
@@ -150,6 +152,7 @@ export const preferencesDefaultState: PreferencesState = {
   // Task filter settings (all shown by default)
   showNonSpecialTasks: true,
   showLightkeeperTasks: true,
+  respectTaskFiltersForImpact: true,
   // Task appearance settings
   showRequiredLabels: true,
   showExperienceRewards: true,
@@ -331,6 +334,9 @@ export const usePreferencesStore = defineStore('preferences', {
     },
     getShowLightkeeperTasks: (state) => {
       return state.showLightkeeperTasks ?? true;
+    },
+    getRespectTaskFiltersForImpact: (state) => {
+      return state.respectTaskFiltersForImpact ?? true;
     },
     // Task appearance getters
     getShowRequiredLabels: (state) => {
@@ -529,6 +535,9 @@ export const usePreferencesStore = defineStore('preferences', {
     setShowLightkeeperTasks(show: boolean) {
       this.showLightkeeperTasks = show;
     },
+    setRespectTaskFiltersForImpact(enabled: boolean) {
+      this.respectTaskFiltersForImpact = enabled;
+    },
     // Task appearance actions
     setShowRequiredLabels(show: boolean) {
       this.showRequiredLabels = show;
@@ -655,6 +664,7 @@ export const usePreferencesStore = defineStore('preferences', {
       // Task filter settings
       'showNonSpecialTasks',
       'showLightkeeperTasks',
+      'respectTaskFiltersForImpact',
       // Task appearance settings
       'showRequiredLabels',
       'showExperienceRewards',
@@ -778,6 +788,7 @@ if (shouldInitPreferencesWatchers) {
                       hide_non_kappa_tasks: preferencesState.hideNonKappaTasks,
                       show_non_special_tasks: preferencesState.showNonSpecialTasks,
                       show_lightkeeper_tasks: preferencesState.showLightkeeperTasks,
+                      respect_task_filters_for_impact: preferencesState.respectTaskFiltersForImpact,
                       show_required_labels: preferencesState.showRequiredLabels,
                       show_experience_rewards: preferencesState.showExperienceRewards,
                       show_next_quests: preferencesState.showNextQuests,

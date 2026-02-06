@@ -77,6 +77,7 @@ vi.mock('@/stores/usePreferences', () => ({
     getHideNonKappaTasks: false,
     getShowNonSpecialTasks: true,
     getShowLightkeeperTasks: true,
+    getRespectTaskFiltersForImpact: true,
     getPinnedTaskIds: [],
     togglePinnedTask: vi.fn(),
   }),

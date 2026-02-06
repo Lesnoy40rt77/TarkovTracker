@@ -328,6 +328,7 @@
           lightkeeper_required: 'Lightkeeper Required',
           team_shared_only: 'Team Shared Only',
           show_global_tasks: 'Show Global Tasks on Map',
+          impact_respects_filters: 'Impact Respects Task Filters',
           show_non_special_tasks: 'Show tasks without Lightkeeper or Kappa requirement',
           show_non_special_tasks_tooltip: 'Show regular tasks that do not require Kappa or Lightkeeper',
           show_kappa_tasks: 'Show "Kappa Required" tasks',

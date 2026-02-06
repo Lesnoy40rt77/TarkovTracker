@@ -97,6 +97,7 @@ export interface MockPreferencesStoreOptions {
   hideNonKappaTasks?: boolean;
   showNonSpecialTasks?: boolean;
   showLightkeeperTasks?: boolean;
+  respectTaskFiltersForImpact?: boolean;
   streamerMode?: boolean;
 }
 export const createMockPreferencesStore = (options: MockPreferencesStoreOptions = {}) => {
@@ -121,6 +122,7 @@ export const createMockPreferencesStore = (options: MockPreferencesStoreOptions 
     hideNonKappaTasks = false,
     showNonSpecialTasks = true,
     showLightkeeperTasks = true,
+    respectTaskFiltersForImpact = true,
     streamerMode = false,
   } = options;
   return () => ({
@@ -160,6 +162,7 @@ export const createMockPreferencesStore = (options: MockPreferencesStoreOptions 
     getHideNonKappaTasks: hideNonKappaTasks,
     getShowNonSpecialTasks: showNonSpecialTasks,
     getShowLightkeeperTasks: showLightkeeperTasks,
+    getRespectTaskFiltersForImpact: respectTaskFiltersForImpact,
     // Streamer mode
     getStreamerMode: streamerMode,
     setStreamerMode: () => {},

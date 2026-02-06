@@ -63,6 +63,21 @@
           </span>
         </div>
       </label>
+      <label
+        class="hover:bg-surface-700/50 flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 transition-colors"
+      >
+        <UCheckbox v-model="respectTaskFiltersForImpactModel" />
+        <div class="min-w-0 flex-1">
+          <span class="text-surface-200 text-sm">
+            {{
+              t(
+                'page.tasks.settings.filters.impact_respects_filters',
+                'Impact Respects Task Filters'
+              )
+            }}
+          </span>
+        </div>
+      </label>
     </div>
   </section>
 </template>
@@ -74,6 +89,7 @@
     showLightkeeperTasks: boolean;
     sharedByAllOnly: boolean;
     showGlobalTasks: boolean;
+    respectTaskFiltersForImpact: boolean;
   }>();
   const emit = defineEmits<{
     'update:showNonSpecialTasks': [value: boolean];
@@ -81,6 +97,7 @@
     'update:showLightkeeperTasks': [value: boolean];
     'update:sharedByAllOnly': [value: boolean];
     'update:showGlobalTasks': [value: boolean];
+    'update:respectTaskFiltersForImpact': [value: boolean];
   }>();
   const { t } = useI18n({ useScope: 'global' });
   const showNonSpecialTasksModel = computed({
@@ -102,5 +119,9 @@
   const showGlobalTasksModel = computed({
     get: () => props.showGlobalTasks,
     set: (value: boolean) => emit('update:showGlobalTasks', value),
+  });
+  const respectTaskFiltersForImpactModel = computed({
+    get: () => props.respectTaskFiltersForImpact,
+    set: (value: boolean) => emit('update:respectTaskFiltersForImpact', value),
   });
 </script>

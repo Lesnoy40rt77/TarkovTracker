@@ -29,11 +29,13 @@
         :show-lightkeeper-tasks="showLightkeeperTasks"
         :shared-by-all-only="sharedByAllOnly"
         :show-global-tasks="showGlobalTasks"
+        :respect-task-filters-for-impact="respectTaskFiltersForImpact"
         @update:show-non-special-tasks="showNonSpecialTasks = $event"
         @update:show-kappa-tasks="showKappaTasks = $event"
         @update:show-lightkeeper-tasks="showLightkeeperTasks = $event"
         @update:shared-by-all-only="sharedByAllOnly = $event"
         @update:show-global-tasks="showGlobalTasks = $event"
+        @update:respect-task-filters-for-impact="respectTaskFiltersForImpact = $event"
       />
       <CardDisplaySection
         :show-required-labels="showRequiredLabels"
@@ -215,6 +217,10 @@
   const showGlobalTasks = computed({
     get: () => !preferencesStore.getHideGlobalTasks,
     set: (value) => preferencesStore.setHideGlobalTasks(!value),
+  });
+  const respectTaskFiltersForImpact = computed({
+    get: () => preferencesStore.getRespectTaskFiltersForImpact,
+    set: (value) => preferencesStore.setRespectTaskFiltersForImpact(value),
   });
   const showRequiredLabels = computed({
     get: () => preferencesStore.getShowRequiredLabels,

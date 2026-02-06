@@ -6,6 +6,11 @@ import { isAllUsersView } from '@/types/taskFilter';
 import { TRADER_ORDER } from '@/utils/constants';
 import { logger } from '@/utils/logger';
 import { perfEnabled, perfEnd, perfNow, perfStart } from '@/utils/perf';
+import { buildTaskImpactScores, resolveImpactTeamIds } from '@/utils/taskImpact';
+import {
+  buildTaskTypeFilterOptions,
+  filterTasksByTypeSettings as filterTasksByTypeSettingsUtil,
+} from '@/utils/taskTypeFilters';
 import type { Task, TaskObjective } from '@/types/tarkov';
 import type {
   MergedMap,
@@ -304,41 +309,10 @@ export function useTaskFiltering() {
    * Uses OR logic: show task if it matches ANY enabled category
    * Also filters out tasks not available for the user's game edition
    */
-  const filterTasksByTypeSettings = (taskList: Task[]): Task[] => {
-    const showKappa = !preferencesStore.getHideNonKappaTasks; // Show Kappa Required tasks
-    const showLightkeeper = preferencesStore.getShowLightkeeperTasks;
-    const showNonSpecial = preferencesStore.getShowNonSpecialTasks;
-    // Get prestige filtering data
-    const userPrestigeLevel = tarkovStore.getPrestigeLevel();
-    const prestigeTaskMap = metadataStore.prestigeTaskMap || new Map<string, number>();
-    const prestigeTaskIds = Array.from(prestigeTaskMap.keys());
-    // Get edition-based excluded tasks
-    const userEdition = tarkovStore.getGameEdition();
-    const excludedTaskIds = metadataStore.getExcludedTaskIdsForEdition(userEdition);
-    return taskList.filter((task) => {
-      // Filter out tasks not available for user's game edition
-      if (excludedTaskIds.has(task.id)) return false;
-      // Filter prestige-gated tasks ("New Beginning")
-      // Only show the task that matches the user's current prestige level
-      if (prestigeTaskIds.includes(task.id)) {
-        const taskPrestigeLevel = prestigeTaskMap.get(task.id);
-        if (taskPrestigeLevel !== userPrestigeLevel) {
-          return false;
-        }
-      }
-      const isKappaRequired = task.kappaRequired === true;
-      const isLightkeeperRequired = task.lightkeeperRequired === true;
-      const isNonSpecial = !isKappaRequired && !isLightkeeperRequired;
-      // OR logic: show if task matches ANY enabled category
-      // A task can be both Kappa and Lightkeeper required - show if either filter is on
-      // Note: Lightkeeper's own tasks are treated as normal tasks (gated by unlock requirement)
-      if (isKappaRequired && showKappa) return true;
-      if (isLightkeeperRequired && showLightkeeper) return true;
-      if (isNonSpecial && showNonSpecial) return true;
-      // Task doesn't match any enabled filter
-      return false;
-    });
-  };
+  const getTaskTypeOptions = () =>
+    buildTaskTypeFilterOptions(preferencesStore, tarkovStore, metadataStore);
+  const filterTasksByTypeSettings = (taskList: Task[]): Task[] =>
+    filterTasksByTypeSettingsUtil(taskList, getTaskTypeOptions());
   /**
    * Helper to extract all map locations from a task
    */
@@ -429,42 +403,6 @@ export function useTaskFiltering() {
     perfEnd(perfTimer, { mapsWithCounts: Object.keys(mapTaskCounts).length });
     return mapTaskCounts;
   };
-  /**
-   * Build impact scores for tasks (number of incomplete successor tasks)
-   */
-  const buildImpactScores = (taskList: Task[], userView: string): Map<string, number> => {
-    const impactScores = new Map<string, number>();
-    if (!taskList.length) return impactScores;
-    const teamIds =
-      userView === 'all' ? Object.keys(progressStore.visibleTeamStores || {}) : [userView];
-    if (!teamIds.length) {
-      taskList.forEach((task) => impactScores.set(task.id, 0));
-      return impactScores;
-    }
-    const completions = progressStore.tasksCompletions;
-    const failures = progressStore.tasksFailed;
-    taskList.forEach((task) => {
-      const successors = task.successors ?? [];
-      if (!successors.length) {
-        impactScores.set(task.id, 0);
-        return;
-      }
-      let impact = 0;
-      successors.forEach((successorId) => {
-        // Count successor as incomplete if it is not completed OR is failed (matches UI tooltip)
-        const isIncomplete = teamIds.some(
-          (teamId) =>
-            completions?.[successorId]?.[teamId] !== true ||
-            failures?.[successorId]?.[teamId] === true
-        );
-        if (isIncomplete) {
-          impact += 1;
-        }
-      });
-      impactScores.set(task.id, impact);
-    });
-    return impactScores;
-  };
   const buildTraderOrderMap = (): Map<string, number> => {
     const orderMap = new Map<string, number>();
     const traders = metadataStore.traders || [];
@@ -519,7 +457,19 @@ export function useTaskFiltering() {
     sortDirection: TaskSortDirection
   ): Task[] => {
     const directionFactor = sortDirection === 'desc' ? -1 : 1;
-    const impactScores = buildImpactScores(taskList, userView);
+    const teamIds = resolveImpactTeamIds(userView, progressStore.visibleTeamStores);
+    const impactEligibleTaskIds = preferencesStore.getRespectTaskFiltersForImpact
+      ? new Set(filterTasksByTypeSettings(metadataStore.tasks).map((task) => task.id))
+      : undefined;
+    const impactScores = buildTaskImpactScores(
+      taskList,
+      teamIds,
+      {
+        tasksCompletions: progressStore.tasksCompletions,
+        tasksFailed: progressStore.tasksFailed,
+      },
+      impactEligibleTaskIds
+    );
     return [...taskList].sort((a, b) => {
       const impactA = impactScores.get(a.id) ?? 0;
       const impactB = impactScores.get(b.id) ?? 0;
