@@ -166,6 +166,7 @@
   import { debounce, isDebounceRejection } from '@/utils/debounce';
   import { fuzzyMatchScore } from '@/utils/fuzzySearch';
   import { logger } from '@/utils/logger';
+  import { buildTaskTypeFilterOptions, filterTasksByTypeSettings } from '@/utils/taskTypeFilters';
   import type { Task } from '@/types/tarkov';
   import type {
     TaskFilterAndSortOptions,
@@ -198,6 +199,8 @@
     getHideNonKappaTasks,
     getShowNonSpecialTasks,
     getShowLightkeeperTasks,
+    getRespectTaskFiltersForImpact,
+    getHideGlobalTasks,
     getPinnedTaskIds,
   } = storeToRefs(preferencesStore);
   const metadataStore = useMetadataStore();
@@ -319,6 +322,11 @@
     });
     return marks;
   });
+  const impactEligibleTaskIds = computed<Set<string> | undefined>(() => {
+    if (!getRespectTaskFiltersForImpact.value) return undefined;
+    const options = buildTaskTypeFilterOptions(preferencesStore, tarkovStore, metadataStore);
+    return new Set(filterTasksByTypeSettings(tasks.value, options).map((task) => task.id));
+  });
   const mapContainerRef = ref<HTMLElement | null>(null);
   const leafletMapRef = ref<{
     activateObjectivePopup: (id: string) => boolean;
@@ -378,6 +386,8 @@
       getHideNonKappaTasks,
       getShowNonSpecialTasks,
       getShowLightkeeperTasks,
+      getRespectTaskFiltersForImpact,
+      getHideGlobalTasks,
       getPinnedTaskIds,
       tasksLoading,
       tasks,
@@ -440,6 +450,7 @@
   });
   provide('jumpToMapObjective', jumpToMapObjective);
   provide('isMapView', showMapDisplay);
+  provide('impactEligibleTaskIds', impactEligibleTaskIds);
   provide('clearPinnedTask', clearPinnedTask);
   const INITIAL_BATCH = 4;
   const IDEAL_INITIAL_BATCH = 8;
