@@ -2,6 +2,7 @@
   <NuxtLink
     v-if="isNuxtLink"
     :to="props.to ?? undefined"
+    :aria-label="props.labelText ?? ''"
     class="group flex min-h-10 items-center rounded-sm border-l-2 px-3 py-2 text-sm font-medium transition-colors duration-150"
     :class="[
       props.isCollapsed ? 'justify-center' : '',
@@ -21,6 +22,7 @@
   <a
     v-else-if="isAnchor"
     :href="props.href ?? undefined"
+    :aria-label="props.labelText ?? ''"
     target="_blank"
     rel="noopener noreferrer"
     class="group text-surface-300 hover:bg-surface-800/30 flex min-h-10 items-center rounded-sm border-l-2 border-transparent px-3 py-2 text-sm font-medium transition-colors duration-150 hover:text-white"
@@ -40,6 +42,7 @@
   </a>
   <span
     v-else
+    :aria-label="props.labelText ?? ''"
     class="group flex min-h-12 cursor-not-allowed items-center rounded-sm border-l-2 border-transparent px-3 py-3 text-base font-medium text-white/50 opacity-60 transition-colors duration-200"
     :class="[props.isCollapsed ? 'justify-center' : '']"
     aria-disabled="true"

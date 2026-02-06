@@ -23,7 +23,9 @@
     typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null;
   const getProp = (value: SelectMenuValue | undefined, key: string) => {
     const record = asRecord(value);
-    return record ? record[key] : value;
+    if (!record) return value;
+    const hasKey = Object.prototype.hasOwnProperty.call(record, key) || key in (record as object);
+    return hasKey ? record[key] : value;
   };
   const getCurrentLabel = () => {
     if (!props.items?.length) return '';
