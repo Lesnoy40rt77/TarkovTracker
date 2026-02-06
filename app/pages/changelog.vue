@@ -18,7 +18,7 @@
       <div v-else-if="error && !groupedEntries.length" class="py-12 text-center">
         <UIcon name="i-mdi-alert-circle" class="text-error-400 mb-2 h-8 w-8" />
         <p class="text-surface-400 mb-4">{{ t('page.changelog.error') }}</p>
-        <UButton color="primary" variant="soft" @click="loadChangelog">
+        <UButton color="primary" variant="soft" @click="retryLoadChangelog">
           {{ t('page.changelog.retry') }}
         </UButton>
       </div>
@@ -256,5 +256,8 @@
       loadMoreError.value = true;
     }
     loadingMore.value = false;
+  };
+  const retryLoadChangelog = (): void => {
+    void loadChangelog();
   };
 </script>

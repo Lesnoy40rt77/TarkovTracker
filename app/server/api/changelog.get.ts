@@ -108,7 +108,7 @@ const evictStaleEntries = (): number => {
   }
   return evicted;
 };
-const evictLRU = <T>(cache: LRUCache<string, T>, count: number): void => {
+const evictLRU = <T extends object>(cache: LRUCache<string, T>, count: number): void => {
   if (count <= 0) return;
   let evicted = 0;
   while (evicted < count) {
