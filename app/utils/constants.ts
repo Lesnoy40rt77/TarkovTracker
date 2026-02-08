@@ -220,6 +220,7 @@ export const HOT_WHEELS_TASK_ID = TASK_ID_REGISTRY.HOT_WHEELS;
 export const MANUAL_FAIL_TASK_IDS: readonly string[] = [HOT_WHEELS_TASK_ID];
 // Skill display order (matches in-game character screen order)
 export const SKILL_ORDER_ID = [
+  'Endurance',
   'Strength',
   'Vitality',
   'Health',
