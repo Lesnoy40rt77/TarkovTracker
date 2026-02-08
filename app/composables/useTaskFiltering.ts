@@ -711,7 +711,6 @@ export function useTaskFiltering() {
     // Get prestige filtering data
     const userPrestigeLevel = tarkovStore.getPrestigeLevel();
     const prestigeTaskMap = metadataStore.prestigeTaskMap || new Map<string, number>();
-    const prestigeTaskIds = Array.from(prestigeTaskMap.keys());
     // Get edition-based excluded tasks
     const userEdition = tarkovStore.getGameEdition();
     const excludedTaskIds = metadataStore.getExcludedTaskIdsForEdition(userEdition);
@@ -719,7 +718,7 @@ export function useTaskFiltering() {
       // Skip tasks not available for user's game edition
       if (excludedTaskIds.has(task.id)) continue;
       // Skip prestige tasks that don't match user's prestige level
-      if (prestigeTaskIds.includes(task.id)) {
+      if (prestigeTaskMap.has(task.id)) {
         const taskPrestigeLevel = prestigeTaskMap.get(task.id);
         if (taskPrestigeLevel !== userPrestigeLevel) continue;
       }
@@ -817,7 +816,6 @@ export function useTaskFiltering() {
     const onlyTasksWithRequiredKeys = shouldApplyRequiredKeysFilter();
     const userPrestigeLevel = tarkovStore.getPrestigeLevel();
     const prestigeTaskMap = metadataStore.prestigeTaskMap || new Map<string, number>();
-    const prestigeTaskIds = Array.from(prestigeTaskMap.keys());
     const userEdition = tarkovStore.getGameEdition();
     const excludedTaskIds = metadataStore.getExcludedTaskIdsForEdition(userEdition);
     const isAvailableStatus = (status: {
@@ -827,7 +825,7 @@ export function useTaskFiltering() {
     }) => status.isUnlocked && !status.isCompleted && !status.isFailed;
     for (const task of taskList) {
       if (excludedTaskIds.has(task.id)) continue;
-      if (prestigeTaskIds.includes(task.id)) {
+      if (prestigeTaskMap.has(task.id)) {
         const taskPrestigeLevel = prestigeTaskMap.get(task.id);
         if (taskPrestigeLevel !== userPrestigeLevel) continue;
       }

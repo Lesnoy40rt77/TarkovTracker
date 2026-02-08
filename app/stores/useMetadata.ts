@@ -303,6 +303,29 @@ interface MetadataState {
   currentGameMode: string;
   lastCachePurgeCheckAt: number;
 }
+const NEW_BEGINNING_ID_PATTERN = /^new_beginning_prestige_(\d+)$/i;
+const NEW_BEGINNING_WIKI_PATTERN = /\/New_Beginning(?:_\(Prestige_(\d+)\))?(?:[?#].*)?$/i;
+const isNewBeginningTask = (task: Task): boolean => {
+  if (!task?.id) return false;
+  if (NEW_BEGINNING_ID_PATTERN.test(task.id)) return true;
+  if (typeof task.wikiLink === 'string' && NEW_BEGINNING_WIKI_PATTERN.test(task.wikiLink)) {
+    return true;
+  }
+  return task.name === 'New Beginning';
+};
+const inferNewBeginningPrestigeLevel = (task: Task): number | null => {
+  if (typeof task.wikiLink === 'string') {
+    const wikiMatch = task.wikiLink.match(NEW_BEGINNING_WIKI_PATTERN);
+    if (wikiMatch?.[1]) {
+      const parsed = Number.parseInt(wikiMatch[1], 10);
+      if (Number.isFinite(parsed) && parsed > 0) return parsed;
+    }
+  }
+  const idMatch = task.id.match(NEW_BEGINNING_ID_PATTERN);
+  if (!idMatch?.[1]) return null;
+  const parsed = Number.parseInt(idMatch[1], 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
 export const useMetadataStore = defineStore('metadata', {
   state: (): MetadataState => ({
     initialized: false,
@@ -528,15 +551,30 @@ export const useMetadataStore = defineStore('metadata', {
      */
     prestigeTaskMap: (state): Map<string, number> => {
       const map = new Map<string, number>();
+      const newBeginningTaskIds = new Set(
+        state.tasks.filter((task) => isNewBeginningTask(task)).map((task) => task.id)
+      );
       for (const prestige of state.prestigeLevels) {
         const prestigeLevel = prestige.prestigeLevel ?? 0;
+        if (prestigeLevel <= 0) continue;
         // Find TaskObjectiveTaskStatus conditions that reference tasks
         for (const condition of prestige.conditions || []) {
+          const taskId = condition.task?.id;
+          if (!taskId) continue;
           // Check if this is a task status condition with a task reference
-          if (condition.task?.id && condition.task?.name === 'New Beginning') {
-            // User at prestige (N-1) needs to complete this task to reach prestige N
-            map.set(condition.task.id, prestigeLevel - 1);
-          }
+          if (newBeginningTaskIds.size > 0 && !newBeginningTaskIds.has(taskId)) continue;
+          if (newBeginningTaskIds.size === 0 && condition.task?.name !== 'New Beginning') continue;
+          // User at prestige (N-1) needs to complete this task to reach prestige N
+          map.set(taskId, prestigeLevel - 1);
+        }
+      }
+      for (const task of state.tasks) {
+        if (!isNewBeginningTask(task) || map.has(task.id)) continue;
+        const prestigeLevel = inferNewBeginningPrestigeLevel(task);
+        if (!prestigeLevel) continue;
+        const userPrestigeLevel = prestigeLevel - 1;
+        if (userPrestigeLevel >= 0) {
+          map.set(task.id, userPrestigeLevel);
         }
       }
       return map;
