@@ -77,7 +77,7 @@
                   :key="`pinned-${task.id}`"
                   class="content-visibility-auto-280 pb-4"
                 >
-                  <TaskCard :task="task" @on-task-action="onTaskAction" />
+                  <TaskCard :task="task" @on-task-action="handleTaskAction" />
                 </div>
               </div>
               <div
@@ -85,7 +85,7 @@
                 :key="`task-${task.id}`"
                 class="content-visibility-auto-280 pb-4"
               >
-                <TaskCard :task="task" @on-task-action="onTaskAction" />
+                <TaskCard :task="task" @on-task-action="handleTaskAction" />
               </div>
               <div
                 v-if="visibleTaskCount < filteredTasks.length"
@@ -189,6 +189,7 @@
   import { fuzzyMatchScore } from '@/utils/fuzzySearch';
   import { logger } from '@/utils/logger';
   import { buildTaskTypeFilterOptions, filterTasksByTypeSettings } from '@/utils/taskTypeFilters';
+  import type { TaskActionPayload } from '@/composables/useTaskActions';
   import type { Task } from '@/types/tarkov';
   import type {
     TaskFilterAndSortOptions,
@@ -422,6 +423,13 @@
   const debouncedRefreshVisibleTasks = debounce(() => {
     refreshVisibleTasks();
   }, 50);
+  const handleTaskAction = (payload: TaskActionPayload) => {
+    onTaskAction(payload);
+    debouncedRefreshVisibleTasks.cancel();
+    void nextTick(() => {
+      refreshVisibleTasks();
+    });
+  };
   watch(
     [
       getTaskPrimaryView,
