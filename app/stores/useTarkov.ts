@@ -896,7 +896,37 @@ const tarkovActions = {
     for (const [taskId, completion] of Object.entries(completions)) {
       if (!completion?.failed) continue;
       const task = tasksMap.get(taskId);
-      if (shouldRemainFailed(task, completion)) continue;
+      const remainsFailed = shouldRemainFailed(task, completion);
+      if (remainsFailed) continue;
+      const alternativeSources = alternativeSourcesByTask.get(taskId) ?? [];
+      const successfulAlternativeSources = alternativeSources.filter((sourceId) =>
+        isTaskSuccessful(sourceId)
+      );
+      const failConditionMatches =
+        task?.failConditions
+          ?.filter(
+            (objective) =>
+              objective?.task?.id &&
+              hasCompleteStatus(objective.status) &&
+              isTaskSuccessful(objective.task.id)
+          )
+          .map((objective) => objective?.task?.id)
+          .filter((sourceId): sourceId is string => typeof sourceId === 'string') ?? [];
+      const manualFailTask = task ? MANUAL_FAIL_TASK_IDS.includes(task.id) : false;
+      logger.debug(
+        `[TarkovStore] Clearing stale failed flag for "${taskId}" via markTaskAsUncompleted ` +
+          '(shouldRemainFailed=false: no manual/sticky fail condition is active).',
+        {
+          taskId,
+          shouldRemainFailed: remainsFailed,
+          reason: 'no manual fail, no matched failConditions, no successful alternative source',
+          manualFlag: completion.manual === true,
+          manualFailTaskIdsIncludesTask: manualFailTask,
+          alternativeSourcesByTask: alternativeSources,
+          successfulAlternativeSources,
+          failConditionMatches,
+        }
+      );
       repairedCount += this.markTaskAsUncompleted(taskId, gameModeData, tasksMap);
     }
     return repairedCount;
