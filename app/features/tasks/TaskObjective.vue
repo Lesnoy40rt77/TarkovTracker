@@ -43,6 +43,10 @@
           v-if="objectiveRequiredKeys.length"
           :required-keys="objectiveRequiredKeys"
         />
+        <ObjectiveRequiredEquipment
+          v-if="objectiveEquipment.length"
+          :equipment="objectiveEquipment"
+        />
         <AppTooltip
           v-if="userHasTeam && activeUserView === 'all' && userNeeds.length > 0"
           :text="userNeedsTitle"
@@ -109,6 +113,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import ObjectiveCountControls from '@/features/tasks/ObjectiveCountControls.vue';
+  import ObjectiveRequiredEquipment from '@/features/tasks/ObjectiveRequiredEquipment.vue';
   import ObjectiveRequiredKeys from '@/features/tasks/ObjectiveRequiredKeys.vue';
   import { OBJECTIVE_ICON_MAP } from '@/features/tasks/task-objective-constants';
   import { objectiveHasMapLocation } from '@/features/tasks/task-objective-helpers';
@@ -117,7 +122,7 @@
   import { useProgressStore } from '@/stores/useProgress';
   import { useSystemStoreWithSupabase } from '@/stores/useSystemStore';
   import { useTarkovStore } from '@/stores/useTarkov';
-  import type { TaskObjective } from '@/types/tarkov';
+  import type { TarkovItem, TaskObjective } from '@/types/tarkov';
   const FALLBACK_IS_MAP_VIEW_REF = ref(false);
   const { t } = useI18n({ useScope: 'global' });
   const jumpToMapObjective = inject<((id: string) => void) | null>('jumpToMapObjective', null);
@@ -167,6 +172,12 @@
   const objectiveRequiredKeys = computed(() => {
     const keys = fullObjective.value?.requiredKeys ?? props.objective.requiredKeys;
     return (keys ?? []).filter((group) => group.length > 0);
+  });
+  const objectiveEquipment = computed(() => {
+    const obj = fullObjective.value ?? props.objective;
+    const items: TarkovItem[] = [];
+    if (obj.markerItem) items.push(obj.markerItem);
+    return items;
   });
   const parentTaskId = computed(() => {
     return fullObjective.value?.taskId ?? props.objective.taskId;

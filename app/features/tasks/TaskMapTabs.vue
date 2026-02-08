@@ -13,9 +13,14 @@
             <span>{{ item.label }}</span>
             <UBadge
               v-if="item.count > 0"
-              :color="index === selectedTabIndex ? 'primary' : 'neutral'"
-              variant="solid"
+              color="neutral"
+              :variant="index === selectedTabIndex ? 'solid' : 'soft'"
               size="xs"
+              :class="
+                index === selectedTabIndex
+                  ? 'text-surface-50 ring-1 ring-white/30'
+                  : 'text-surface-300'
+              "
               class="ml-1 rounded-full"
             >
               {{ item.count }}

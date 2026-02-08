@@ -81,7 +81,7 @@
                 <span class="text-sm font-medium">
                   {{ $t('settings.interface.maps.zoom_speed') }}
                 </span>
-                <span class="text-primary-400 text-xs">{{ mapZoomSpeed }}x</span>
+                <span class="text-surface-200 text-xs">{{ mapZoomSpeed }}x</span>
               </div>
               <input
                 v-model.number="mapZoomSpeed"
@@ -89,7 +89,7 @@
                 min="0.5"
                 max="3"
                 step="0.1"
-                class="bg-surface-700 accent-primary-500 h-2 w-full cursor-pointer appearance-none rounded-lg"
+                class="bg-surface-700 accent-surface-200 h-2 w-full cursor-pointer appearance-none rounded-lg"
               />
             </div>
           </div>

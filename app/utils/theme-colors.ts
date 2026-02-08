@@ -42,6 +42,7 @@ export const THEME_COLORS = {
   },
   // CSS var: --color-info-*
   info: {
+    400: 'hsl(205 70% 55%)',
     500: 'hsl(205 70% 45%)',
   },
   // Accent colors (not in theme, but used for map markers)
@@ -65,7 +66,9 @@ export const THEME_COLORS = {
   // Secondary
   // CSS var: --color-secondary-*
   secondary: {
-    500: 'hsl(215 50% 22.7%)',
+    400: 'hsl(185 50% 50%)',
+    500: 'hsl(185 50% 40%)',
+    600: 'hsl(185 50% 34%)',
   },
 } as const;
 /**
@@ -79,18 +82,18 @@ export const THEME_COLORS = {
 export const MAP_MARKER_COLORS = {
   /** Self objectives - matches --color-error-500 */
   SELF_OBJECTIVE: THEME_COLORS.error[500],
-  /** Team objectives - matches --color-warning-500 */
-  TEAM_OBJECTIVE: THEME_COLORS.warning[500],
+  /** Team objectives - matches --color-info-400 */
+  TEAM_OBJECTIVE: THEME_COLORS.info[400],
   /** Selected/pinned marker - matches --color-selection-500 */
   SELECTED: THEME_COLORS.selection[500],
   /** PMC extracts - matches --color-success-500 */
   PMC_EXTRACT: THEME_COLORS.success[500],
-  /** Scav extracts - amber (--color-warning-500) */
-  SCAV_EXTRACT: THEME_COLORS.warning[500],
-  /** Shared extracts - sky-400 */
-  SHARED_EXTRACT: THEME_COLORS.sky[400],
-  /** Co-op extracts - sky-600 */
-  COOP_EXTRACT: THEME_COLORS.sky[600],
+  /** Scav extracts - matches --color-info-400 */
+  SCAV_EXTRACT: THEME_COLORS.info[400],
+  /** Shared extracts - matches --color-secondary-400 */
+  SHARED_EXTRACT: THEME_COLORS.secondary[400],
+  /** Co-op extracts - matches --color-secondary-600 */
+  COOP_EXTRACT: THEME_COLORS.secondary[600],
   /** PMC spawns - --color-info-500 */
   PMC_SPAWN: THEME_COLORS.info[500],
   /** Default extract - --color-secondary-500 */

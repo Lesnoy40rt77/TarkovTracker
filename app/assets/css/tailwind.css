@@ -223,10 +223,10 @@ html.no-smooth-scroll {
   --color-rarity-default: hsl(0 0% 13%);
   /* Extract marker colors */
   --color-extract-pmc: hsl(0 75% 55%);
-  --color-extract-scav: hsl(25 75% 55%);
-  --color-extract-shared-primary: hsl(45 75% 55%);
-  --color-extract-shared-secondary: hsl(195 65% 55%);
-  --color-extract-shared-coop: hsl(195 65% 40%);
+  --color-extract-scav: var(--color-info-400);
+  --color-extract-shared-primary: var(--color-info-400);
+  --color-extract-shared-secondary: var(--color-secondary-400);
+  --color-extract-shared-coop: var(--color-secondary-600);
   /* Twitch brand color */
   --color-twitch: hsl(264 100% 64%);
   --color-twitch-hover: hsl(264 100% 70%);
@@ -857,12 +857,12 @@ summary {
 .extract-badge-label {
   font-weight: 600;
 }
-.spawn-cluster-label {
+.leaflet-tooltip.spawn-cluster-label {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
-  color: var(--color-surface-50);
+  color: var(--color-surface-50) !important;
   font-size: 10px;
   font-weight: 700;
   text-shadow:
@@ -870,7 +870,7 @@ summary {
     0 0 4px rgba(0, 0, 0, 0.6);
   white-space: nowrap;
 }
-.spawn-cluster-label::before {
+.leaflet-tooltip.spawn-cluster-label::before {
   display: none !important;
 }
 

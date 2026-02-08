@@ -45,13 +45,7 @@
   </div>
 </template>
 <script setup lang="ts">
-  export type ProgressCardColor =
-    | 'primary'
-    | 'neutral'
-    | 'info'
-    | 'success'
-    | 'kappa'
-    | 'lightkeeper';
+  import type { ProgressCardColor } from '@/features/dashboard/progressCard';
   const props = defineProps<{
     icon: string;
     label: string;

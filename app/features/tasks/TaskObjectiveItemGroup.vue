@@ -104,11 +104,17 @@
       :required-keys="groupRequiredKeys"
       class="ml-6"
     />
+    <ObjectiveRequiredEquipment
+      v-if="groupEquipment.length > 0"
+      :equipment="groupEquipment"
+      class="ml-6"
+    />
   </div>
 </template>
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import ObjectiveCountControls from '@/features/tasks/ObjectiveCountControls.vue';
+  import ObjectiveRequiredEquipment from '@/features/tasks/ObjectiveRequiredEquipment.vue';
   import ObjectiveRequiredKeys from '@/features/tasks/ObjectiveRequiredKeys.vue';
   import { objectiveHasMapLocation } from '@/features/tasks/task-objective-helpers';
   import { useMetadataStore } from '@/stores/useMetadata';
@@ -166,6 +172,18 @@
       }
     }
     return allKeys;
+  });
+  const groupEquipment = computed<TarkovItem[]>(() => {
+    const seen = new Set<string>();
+    const items: TarkovItem[] = [];
+    for (const objective of props.objectives) {
+      const full = fullObjectives.value.find((o) => o.id === objective.id);
+      const marker = full?.markerItem ?? objective.markerItem;
+      if (!marker?.id || seen.has(marker.id)) continue;
+      seen.add(marker.id);
+      items.push(marker);
+    }
+    return items;
   });
   const objectiveMetaById = computed<Record<string, ObjectiveMeta>>(() => {
     const map: Record<string, ObjectiveMeta> = {};

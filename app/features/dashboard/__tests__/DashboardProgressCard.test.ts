@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import { describe, expect, it, vi } from 'vitest';
-import type { ProgressCardColor } from '@/features/dashboard/DashboardProgressCard.vue';
+import type { ProgressCardColor } from '@/features/dashboard/progressCard';
 const colorVariants: Array<{ color: ProgressCardColor; barClass: string }> = [
   { color: 'primary', barClass: 'bg-primary-500/60' },
   { color: 'neutral', barClass: 'bg-surface-400/60' },

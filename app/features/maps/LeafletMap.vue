@@ -29,10 +29,13 @@
           <UButton
             v-for="floor in floors"
             :key="floor"
-            :color="floor === selectedFloor ? 'primary' : 'neutral'"
+            color="neutral"
             :variant="floor === selectedFloor ? 'soft' : 'ghost'"
             size="sm"
-            class="justify-start"
+            :class="[
+              'justify-start',
+              floor === selectedFloor ? MAP_BUTTON_ACTIVE_CLASS : MAP_BUTTON_INACTIVE_CLASS,
+            ]"
             @click="setFloor(floor)"
           >
             {{ floor.replace(/_/g, ' ') }}
@@ -43,16 +46,17 @@
         v-if="isLoading"
         class="bg-surface-900/50 absolute inset-0 z-1001 flex items-center justify-center"
       >
-        <UIcon name="i-mdi-loading" class="text-primary-500 h-8 w-8 animate-spin" />
+        <UIcon name="i-mdi-loading" class="text-surface-200 h-8 w-8 animate-spin" />
       </div>
       <div
         class="bg-surface-800/90 absolute top-2 right-2 z-1000 flex flex-wrap items-center gap-2 rounded p-1.5"
       >
         <UButton
-          color="primary"
+          color="neutral"
           variant="soft"
           size="sm"
           icon="i-mdi-fit-to-screen"
+          :class="MAP_BUTTON_ACTIVE_CLASS"
           :title="t('maps.reset_title')"
           @click="refreshView"
         >
@@ -60,30 +64,33 @@
         </UButton>
         <UButton
           v-if="props.showExtractToggle"
-          :color="showPmcExtracts ? 'primary' : 'neutral'"
+          color="neutral"
           :variant="showPmcExtracts ? 'soft' : 'ghost'"
           size="sm"
           icon="i-mdi-exit-run"
+          :class="showPmcExtracts ? MAP_BUTTON_ACTIVE_CLASS : MAP_BUTTON_INACTIVE_CLASS"
           @click="showPmcExtracts = !showPmcExtracts"
         >
           {{ t('maps.factions.pmc') }}
         </UButton>
         <UButton
           v-if="props.showExtractToggle"
-          :color="showScavExtracts ? 'primary' : 'neutral'"
+          color="neutral"
           :variant="showScavExtracts ? 'soft' : 'ghost'"
           size="sm"
           icon="i-mdi-exit-run"
+          :class="showScavExtracts ? MAP_BUTTON_ACTIVE_CLASS : MAP_BUTTON_INACTIVE_CLASS"
           @click="showScavExtracts = !showScavExtracts"
         >
           {{ t('maps.factions.scav') }}
         </UButton>
         <UButton
           v-if="props.showSpawnToggle && hasPmcSpawns"
-          :color="showPmcSpawns ? 'primary' : 'neutral'"
+          color="neutral"
           :variant="showPmcSpawns ? 'soft' : 'ghost'"
           size="sm"
           icon="i-mdi-crosshairs-gps"
+          :class="showPmcSpawns ? MAP_BUTTON_ACTIVE_CLASS : MAP_BUTTON_INACTIVE_CLASS"
           @click="showPmcSpawns = !showPmcSpawns"
         >
           {{ t('maps.layers.pmc_spawns') }}
@@ -98,10 +105,10 @@
             :min="ZOOM_SPEED_MIN"
             :max="ZOOM_SPEED_MAX"
             step="0.1"
-            class="accent-primary-500 h-1.5 w-24 cursor-pointer"
+            class="accent-surface-200 h-1.5 w-24 cursor-pointer"
             :aria-label="t('maps.aria.zoom_speed')"
           />
-          <span class="text-surface-300 text-[10px] tabular-nums">{{ zoomSpeedLabel }}</span>
+          <span class="text-surface-200 text-[10px] tabular-nums">{{ zoomSpeedLabel }}</span>
         </div>
       </div>
       <div
@@ -280,6 +287,8 @@
   });
   const ZOOM_SPEED_MIN = 0.5;
   const ZOOM_SPEED_MAX = 3;
+  const MAP_BUTTON_ACTIVE_CLASS = '!bg-surface-700/80 !text-surface-50 !ring-1 !ring-white/30';
+  const MAP_BUTTON_INACTIVE_CLASS = 'text-surface-300 hover:text-surface-100';
   const SPAWN_CLUSTER_ZOOM_THRESHOLD = 3.5;
   const SPAWN_CLUSTER_GRID_SIZE = 50;
   const SPAWN_CLUSTER_MIN_RADIUS = 6;
