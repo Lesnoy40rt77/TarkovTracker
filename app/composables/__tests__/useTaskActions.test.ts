@@ -4,6 +4,8 @@ import type { Task } from '@/types/tarkov';
 const createTarkovStore = (options: {
   playerLevel?: number;
   objectiveCounts?: Record<string, number>;
+  isTaskFailed?: boolean;
+  taskCompletions?: Record<string, unknown>;
 }) => {
   const objectiveCounts = new Map<string, number>(Object.entries(options.objectiveCounts ?? {}));
   return {
@@ -18,7 +20,10 @@ const createTarkovStore = (options: {
     getObjectiveCount: vi.fn((objectiveId: string) => objectiveCounts.get(objectiveId) ?? 0),
     playerLevel: vi.fn(() => options.playerLevel ?? 1),
     setLevel: vi.fn(),
-    isTaskFailed: vi.fn(() => false),
+    isTaskFailed: vi.fn(() => options.isTaskFailed ?? false),
+    getCurrentProgressData: vi.fn(() => ({
+      taskCompletions: options.taskCompletions ?? {},
+    })),
   };
 };
 const createMetadataStore = (tasks: Task[]) => ({
@@ -151,11 +156,32 @@ describe('useTaskActions', () => {
       objectiveCounts: { 'obj-fail': 2 },
     });
     actions.markTaskFailed();
-    expect(tarkovStore.setTaskFailed).toHaveBeenCalledWith('task-to-fail');
+    expect(tarkovStore.setTaskFailed).toHaveBeenCalledWith('task-to-fail', { manual: true });
     expect(tarkovStore.setTaskObjectiveUncomplete).toHaveBeenCalledWith('obj-fail');
     expect(tarkovStore.setObjectiveCount).toHaveBeenCalledWith('obj-fail', 0);
     expect(onAction).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'fail', taskId: 'task-to-fail' })
+    );
+  });
+  it('tracks manual-fail metadata when resetting a failed task', async () => {
+    const task: Task = {
+      id: 'task-reset-failed',
+      name: 'Task Reset Failed',
+      objectives: [{ id: 'obj-reset', count: 2 }],
+    };
+    const { actions, onAction } = await setup(task, [task], {
+      isTaskFailed: true,
+      taskCompletions: {
+        'task-reset-failed': { complete: true, failed: true, manual: true },
+      },
+    });
+    actions.markTaskUncomplete();
+    expect(onAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'reset_failed',
+        taskId: 'task-reset-failed',
+        wasManualFail: true,
+      })
     );
   });
   it('unpins a pinned task when completing', async () => {

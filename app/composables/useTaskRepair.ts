@@ -33,9 +33,8 @@ export function useTaskRepair({ requestRepairConfirm }: UseTaskRepairOptions): U
   };
   const isTaskManuallyFailed = (taskId: string) => {
     const completion = tarkovStore.getCurrentProgressData().taskCompletions?.[taskId];
-    if (!completion || typeof completion !== 'object') return false;
-    if (!Object.prototype.hasOwnProperty.call(completion, 'manual')) return false;
-    return (completion as { manual?: boolean }).manual === true;
+    if (!completion) return false;
+    return completion.manual === true;
   };
   const buildAlternativeSources = () => {
     const sourcesByTask = new Map<string, string[]>();

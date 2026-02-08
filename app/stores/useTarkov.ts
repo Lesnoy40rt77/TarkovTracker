@@ -914,9 +914,11 @@ const tarkovActions = {
     if (!completions[taskId]) {
       completions[taskId] = {};
     }
+    const now = Date.now();
     completions[taskId]!.complete = false;
     completions[taskId]!.failed = false;
     completions[taskId]!.manual = false;
+    completions[taskId]!.timestamp = now;
     const task = tasksMap.get(taskId);
     if (task?.objectives) {
       if (!gameModeData.taskObjectives) {
@@ -929,6 +931,7 @@ const tarkovActions = {
         if (existing.count !== undefined || (obj.count ?? 0) > 0) {
           existing.count = 0;
         }
+        existing.timestamp = now;
         gameModeData.taskObjectives[obj.id] = existing;
       }
     }

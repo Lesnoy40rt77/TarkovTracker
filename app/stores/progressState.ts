@@ -259,23 +259,28 @@ const createCompletion = (complete: boolean, failed = false, manual?: boolean) =
   }
   return completion;
 };
-const updateObjective = (
+type ProgressObjectKey = {
+  [Key in keyof UserProgressData]-?: UserProgressData[Key] extends Record<string, infer Value>
+    ? Value extends object
+      ? Key
+      : never
+    : never;
+}[keyof UserProgressData];
+type ProgressObjectEntry<Key extends ProgressObjectKey> =
+  UserProgressData[Key] extends Record<string, infer Value> ? Value : never;
+const updateObjective = <Key extends ProgressObjectKey>(
   state: UserState,
-  key: keyof UserProgressData,
+  key: Key,
   objectiveId: string,
-  updates: Record<string, unknown>
+  updates: Partial<ProgressObjectEntry<Key>>
 ) => {
   const currentData = getCurrentData(state);
-  const stateValue = currentData[key];
-  if (!stateValue || typeof stateValue !== 'object') {
-    (currentData[key] as Record<string, unknown>) = {};
-  }
-  const stateObj = currentData[key] as Record<string, unknown>;
+  const stateObj = currentData[key] as Record<string, ProgressObjectEntry<Key>>;
   const existing = stateObj[objectiveId];
   stateObj[objectiveId] = {
     ...(existing && typeof existing === 'object' ? existing : {}),
     ...updates,
-  };
+  } as ProgressObjectEntry<Key>;
 };
 // Simplified actions
 export const actions = {
