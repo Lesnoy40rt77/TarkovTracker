@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full">
+  <div class="relative isolate w-full">
     <div
       v-if="isMapUnavailable"
       class="bg-surface-900 flex h-100 w-full flex-col items-center justify-center rounded sm:h-125 lg:h-150"
