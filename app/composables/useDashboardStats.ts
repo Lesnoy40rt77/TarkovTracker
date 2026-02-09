@@ -221,12 +221,14 @@ export function useDashboardStats(): {
         0
       );
       const currentCount = Math.min(requiredCount, maxObjectiveCount);
-      const hasCompletedObjective = objective.objectiveIds.some((objectiveId) =>
-        tarkovStore.isTaskObjectiveComplete(objectiveId)
-      );
+      const hasCompletedObjectives =
+        objective.objectiveIds.length > 0 &&
+        objective.objectiveIds.every((objectiveId) =>
+          tarkovStore.isTaskObjectiveComplete(objectiveId)
+        );
       if (
         isTaskSuccessful(objective.taskId) ||
-        hasCompletedObjective ||
+        hasCompletedObjectives ||
         requiredCount <= currentCount
       ) {
         total += requiredCount;

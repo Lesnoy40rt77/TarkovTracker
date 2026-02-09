@@ -141,13 +141,19 @@ export const useEdgeFunctions = () => {
       const result = await callTeamMembersApi(token);
       return result;
     } catch (error) {
-      const status = getErrorStatus(error);
+      let latestError = error;
+      let status = getErrorStatus(latestError);
       if (status === 401) {
         try {
           const { data, error: refreshError } = await $supabase.client.auth.refreshSession();
           const refreshedToken = data?.session?.access_token;
           if (!refreshError && refreshedToken) {
-            return await callTeamMembersApi(refreshedToken);
+            try {
+              return await callTeamMembersApi(refreshedToken);
+            } catch (retryError) {
+              latestError = retryError;
+              status = getErrorStatus(retryError);
+            }
           }
         } catch (refreshSessionError) {
           logger.debug('[EdgeFunctions] Session refresh failed during team member fetch:', {
@@ -162,9 +168,12 @@ export const useEdgeFunctions = () => {
             status,
           }
         );
-        throw error;
+        throw latestError;
       }
-      logger.warn('[EdgeFunctions] /api/team/members failed, falling back to team-members:', error);
+      logger.warn(
+        '[EdgeFunctions] /api/team/members failed, falling back to team-members:',
+        latestError
+      );
       const fallback = await callSupabaseFunction<{ members: string[] }>('team-members', {
         teamId,
       });

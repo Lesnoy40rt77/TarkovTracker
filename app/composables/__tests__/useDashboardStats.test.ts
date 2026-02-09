@@ -446,6 +446,60 @@ describe('useDashboardStats', () => {
     await nextTick();
     expect(dashboardStats.completedTaskItems.value).toBe(1);
   });
+  it('requires all merged duplicate objectives complete before granting full completion credit', async () => {
+    const objectiveCounts = reactive<Record<string, number>>({
+      'obj-a': 0,
+      'obj-b': 0,
+    });
+    const objectiveCompletions = reactive<Record<string, boolean>>({
+      'obj-a': false,
+      'obj-b': false,
+    });
+    const neededItemTaskObjectives: NeededItemTaskObjective[] = [
+      {
+        id: 'obj-a',
+        needType: 'taskObjective',
+        taskId: 'task-a',
+        type: 'giveItem',
+        item: { id: 'item-shared', name: 'Shared Item' },
+        count: 1,
+        foundInRaid: false,
+      },
+      {
+        id: 'obj-b',
+        needType: 'taskObjective',
+        taskId: 'task-a',
+        type: 'giveItem',
+        item: { id: 'item-shared', name: 'Shared Item' },
+        count: 1,
+        foundInRaid: false,
+      },
+    ];
+    const { dashboardStats } = await setup({
+      neededItemTaskObjectives,
+      progressStore: {
+        invalidTasks: {},
+        objectiveCompletions: {},
+      },
+      tarkovStore: createTarkovStore({
+        completedTasks: new Set(),
+        failedTasks: new Set(),
+        completedObjectives: new Set(),
+        getObjectiveCount: (objectiveId: string) => objectiveCounts[objectiveId] ?? 0,
+        isTaskObjectiveComplete: (objectiveId: string) =>
+          objectiveCompletions[objectiveId] ?? false,
+      }),
+    });
+    expect(dashboardStats.totalTaskItems.value).toBe(2);
+    expect(dashboardStats.completedTaskItems.value).toBe(0);
+    objectiveCounts['obj-a'] = 1;
+    objectiveCompletions['obj-a'] = true;
+    await nextTick();
+    expect(dashboardStats.completedTaskItems.value).toBe(1);
+    objectiveCompletions['obj-b'] = true;
+    await nextTick();
+    expect(dashboardStats.completedTaskItems.value).toBe(2);
+  });
   it('tracks hideout needed items and reacts to count changes', async () => {
     const hideoutCounts = reactive<Record<string, number>>({
       'hideout-req-a': 0,
