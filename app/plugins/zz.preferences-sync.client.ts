@@ -36,6 +36,20 @@ const stopPreferencesSync = () => {
   preferencesSyncController.cleanup();
   preferencesSyncController = null;
 };
+const startPreferencesSync = (
+  preferencesStore: ReturnType<typeof usePreferencesStore>,
+  userId: string
+) => {
+  preferencesSyncController = useSupabaseSync({
+    store: preferencesStore,
+    table: 'user_preferences',
+    debounceMs: 500,
+    transform: (state: unknown) => {
+      const preferencesState = state as PreferencesState;
+      return buildPreferencesSyncPayload(preferencesState, userId);
+    },
+  });
+};
 const applyPreferencesRow = (
   preferencesStore: ReturnType<typeof usePreferencesStore>,
   row: Record<string, unknown>
@@ -103,7 +117,6 @@ const buildPreferencesSyncPayload = (
     show_next_quests: preferencesState.showNextQuests,
     show_previous_quests: preferencesState.showPreviousQuests,
     task_card_density: preferencesState.taskCardDensity,
-    enable_holiday_effects: preferencesState.enableHolidayEffects,
     dashboard_notice_dismissed: preferencesState.dashboardNoticeDismissed,
     show_map_extracts: preferencesState.showMapExtracts,
     map_marker_colors: normalizeMapMarkerColors(preferencesState.mapMarkerColors),
@@ -176,23 +189,15 @@ export default defineNuxtPlugin((nuxtApp) => {
           .maybeSingle();
         if (error && error.code !== 'PGRST116') {
           logger.error('[PreferencesSyncPlugin] Error loading preferences from Supabase:', error);
-        }
-        if (data) {
+        } else if (data) {
           logger.debug('[PreferencesSyncPlugin] Loading preferences from Supabase:', data);
           applyPreferencesRow(preferencesStore, data as Record<string, unknown>);
         }
-        preferencesSyncController = useSupabaseSync({
-          store: preferencesStore,
-          table: 'user_preferences',
-          debounceMs: 500,
-          transform: (state: unknown) => {
-            const preferencesState = state as PreferencesState;
-            return buildPreferencesSyncPayload(preferencesState, userId);
-          },
-        });
       } catch (error) {
         logger.error('[PreferencesSyncPlugin] Failed to initialize preferences sync:', error);
       }
+      if (!$supabase.user.loggedIn || $supabase.user.id !== userId) return;
+      startPreferencesSync(preferencesStore, userId);
     },
     { immediate: true }
   );

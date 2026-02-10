@@ -45,14 +45,7 @@ export default defineNuxtPlugin(() => {
       });
     }
   }
-  const startInitialization = () => {
-    void initializeWithRetry();
-  };
-  if (import.meta.client && 'requestIdleCallback' in window) {
-    window.requestIdleCallback(startInitialization, { timeout: 1500 });
-  } else {
-    window.setTimeout(startInitialization, 0);
-  }
+  void initializeWithRetry();
   return {
     provide: {
       metadata: metadataStore,
