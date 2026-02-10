@@ -39,7 +39,7 @@ const mockPreferencesStore = {
   getShowLightkeeperTasks: true,
   getOnlyTasksWithRequiredKeys: false,
   getRespectTaskFiltersForImpact: true,
-  getPinnedTaskIds: [],
+  getPinnedTaskIds: [] as string[],
   mapTeamAllHidden: false,
   togglePinnedTask: vi.fn(),
 };
@@ -166,10 +166,11 @@ describe('tasks page', () => {
     mockPreferencesStore.getTaskMapView = 'map-1';
     mockPreferencesStore.getHideGlobalTasks = false;
     await mountPage();
-    expect(wrapper.findAll('[data-testid="task-card"]').map((item) => item.text())).toEqual([
-      'task-map',
-      'task-global',
-    ]);
+    expect(
+      wrapper
+        .findAll('[data-testid="task-card"]')
+        .map((item: { text: () => string }) => item.text())
+    ).toEqual(['task-map', 'task-global']);
     expect(wrapper.text()).toContain('page.tasks.global_tasks_section');
   });
   it('does not show global section when global tasks are disabled', async () => {
