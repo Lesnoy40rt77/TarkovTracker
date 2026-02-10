@@ -2,7 +2,7 @@ import { storeToRefs } from 'pinia';
 import { usePreferencesStore } from '@/stores/usePreferences';
 import { isValidPrimaryView } from '@/types/taskFilter';
 import { logger } from '@/utils/logger';
-import { getQueryString } from '@/utils/routeHelpers';
+import { getQueryString, normalizeQuery } from '@/utils/routeHelpers';
 import type { Ref } from '#imports';
 import type { TarkovMap, Trader } from '@/types/tarkov';
 import type { TaskPrimaryView } from '@/types/taskFilter';
@@ -15,31 +15,8 @@ export interface UseTaskRouteSyncReturn {
   isSyncingFromRoute: Ref<boolean>;
   isSyncingToRoute: Ref<boolean>;
 }
-type QueryLike = LocationQuery | LocationQueryRaw;
 type MapWithMergedIds = TarkovMap & {
   mergedIds?: string[];
-};
-const normalizeQuery = (query: QueryLike): string => {
-  const normalized: Record<string, string> = {};
-  Object.keys(query)
-    .sort()
-    .forEach((key) => {
-      const value = query[key];
-      if (value === undefined || value === null || value === '') return;
-      if (Array.isArray(value)) {
-        const entries = value.filter(
-          (entry): entry is string | number => entry !== undefined && entry !== null
-        );
-        const nonEmptyEntries = entries.filter((entry) =>
-          typeof entry === 'string' ? entry !== '' : true
-        );
-        if (nonEmptyEntries.length === 0) return;
-        normalized[key] = nonEmptyEntries.map(String).join(',');
-        return;
-      }
-      normalized[key] = String(value);
-    });
-  return JSON.stringify(normalized);
 };
 const buildViewQuery = (
   currentQuery: LocationQuery,

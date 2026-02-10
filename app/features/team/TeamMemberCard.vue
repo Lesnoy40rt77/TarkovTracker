@@ -92,16 +92,14 @@
   import { usePreferencesStore } from '@/stores/usePreferences';
   import { useProgressStore } from '@/stores/useProgress';
   import { getTeamIdFromState, useSystemStoreWithSupabase } from '@/stores/useSystemStore';
-  import { useTarkovStore } from '@/stores/useTarkov';
   import { useTeamStoreWithSupabase } from '@/stores/useTeamStore';
-  import { GAME_MODES } from '@/utils/constants';
+  import { getCurrentGameMode } from '@/stores/utils/gameMode';
   import { logger } from '@/utils/logger';
   const { $supabase } = useNuxtApp();
   const toast = useToast();
   const { t } = useI18n({ useScope: 'global' });
   const { teamStore } = useTeamStoreWithSupabase();
   const { systemStore } = useSystemStoreWithSupabase();
-  const tarkovStore = useTarkovStore();
   const { kickTeamMember } = useEdgeFunctions();
   const props = defineProps<{
     teammember: string;
@@ -118,9 +116,6 @@
       return props.teammember;
     }
   });
-  function getCurrentGameMode(): 'pvp' | 'pve' {
-    return (tarkovStore.getCurrentGameMode?.() as 'pvp' | 'pve') || GAME_MODES.PVP;
-  }
   const progressStore = useProgressStore();
   const preferencesStore = usePreferencesStore();
   const metadataStore = useMetadataStore();

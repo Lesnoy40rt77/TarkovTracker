@@ -5,23 +5,13 @@ import { useSafeToast } from '@/composables/useSafeToast';
 import { actions, defaultState, getters, type UserState } from '@/stores/progressState';
 import { useSystemStoreWithSupabase } from '@/stores/useSystemStore';
 import { useTarkovStore } from '@/stores/useTarkov';
+import { getCurrentGameMode } from '@/stores/utils/gameMode';
 import { GAME_MODES } from '@/utils/constants';
 import { getErrorStatus } from '@/utils/errors';
 import { logger } from '@/utils/logger';
 import type { MemberProfile, TeamGetters, TeamState } from '@/types/tarkov';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { Store } from 'pinia';
-/**
- * Helper to get current game mode
- */
-function getCurrentGameMode(): 'pvp' | 'pve' {
-  try {
-    const tarkovStore = useTarkovStore();
-    return (tarkovStore.getCurrentGameMode?.() as 'pvp' | 'pve') || GAME_MODES.PVP;
-  } catch {
-    return GAME_MODES.PVP;
-  }
-}
 /**
  * Helper to extract team ID from system store for the current game mode
  * Reads directly from state to avoid getter reactivity issues
@@ -499,7 +489,7 @@ export function useTeammateStores() {
     try {
       // Define the teammate store
       const storeDefinition = defineStore(`teammate-${teammateId}`, {
-        state: () => JSON.parse(JSON.stringify(defaultState)),
+        state: () => structuredClone(defaultState),
         getters: getters,
         actions: actions,
       });
@@ -509,11 +499,16 @@ export function useTeammateStores() {
       // Transform Supabase field names to match store structure
       const handleTeammateData = (data: Record<string, unknown> | null) => {
         if (data) {
+          const gameMode =
+            data.current_game_mode === GAME_MODES.PVE ? GAME_MODES.PVE : GAME_MODES.PVP;
+          const pvpData = (data.pvp_data as Partial<UserState['pvp']> | null) ?? {};
+          const pveData = (data.pve_data as Partial<UserState['pve']> | null) ?? {};
           storeInstance.$patch({
-            currentGameMode: data.current_game_mode || GAME_MODES.PVP,
-            gameEdition: data.game_edition || 1,
-            pvp: data.pvp_data || {},
-            pve: data.pve_data || {},
+            currentGameMode: gameMode,
+            gameEdition:
+              typeof data.game_edition === 'number' ? data.game_edition : defaultState.gameEdition,
+            pvp: { ...defaultState.pvp, ...pvpData },
+            pve: { ...defaultState.pve, ...pveData },
           });
         }
       };
