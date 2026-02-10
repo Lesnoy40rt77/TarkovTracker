@@ -112,7 +112,7 @@ export function safeAddNode(graph: TaskGraph, nodeId: string): void {
  * Check if adding an edge would create a cycle in the graph.
  * Returns true if adding sourceId -> targetId would create a cycle.
  */
-export function wouldCreateCycle(graph: TaskGraph, sourceId: string, targetId: string): boolean {
+function wouldCreateCycle(graph: TaskGraph, sourceId: string, targetId: string): boolean {
   if (sourceId === targetId) return true;
   // If targetId can already reach sourceId, adding sourceId -> targetId creates a cycle
   const successorsOfTarget = getSuccessors(graph, targetId);
@@ -138,27 +138,4 @@ export function safeAddEdge(graph: TaskGraph, sourceId: string, targetId: string
 }
 export function createGraph(): TaskGraph {
   return new DirectedTaskGraph();
-}
-export function hasNode(graph: TaskGraph, nodeId: string): boolean {
-  try {
-    return graph.hasNode(nodeId);
-  } catch (error) {
-    logger.error(`Error checking if node ${nodeId} exists:`, error);
-    return false;
-  }
-}
-export function getAllNodes(graph: TaskGraph): string[] {
-  try {
-    return graph.nodes();
-  } catch (error) {
-    logger.error('Error getting all nodes:', error);
-    return [];
-  }
-}
-export function clearGraph(graph: TaskGraph): void {
-  try {
-    graph.clear();
-  } catch (error) {
-    logger.error('Error clearing graph:', error);
-  }
 }

@@ -1,9 +1,5 @@
 <template>
   <div class="bg-military-background text-surface-200 flex min-h-screen flex-col">
-    <!-- Holiday Effects -->
-    <HolidaySnow v-if="holidayEffectsEnabled" />
-    <!-- Holiday Toggle (always visible) -->
-    <HolidayToggle />
     <!-- Skip navigation link for accessibility -->
     <a
       href="#main-content"
@@ -48,14 +44,10 @@
   import { useRoute } from 'vue-router';
   import { useSharedBreakpoints } from '@/composables/useSharedBreakpoints';
   import { useAppStore } from '@/stores/useApp';
-  import { usePreferencesStore } from '@/stores/usePreferences';
   const DRAWER_EXPANDED_WIDTH = '224px';
   const DRAWER_COLLAPSED_WIDTH = '64px';
   const appStore = useAppStore();
   const route = useRoute();
-  const preferencesStore = usePreferencesStore();
-  // Holiday effects
-  const holidayEffectsEnabled = computed(() => preferencesStore.getEnableHolidayEffects);
   // Use shared breakpoints to avoid duplicate listeners
   const { belowMd } = useSharedBreakpoints();
   const mainMarginLeft = computed(() => {

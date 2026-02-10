@@ -755,9 +755,7 @@ summary {
   .fade-leave-active {
     transition-duration: 0ms;
   }
-  .objective-highlight,
-  .snowflake,
-  .snowflake-inner {
+  .objective-highlight {
     animation: none;
   }
 }
@@ -877,16 +875,6 @@ summary {
 .leaflet-tooltip.spawn-cluster-label::before {
   display: none !important;
 }
-
-/* Holiday snow effect animations */
-.snowflake {
-  animation: snowfall linear infinite;
-  will-change: transform;
-}
-.snowflake-inner {
-  display: inline-block;
-  animation: sway ease-in-out infinite;
-}
 /* Vue Flow dark theme overrides */
 .vue-flow {
   --vf-accent-color: var(--color-primary-500);
@@ -987,21 +975,4 @@ summary {
 .vue-flow__background pattern line {
   stroke: var(--vf-surface-grid) !important;
   fill: var(--vf-surface-grid) !important;
-}
-@keyframes snowfall {
-  0% {
-    transform: translateY(0) rotate(0deg);
-  }
-  100% {
-    transform: translateY(105vh) rotate(360deg);
-  }
-}
-@keyframes sway {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(20px);
-  }
 }

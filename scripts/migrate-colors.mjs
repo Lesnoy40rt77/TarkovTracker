@@ -2,11 +2,6 @@
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
 
-const EXCEPTION_FILES = [
-  'app/components/HolidayToggle.vue',
-  'app/components/HolidaySnow.vue',
-];
-
 function getAllFiles(dir, fileList = []) {
   const files = readdirSync(dir);
   files.forEach((file) => {
@@ -24,11 +19,6 @@ function getAllFiles(dir, fileList = []) {
 }
 
 function migrateFile(filePath, replacements) {
-  const relativePath = filePath.replace(process.cwd() + '/', '');
-  if (EXCEPTION_FILES.includes(relativePath)) {
-    return 0;
-  }
-
   let content = readFileSync(filePath, 'utf-8');
   const original = content;
   let changeCount = 0;

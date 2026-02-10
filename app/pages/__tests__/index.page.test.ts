@@ -79,7 +79,6 @@ const setup = async (
   storeOverrides: {
     playerLevel?: number;
     derivedLevel?: number;
-    enableHolidayEffects?: boolean;
     useAutomaticLevel?: boolean;
     showKappaTasks?: boolean;
     showNonSpecialTasks?: boolean;
@@ -90,7 +89,6 @@ const setup = async (
   const {
     playerLevel = 8,
     derivedLevel = 10,
-    enableHolidayEffects = false,
     useAutomaticLevel = false,
     showKappaTasks = true,
     showNonSpecialTasks = true,
@@ -115,10 +113,6 @@ const setup = async (
   }));
   vi.doMock('@/stores/usePreferences', () => ({
     usePreferencesStore: () => ({
-      // Use getters that return values to match real API
-      get getEnableHolidayEffects() {
-        return enableHolidayEffects;
-      },
       get getUseAutomaticLevelCalculation() {
         return useAutomaticLevel;
       },

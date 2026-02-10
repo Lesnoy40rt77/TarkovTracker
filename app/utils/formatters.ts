@@ -40,12 +40,3 @@ export function useLocaleNumberFormatter(): (num: number) => string {
 export function calculatePercentageNum(completed: number, total: number): number {
   return total > 0 ? (completed / total) * 100 : 0;
 }
-/**
- * Calculate percentage as a formatted string
- * @param completed - Number of completed items
- * @param total - Total number of items
- * @returns Percentage as a formatted string with 1 decimal place (e.g., "42.5")
- */
-export function calculatePercentage(completed: number, total: number): string {
-  return calculatePercentageNum(completed, total).toFixed(1);
-}

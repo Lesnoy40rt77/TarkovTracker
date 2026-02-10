@@ -84,7 +84,6 @@ export interface MockPreferencesStoreOptions {
   neededItemsHideNonFirSpecialEquipment?: boolean;
   neededItemsKappaOnly?: boolean;
   itemsTeamAllHidden?: boolean;
-  enableHolidayEffects?: boolean;
   useAutomaticLevelCalculation?: boolean;
   taskPrimaryView?: string;
   taskSecondaryView?: string;
@@ -109,7 +108,6 @@ export const createMockPreferencesStore = (options: MockPreferencesStoreOptions 
     neededItemsHideNonFirSpecialEquipment = false,
     neededItemsKappaOnly = false,
     itemsTeamAllHidden = false,
-    enableHolidayEffects = false,
     useAutomaticLevelCalculation = false,
     taskPrimaryView = 'all',
     taskSecondaryView = 'available',
@@ -141,10 +139,6 @@ export const createMockPreferencesStore = (options: MockPreferencesStoreOptions 
     setNeededItemsKappaOnly: () => {},
     itemsTeamAllHidden,
     setItemsTeamHideAll: () => {},
-    // Holiday effects (as getter functions matching real API)
-    get getEnableHolidayEffects() {
-      return enableHolidayEffects;
-    },
     get getUseAutomaticLevelCalculation() {
       return useAutomaticLevelCalculation;
     },

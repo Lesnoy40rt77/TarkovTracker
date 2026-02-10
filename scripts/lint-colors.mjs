@@ -1,10 +1,6 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
 import { join, relative } from 'path';
-const EXCEPTION_FILES = [
-  'app/components/HolidayToggle.vue',
-  'app/components/HolidaySnow.vue',
-];
 const SEMANTIC_PALETTES = [
   'primary',
   'secondary',
@@ -129,12 +125,8 @@ function main() {
   }
   console.log('🎨 Scanning for raw palette color usage...\n');
   const allFiles = getAllFiles(appDir);
-  const filesToScan = allFiles.filter((file) => {
-    const relativePath = relative(process.cwd(), file);
-    return !EXCEPTION_FILES.includes(relativePath);
-  });
   let allViolations = [];
-  filesToScan.forEach((file) => {
+  allFiles.forEach((file) => {
     const violations = scanFile(file);
     allViolations = allViolations.concat(violations);
   });

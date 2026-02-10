@@ -159,26 +159,18 @@
           <h3 class="text-surface-200 text-sm font-semibold tracking-wider uppercase">
             {{ $t('settings.interface.misc.title') }}
           </h3>
-          <div class="space-y-3">
-            <div
-              class="bg-surface-800/50 border-surface-700 flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5"
-            >
-              <div class="space-y-0.5">
-                <p class="text-surface-200 text-sm font-medium">
-                  {{ $t('settings.general.privacy_mode') }}
-                </p>
-                <p class="text-surface-400 text-xs">
-                  {{ $t('settings.general.privacy_mode_hint') }}
-                </p>
-              </div>
-              <USwitch v-model="streamerMode" :disabled="!isLoggedIn || streamerModeCooldown" />
+          <div
+            class="bg-surface-800/50 border-surface-700 flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5"
+          >
+            <div class="space-y-0.5">
+              <p class="text-surface-200 text-sm font-medium">
+                {{ $t('settings.general.privacy_mode') }}
+              </p>
+              <p class="text-surface-400 text-xs">
+                {{ $t('settings.general.privacy_mode_hint') }}
+              </p>
             </div>
-            <div class="grid gap-4 md:grid-cols-2">
-              <UCheckbox
-                v-model="enableHolidayEffects"
-                :label="$t('settings.interface.misc.holiday_effects')"
-              />
-            </div>
+            <USwitch v-model="streamerMode" :disabled="!isLoggedIn || streamerModeCooldown" />
           </div>
         </div>
       </div>
@@ -283,8 +275,4 @@
     if (!input) return;
     preferencesStore.setMapMarkerColor(key, input.value);
   };
-  const enableHolidayEffects = computed({
-    get: () => preferencesStore.getEnableHolidayEffects,
-    set: (val) => preferencesStore.setEnableHolidayEffects(val),
-  });
 </script>

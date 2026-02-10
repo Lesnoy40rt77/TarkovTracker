@@ -100,8 +100,6 @@ export interface PreferencesState {
   showFailedFilter: boolean;
   // XP and Level settings
   useAutomaticLevelCalculation: boolean;
-  // Holiday effects
-  enableHolidayEffects: boolean;
   dashboardNoticeDismissed: boolean;
   // Map display settings
   showMapExtracts: boolean;
@@ -177,8 +175,6 @@ export const preferencesDefaultState: PreferencesState = {
   showFailedFilter: true,
   // XP and Level settings
   useAutomaticLevelCalculation: false,
-  // Holiday effects (enabled by default during holiday season)
-  enableHolidayEffects: true,
   dashboardNoticeDismissed: false,
   // Map display settings
   showMapExtracts: true,
@@ -411,9 +407,6 @@ export const usePreferencesStore = defineStore('preferences', {
     getUseAutomaticLevelCalculation: (state) => {
       return state.useAutomaticLevelCalculation ?? false;
     },
-    getEnableHolidayEffects: (state) => {
-      return state.enableHolidayEffects ?? true;
-    },
     getDashboardNoticeDismissed: (state) => {
       return state.dashboardNoticeDismissed ?? false;
     },
@@ -625,9 +618,6 @@ export const usePreferencesStore = defineStore('preferences', {
     setUseAutomaticLevelCalculation(use: boolean) {
       this.useAutomaticLevelCalculation = use;
     },
-    setEnableHolidayEffects(enable: boolean) {
-      this.enableHolidayEffects = enable;
-    },
     setDashboardNoticeDismissed(dismissed: boolean) {
       this.dashboardNoticeDismissed = dismissed;
     },
@@ -737,7 +727,6 @@ export const usePreferencesStore = defineStore('preferences', {
       'showCompletedFilter',
       'showFailedFilter',
       'useAutomaticLevelCalculation',
-      'enableHolidayEffects',
       'dashboardNoticeDismissed',
       'hideoutCollapseCompleted',
       'hideoutSortReadyFirst',
