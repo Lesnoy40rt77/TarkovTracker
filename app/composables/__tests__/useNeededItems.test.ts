@@ -84,8 +84,14 @@ const createNeededItems = (options: { includeTeamItems?: boolean } = {}) => {
 const createMetadataStore = (
   taskObjectives: NeededItemTaskObjective[],
   hideoutModules: NeededItemHideoutModule[]
-) =>
-  reactive({
+) => {
+  const tasks = [
+    { id: 'task-1', name: 'Task One', factionName: 'Any' },
+    { id: 'task-2', name: 'Task Two', factionName: 'Any' },
+    { id: 'task-kappa', name: 'Kappa Task', factionName: 'Any', kappaRequired: true },
+  ];
+  return reactive({
+    tasks,
     neededItemTaskObjectives: taskObjectives,
     neededItemHideoutModules: hideoutModules,
     itemsFullLoaded: true,
@@ -102,22 +108,11 @@ const createMetadataStore = (
     hideoutStations: [{ id: 'station-1', name: 'Workbench' }],
     hideoutLoading: false,
     editions: new Map(),
+    prestigeTaskMap: new Map<string, number>(),
     getTaskById: (taskId: string) => {
-      const tasks: Record<
-        string,
-        { id: string; name: string; factionName: string; kappaRequired?: boolean }
-      > = {
-        'task-1': { id: 'task-1', name: 'Task One', factionName: 'Any' },
-        'task-2': { id: 'task-2', name: 'Task Two', factionName: 'Any' },
-        'task-kappa': {
-          id: 'task-kappa',
-          name: 'Kappa Task',
-          factionName: 'Any',
-          kappaRequired: true,
-        },
-      };
-      return tasks[taskId];
+      return tasks.find((task) => task.id === taskId);
     },
+    getExcludedTaskIdsForEdition: () => new Set<string>(),
     getItemById: (itemId: string) => {
       const items: Record<string, TarkovItem> = {
         'item-bolts': createItem('item-bolts', 'Bolts'),
@@ -139,6 +134,7 @@ const createMetadataStore = (
     fetchHideoutData: vi.fn(),
     ensureItemsFullLoaded: vi.fn(),
   });
+};
 const createProgressStore = () => ({
   playerFaction: { self: 'USEC' },
   tasksCompletions: {
@@ -158,6 +154,9 @@ const createProgressStore = () => ({
   getTeamIndex: (teamId: string) => (teamId === 'self' ? 'self' : teamId),
 });
 const createPreferencesStore = () => ({
+  getHideNonKappaTasks: false,
+  getShowLightkeeperTasks: true,
+  getShowNonSpecialTasks: true,
   getNeededItemsViewMode: 'grid',
   setNeededItemsViewMode: vi.fn(),
   getNeededTypeView: 'all',
@@ -183,6 +182,7 @@ const createPreferencesStore = () => ({
 });
 const createTarkovStore = () => ({
   getGameEdition: () => 1,
+  getPrestigeLevel: () => 0,
   getObjectiveCount: (id: string) => {
     const counts: Record<string, number> = {
       'obj-1': 2,
@@ -210,17 +210,22 @@ afterEach(() => {
 const setup = async (
   overrides: {
     includeTeamItems?: boolean;
+    metadataStore?: Partial<ReturnType<typeof createMetadataStore>>;
     preferencesStore?: Partial<ReturnType<typeof createPreferencesStore>>;
     progressStore?: Partial<ReturnType<typeof createProgressStore>>;
+    tarkovStore?: Partial<ReturnType<typeof createTarkovStore>>;
   } = {}
 ) => {
   const { taskObjectives, hideoutModules } = createNeededItems({
     includeTeamItems: overrides.includeTeamItems,
   });
-  const metadataStore = createMetadataStore(taskObjectives, hideoutModules);
+  const metadataStore = Object.assign(
+    createMetadataStore(taskObjectives, hideoutModules),
+    overrides.metadataStore
+  );
   const progressStore = { ...createProgressStore(), ...overrides.progressStore };
   const preferencesStore = { ...createPreferencesStore(), ...overrides.preferencesStore };
-  const tarkovStore = createTarkovStore();
+  const tarkovStore = { ...createTarkovStore(), ...overrides.tarkovStore };
   vi.resetModules();
   vi.doMock('@/stores/useMetadata', () => ({
     useMetadataStore: () => metadataStore,
@@ -339,6 +344,34 @@ describe('useNeededItems', () => {
         taskObjectives.every((item) => {
           return (item as NeededItemTaskObjective).taskId === 'task-kappa';
         })
+      ).toBe(true);
+    });
+    it('filters out task objectives hidden by prestige mapping', async () => {
+      const { neededItems } = await setup({
+        metadataStore: { prestigeTaskMap: new Map([['task-1', 1]]) },
+        tarkovStore: { getPrestigeLevel: () => 0 },
+      });
+      const filtered = neededItems.filteredItems.value;
+      const taskObjectives = filtered.filter((item) => item.needType === 'taskObjective');
+      expect(
+        taskObjectives.some((item) => (item as NeededItemTaskObjective).taskId === 'task-1')
+      ).toBe(false);
+      expect(
+        taskObjectives.some((item) => (item as NeededItemTaskObjective).taskId === 'task-kappa')
+      ).toBe(true);
+    });
+    it('filters out non-special task objectives when task settings disable them', async () => {
+      const { neededItems } = await setup({
+        preferencesStore: {
+          getHideNonKappaTasks: false,
+          getShowLightkeeperTasks: false,
+          getShowNonSpecialTasks: false,
+        },
+      });
+      const filtered = neededItems.filteredItems.value;
+      const taskObjectives = filtered.filter((item) => item.needType === 'taskObjective');
+      expect(
+        taskObjectives.every((item) => (item as NeededItemTaskObjective).taskId === 'task-kappa')
       ).toBe(true);
     });
     it('filters by search term', async () => {

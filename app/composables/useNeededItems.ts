@@ -8,9 +8,9 @@ import { useMetadataStore } from '@/stores/useMetadata';
 import { usePreferencesStore } from '@/stores/usePreferences';
 import { useProgressStore } from '@/stores/useProgress';
 import { useTarkovStore } from '@/stores/useTarkov';
-import { isTaskAvailableForEdition } from '@/utils/editionHelpers';
 import { fuzzyMatch } from '@/utils/fuzzySearch';
 import { logger } from '@/utils/logger';
+import { buildTaskTypeFilterOptions, filterTasksByTypeSettings } from '@/utils/taskTypeFilters';
 import type {
   NeededItemsSortBy,
   NeededItemsSortDirection,
@@ -138,7 +138,21 @@ export function useNeededItems(options: UseNeededItemsOptions = {}): UseNeededIt
     set: (value) => preferencesStore.setItemsTeamHideAll(value),
   });
   const userFaction = computed(() => progressStore.playerFaction['self'] ?? 'USEC');
-  const userEdition = computed(() => tarkovStore.getGameEdition());
+  const taskTypeFilterOptions = computed(() =>
+    buildTaskTypeFilterOptions(preferencesStore, tarkovStore, metadataStore)
+  );
+  const visibleTaskIds = computed(() => {
+    const visibleIds = new Set<string>();
+    for (const task of filterTasksByTypeSettings(
+      metadataStore.tasks || [],
+      taskTypeFilterOptions.value
+    )) {
+      if (task.factionName === 'Any' || task.factionName === userFaction.value) {
+        visibleIds.add(task.id);
+      }
+    }
+    return visibleIds;
+  });
   const itemsLoaded = computed(() => (items.value?.length ?? 0) > 0);
   const itemsError = computed(() => metadataStore.itemsError);
   const itemsReady = computed(
@@ -243,16 +257,34 @@ export function useNeededItems(options: UseNeededItemsOptions = {}): UseNeededIt
       ...(neededItemTaskObjectives.value || []),
       ...(neededItemHideoutModules.value || []),
     ];
+    const taskTypeOptions = taskTypeFilterOptions.value;
+    const hasTypeSelection =
+      taskTypeOptions.showKappa ||
+      taskTypeOptions.showLightkeeper ||
+      taskTypeOptions.showNonSpecial;
     const aggregated = new Map<string, NeededItemTaskObjective | NeededItemHideoutModule>();
     for (const need of combined) {
       let key: string;
       let itemId: string | undefined;
       if (need.needType === 'taskObjective') {
-        if (!isTaskAvailableForEdition(need.taskId, userEdition.value, metadataStore.editions)) {
+        if (taskTypeOptions.excludedTaskIds.has(need.taskId)) {
+          continue;
+        }
+        const taskPrestigeLevel = taskTypeOptions.prestigeTaskMap.get(need.taskId);
+        if (
+          taskPrestigeLevel !== undefined &&
+          taskPrestigeLevel !== taskTypeOptions.userPrestigeLevel
+        ) {
           continue;
         }
         const task = metadataStore.getTaskById(need.taskId);
         if (task && task.factionName !== 'Any' && task.factionName !== userFaction.value) {
+          continue;
+        }
+        if (task && !visibleTaskIds.value.has(task.id)) {
+          continue;
+        }
+        if (!task && hasTypeSelection && !taskTypeOptions.showNonSpecial) {
           continue;
         }
         itemId = getNeededItemId(need);
