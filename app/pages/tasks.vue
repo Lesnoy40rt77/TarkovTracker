@@ -80,7 +80,13 @@
                   :key="`pinned-${task.id}`"
                   class="content-visibility-auto-280 pb-4"
                 >
-                  <TaskCard :task="task" @on-task-action="handleTaskAction" />
+                  <TaskCard
+                    :accent-variant="
+                      shouldGroupGlobalTasks && isGlobalTask(task) ? 'global' : 'default'
+                    "
+                    :task="task"
+                    @on-task-action="handleTaskAction"
+                  />
                 </div>
               </div>
               <div

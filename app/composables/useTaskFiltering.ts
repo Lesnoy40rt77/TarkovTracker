@@ -27,7 +27,6 @@ const RAID_RELEVANT_OBJECTIVE_TYPES = [
   'visit',
   'findItem',
   'findQuestItem',
-  'giveQuestItem',
   'plantItem',
   'plantQuestItem',
   'useItem',
@@ -303,12 +302,13 @@ export function useTaskFiltering() {
     return taskList.filter(taskHasRequiredKeys);
   };
   /**
-   * Helper to extract all map locations from a task
+   * Helper to extract map-objective locations from a task
    */
   const extractTaskLocations = (task: Task): string[] => {
     const locations: string[] = [];
     if (Array.isArray(task.objectives)) {
       for (const obj of task.objectives) {
+        if (!isMapObjectiveType(obj.type)) continue;
         if (Array.isArray(obj.maps)) {
           for (const objMap of obj.maps) {
             if (objMap?.id && !locations.includes(objMap.id)) {
@@ -339,6 +339,7 @@ export function useTaskFiltering() {
   ): boolean => {
     return (
       task.objectives?.some((objective) => {
+        if (!isMapObjectiveType(objective.type)) return false;
         if (!Array.isArray(objective.maps)) return false;
         if (!objective.maps.some((m) => mapIds.includes(m.id))) return false;
         const completions = progressStore.objectiveCompletions[objective.id] || {};
@@ -542,6 +543,24 @@ export function useTaskFiltering() {
       return nameA.localeCompare(nameB) * directionFactor;
     });
   };
+  const reorderMapViewTasks = (taskList: Task[]): Task[] => {
+    const pinnedIds = preferencesStore.getPinnedTaskIds;
+    const pinned: Task[] = [];
+    const mapSpecific: Task[] = [];
+    const global: Task[] = [];
+    taskList.forEach((task) => {
+      if (pinnedIds.includes(task.id)) {
+        pinned.push(task);
+        return;
+      }
+      if (isGlobalTask(task)) {
+        global.push(task);
+        return;
+      }
+      mapSpecific.push(task);
+    });
+    return [...pinned, ...mapSpecific, ...global];
+  };
   const sortTasks = (
     taskList: Task[],
     userView: string,
@@ -667,10 +686,12 @@ export function useTaskFiltering() {
         () => sortTasks(visibleTaskList, userView, sortMode, sortDirection),
         perfOn
       );
-      visibleTasks.value = sorted;
+      const shouldPrioritizeMapSpecificTasks =
+        primaryView === 'maps' && mapView !== 'all' && !preferencesStore.getHideGlobalTasks;
+      visibleTasks.value = shouldPrioritizeMapSpecificTasks ? reorderMapViewTasks(sorted) : sorted;
       perfEnd(perfTimer, {
         tasksIn,
-        tasksOut: sorted.length,
+        tasksOut: visibleTasks.value.length,
         totalMs: perfOn ? roundMs(perfNow() - startOverall) : undefined,
         filterTypeMs: perfOn ? roundMs(filterTypeMs) : undefined,
         filterViewMs: perfOn ? roundMs(filterViewMs) : undefined,

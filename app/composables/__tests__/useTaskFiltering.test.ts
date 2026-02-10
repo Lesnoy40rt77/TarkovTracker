@@ -415,6 +415,26 @@ describe('useTaskFiltering', () => {
       'task-lightkeeper',
     ]);
   });
+  it('prioritizes map-specific tasks ahead of global tasks in map view sorting', async () => {
+    const { taskFiltering } = await setup();
+    await taskFiltering.updateVisibleTasks(
+      {
+        primaryView: 'maps',
+        secondaryView: 'available',
+        userView: 'self',
+        mapView: 'map-1',
+        traderView: 'all',
+        mergedMaps: [{ id: 'map-1', mergedIds: ['map-1'] }],
+        sortMode: 'alphabetical',
+        sortDirection: 'asc',
+      },
+      false
+    );
+    expect(taskFiltering.visibleTasks.value.map((task) => task.id)).toEqual([
+      'task-map',
+      'task-global',
+    ]);
+  });
   describe('isRaidRelevantObjective', () => {
     it('returns true for all raid-relevant objective types', async () => {
       const { taskFiltering } = await setup();
@@ -425,7 +445,6 @@ describe('useTaskFiltering', () => {
         'visit',
         'findItem',
         'findQuestItem',
-        'giveQuestItem',
         'plantItem',
         'plantQuestItem',
         'useItem',
@@ -448,7 +467,13 @@ describe('useTaskFiltering', () => {
     });
     it('returns false for non-raid objective types', async () => {
       const { taskFiltering } = await setup();
-      const nonRaidTypes = ['traderLevel', 'traderStanding', 'skill', 'buildWeapon'];
+      const nonRaidTypes = [
+        'traderLevel',
+        'traderStanding',
+        'skill',
+        'buildWeapon',
+        'giveQuestItem',
+      ];
       for (const type of nonRaidTypes) {
         const obj: TaskObjective = { id: 'test', type };
         expect(taskFiltering.isRaidRelevantObjective(obj)).toBe(false);
@@ -563,6 +588,23 @@ describe('useTaskFiltering', () => {
         'available'
       );
       expect(counts['map-other']).toBeGreaterThanOrEqual(1);
+    });
+    it('does not double-count global tasks with non-map objective map tags', async () => {
+      const { taskFiltering } = await setup();
+      const taskWithNonMapObjectiveMaps: Task = {
+        id: 'task-non-map-objective-maps',
+        name: 'Task Non-Map Objective Maps',
+        factionName: 'Any',
+        objectives: [{ id: 'obj-exp', type: 'experience', maps: [{ id: 'map-1' }] }],
+      };
+      const counts = taskFiltering.calculateMapTaskTotals(
+        [{ id: 'map-1', mergedIds: ['map-1'] }],
+        [taskWithNonMapObjectiveMaps],
+        false,
+        'self',
+        'all'
+      );
+      expect(counts['map-1']).toBe(1);
     });
   });
 });

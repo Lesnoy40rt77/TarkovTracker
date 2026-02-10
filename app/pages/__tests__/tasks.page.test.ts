@@ -120,7 +120,10 @@ vi.mock('@/features/maps/LeafletMap.vue', () => ({
   default: { template: '<div data-testid="leaflet-map" />' },
 }));
 const defaultGlobalStubs = {
-  TaskCard: { props: ['task'], template: '<div data-testid="task-card">{{ task.id }}</div>' },
+  TaskCard: {
+    props: ['accentVariant', 'task'],
+    template: '<div data-testid="task-card" :data-accent="accentVariant">{{ task.id }}</div>',
+  },
   TaskFilterBar: { template: '<div data-testid="task-filter" />' },
   TaskEmptyState: true,
   TaskLoadingState: true,
@@ -145,6 +148,7 @@ describe('tasks page', () => {
     mockPreferencesStore.getTaskPrimaryView = 'all';
     mockPreferencesStore.getTaskMapView = 'all';
     mockPreferencesStore.getHideGlobalTasks = false;
+    mockPreferencesStore.getPinnedTaskIds = [];
     const module = await import('@/pages/tasks.vue');
     TasksPage = module.default;
   });
@@ -175,5 +179,14 @@ describe('tasks page', () => {
     mockPreferencesStore.getHideGlobalTasks = true;
     await mountPage();
     expect(wrapper.text()).not.toContain('page.tasks.global_tasks_section');
+  });
+  it('keeps global accent for pinned global tasks in map view', async () => {
+    mockVisibleTasks.value = [globalTask];
+    mockPreferencesStore.getTaskPrimaryView = 'maps';
+    mockPreferencesStore.getTaskMapView = 'map-1';
+    mockPreferencesStore.getHideGlobalTasks = false;
+    mockPreferencesStore.getPinnedTaskIds = ['task-global'];
+    await mountPage();
+    expect(wrapper.find('[data-testid="task-card"]').attributes('data-accent')).toBe('global');
   });
 });
