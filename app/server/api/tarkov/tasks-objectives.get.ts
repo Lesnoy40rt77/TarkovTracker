@@ -1,42 +1,23 @@
 import type { TarkovTaskObjectivesQueryResult } from '~/types/tarkov';
 import { createTarkovFetcher, edgeCache, shouldBypassCache } from '~/server/utils/edgeCache';
-import { GraphQLResponseError, validateGraphQLResponse } from '~/server/utils/graphql-validation';
+import { validateAndThrow } from '~/server/utils/graphql-validation';
+import { getValidatedLanguage } from '~/server/utils/language-helpers';
 import { createLogger } from '~/server/utils/logger';
 import { applyOverlay } from '~/server/utils/overlay';
 import { CACHE_TTL_DEFAULT, validateGameMode } from '~/server/utils/tarkov-cache-config';
 import { TARKOV_TASKS_OBJECTIVES_QUERY } from '~/server/utils/tarkov-queries';
-import { API_SUPPORTED_LANGUAGES } from '~/utils/constants';
 const logger = createLogger('TarkovTaskObjectives');
 const TASK_OBJECTIVES_CACHE_VERSION = 'v2';
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
   const bypassCache = shouldBypassCache(event);
-  // Validate and sanitize inputs
-  let lang = (query.lang as string)?.toLowerCase() || 'en';
-  const gameMode = validateGameMode(query.gameMode as string);
-  // Ensure valid language (fallback to English if unsupported)
-  if (!API_SUPPORTED_LANGUAGES.includes(lang as (typeof API_SUPPORTED_LANGUAGES)[number])) {
-    lang = 'en';
-  }
+  const lang = getValidatedLanguage(query);
+  const gameMode = validateGameMode(query.gameMode);
   const cacheKey = `tasks-objectives-${TASK_OBJECTIVES_CACHE_VERSION}-${lang}-${gameMode}`;
   const baseFetcher = createTarkovFetcher(TARKOV_TASKS_OBJECTIVES_QUERY, { lang, gameMode });
   const fetcher = async () => {
     const rawResponse = await baseFetcher();
-    try {
-      validateGraphQLResponse<TarkovTaskObjectivesQueryResult>(
-        rawResponse,
-        logger,
-        /* allowPartialData */ true
-      );
-    } catch (error) {
-      if (error instanceof GraphQLResponseError) {
-        logger.error('GraphQL validation failed:', error.message);
-        if (error.errors) {
-          logger.error('GraphQL errors detail:', JSON.stringify(error.errors, null, 2));
-        }
-      }
-      throw error;
-    }
+    validateAndThrow<TarkovTaskObjectivesQueryResult>(rawResponse, logger, true);
     try {
       return await applyOverlay(rawResponse, { bypassCache });
     } catch (overlayError) {

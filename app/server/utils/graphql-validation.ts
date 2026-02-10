@@ -85,3 +85,20 @@ export function validateGraphQLResponse<T>(
     });
   }
 }
+export function validateAndThrow<T>(
+  response: unknown,
+  logger: Logger,
+  allowPartialData = false
+): asserts response is TarkovGraphqlResponse<T> & { data: T } {
+  try {
+    validateGraphQLResponse<T>(response, logger, allowPartialData);
+  } catch (error) {
+    if (error instanceof GraphQLResponseError) {
+      logger.error('GraphQL validation failed:', error.message);
+      if (error.errors) {
+        logger.error('GraphQL errors detail:', JSON.stringify(error.errors, null, 2));
+      }
+    }
+    throw error;
+  }
+}

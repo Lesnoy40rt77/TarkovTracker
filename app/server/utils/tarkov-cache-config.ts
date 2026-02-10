@@ -15,14 +15,16 @@ const isValidGameMode = (value: string): value is ValidGameMode =>
 /**
  * Validates and returns a valid game mode, defaulting to 'regular'
  */
-export function validateGameMode(gameMode: string | undefined): ValidGameMode {
-  const trimmed = gameMode?.trim();
+export function validateGameMode(gameMode: unknown): ValidGameMode {
+  const rawValue = Array.isArray(gameMode) ? gameMode[0] : gameMode;
+  const trimmed = typeof rawValue === 'string' ? rawValue.trim() : undefined;
   // Log early if input is empty, whitespace-only, or undefined before validation
   if (trimmed === '' || trimmed === undefined) {
     logger.debug(
       '[TarkovCache] Empty, whitespace-only, or undefined game mode input, falling back to regular',
       {
         gameMode,
+        rawValue,
         trimmed,
       }
     );

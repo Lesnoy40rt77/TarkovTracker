@@ -8,10 +8,8 @@ export default defineEventHandler(async (event) => {
   const supabaseUrl = config.supabaseUrl;
   const supabaseServiceKey = config.supabaseServiceKey;
   if (
-    !supabaseUrl ||
     typeof supabaseUrl !== 'string' ||
     !supabaseUrl.trim() ||
-    !supabaseServiceKey ||
     typeof supabaseServiceKey !== 'string' ||
     !supabaseServiceKey.trim()
   ) {
