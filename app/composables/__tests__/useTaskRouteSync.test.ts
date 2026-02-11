@@ -27,7 +27,7 @@ const replace = vi.fn(async ({ query }: { query: QueryRecord }) => {
   applyRouteQuery(query);
 });
 mockNuxtImport('useRoute', () => () => routeState);
-mockNuxtImport('useRouter', () => () => ({ push, replace }));
+mockNuxtImport('useRouter', () => () => ({ push, replace, afterEach: vi.fn() }));
 const storeState = reactive({
   taskMapView: 'all',
   taskPrimaryView: 'all',
@@ -63,16 +63,20 @@ describe('useTaskRouteSync', () => {
       map: '6733700029c367a3d40b02af',
       view: 'maps',
     });
-    vi.doMock('pinia', () => ({
-      storeToRefs: (store: Record<string, unknown>) => {
-        const refs: Record<string, unknown> = {};
-        Object.entries(store).forEach(([key, value]) => {
-          if (typeof value === 'function') return;
-          refs[key] = isRef(value) ? value : computed(() => store[key]);
-        });
-        return refs;
-      },
-    }));
+    vi.doMock('pinia', async () => {
+      const actual = await vi.importActual<typeof import('pinia')>('pinia');
+      return {
+        ...actual,
+        storeToRefs: (store: Record<string, unknown>) => {
+          const refs: Record<string, unknown> = {};
+          Object.entries(store).forEach(([key, value]) => {
+            if (typeof value === 'function') return;
+            refs[key] = isRef(value) ? value : computed(() => store[key]);
+          });
+          return refs;
+        },
+      };
+    });
     vi.doMock('@/stores/usePreferences', () => ({
       usePreferencesStore: () => ({
         get getTaskMapView() {

@@ -1,4 +1,6 @@
-import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime';
+// @vitest-environment happy-dom
+import { mockNuxtImport } from '@nuxt/test-utils/runtime';
+import { mount } from '@vue/test-utils';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { ref } from 'vue';
 import SettingsPage from '@/pages/settings.vue';
@@ -44,6 +46,7 @@ mockNuxtImport('useToast', () => () => ({
 mockNuxtImport('useRouter', () => () => ({
   replace: vi.fn(),
   resolve: vi.fn(() => ({ href: '/' })),
+  afterEach: vi.fn(),
 }));
 mockNuxtImport('useSeoMeta', () => () => {});
 vi.mock('@/stores/useMetadata', () => ({
@@ -85,7 +88,8 @@ vi.mock('@/stores/useTarkov', () => ({
     resetAllData: mockFns.resetAllData,
   }),
 }));
-vi.mock('vue-i18n', () => ({
+vi.mock('vue-i18n', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('vue-i18n')>()),
   useI18n: () => ({
     t: (_key: string, fallback?: string) => fallback ?? _key,
   }),
@@ -94,6 +98,14 @@ const defaultGlobalStubs = {
   AccountDeletionCard: true,
   ApiTokens: true,
   DisplayNameCard: true,
+  NuxtLink: { template: '<a><slot /></a>' },
+  SelectMenuFixed: {
+    props: ['modelValue', 'items'],
+    emits: ['update:modelValue'],
+    template:
+      '<select data-testid="u-select" @change="$emit(\'update:modelValue\', Number($event.target.value))"><option v-for="opt in (items || [])" :key="opt.value ?? opt" :value="opt.value ?? opt">{{ opt.label || opt }}</option></select>',
+  },
+  'i18n-t': { template: '<span><slot /><slot name="word" /></span>' },
   ExperienceCard: true,
   GenericCard: {
     template: '<div data-testid="generic-card"><slot /><slot name="content" /></div>',
@@ -155,80 +167,78 @@ describe('settings page', () => {
     configureMockState();
     vi.clearAllMocks();
   });
-  it('renders settings layout', async () => {
-    const wrapper = await mountSuspended(SettingsPage, {
-      global: { stubs: defaultGlobalStubs },
+  const globalConfig = {
+    stubs: defaultGlobalStubs,
+    mocks: { $t: (key: string) => key },
+  };
+  it('renders settings layout', () => {
+    const wrapper = mount(SettingsPage, {
+      global: globalConfig,
     });
     expect(wrapper.find('[data-testid="generic-card"]').exists()).toBe(true);
   });
   describe('user states', () => {
-    it('renders logged out state', async () => {
+    it('renders logged out state', () => {
       configureMockState({ isLoggedIn: false });
-      const wrapper = await mountSuspended(SettingsPage, {
-        global: { stubs: defaultGlobalStubs },
+      const wrapper = mount(SettingsPage, {
+        global: globalConfig,
       });
       expect(wrapper.find('[data-testid="generic-card"]').exists()).toBe(true);
-      // Note: Login-specific UI elements would require the page to expose them via data-testid.
-      // Current implementation renders generic cards for all states.
     });
-    it('renders logged in state', async () => {
+    it('renders logged in state', () => {
       configureMockState({ isLoggedIn: true });
-      const wrapper = await mountSuspended(SettingsPage, {
-        global: { stubs: defaultGlobalStubs },
+      const wrapper = mount(SettingsPage, {
+        global: globalConfig,
       });
       expect(wrapper.find('[data-testid="generic-card"]').exists()).toBe(true);
-      // Note: Profile-specific UI elements would require the page to expose them via data-testid.
     });
-    it('renders admin state', async () => {
+    it('renders admin state', () => {
       configureMockState({ isLoggedIn: true, isAdmin: true });
-      const wrapper = await mountSuspended(SettingsPage, {
-        global: { stubs: defaultGlobalStubs },
+      const wrapper = mount(SettingsPage, {
+        global: globalConfig,
       });
       expect(wrapper.find('[data-testid="generic-card"]').exists()).toBe(true);
-      // Note: Admin-specific UI elements would require the page to expose them via data-testid.
     });
   });
   describe('edition and prestige settings', () => {
-    it('renders with different game editions', async () => {
+    it('renders with different game editions', () => {
       configureMockState({ gameEdition: 2 });
-      const wrapper = await mountSuspended(SettingsPage, {
-        global: { stubs: defaultGlobalStubs },
+      const wrapper = mount(SettingsPage, {
+        global: globalConfig,
       });
       expect(wrapper.find('[data-testid="generic-card"]').exists()).toBe(true);
     });
-    it('renders with prestige level', async () => {
+    it('renders with prestige level', () => {
       configureMockState({ prestigeLevel: 3 });
-      const wrapper = await mountSuspended(SettingsPage, {
-        global: { stubs: defaultGlobalStubs },
+      const wrapper = mount(SettingsPage, {
+        global: globalConfig,
       });
       expect(wrapper.find('[data-testid="generic-card"]').exists()).toBe(true);
     });
-    it('renders edition select with numeric value handling', async () => {
+    it('renders edition select with numeric value handling', () => {
       configureMockState({ gameEdition: 2 });
-      const wrapper = await mountSuspended(SettingsPage, {
-        global: { stubs: defaultGlobalStubs },
+      const wrapper = mount(SettingsPage, {
+        global: globalConfig,
       });
       const selects = wrapper.findAll('[data-testid="u-select"]');
       expect(selects.length).toBeGreaterThan(0);
-      // Verify the select stub is rendered and configured to emit numeric values
-      // The USelectMenu stub uses Number() conversion matching real component behavior
       const editionSelect = selects[0];
       expect(editionSelect?.exists()).toBe(true);
     });
   });
   describe('streamer mode', () => {
-    it('renders streamer mode toggle', async () => {
+    it('renders streamer mode toggle', () => {
       configureMockState({ streamerMode: false });
-      const wrapper = await mountSuspended(SettingsPage, {
-        global: { stubs: defaultGlobalStubs },
+      const wrapper = mount(SettingsPage, {
+        global: globalConfig,
       });
       const toggle = wrapper.find('[data-testid="interface-settings-card-switch"]');
       expect(toggle.exists()).toBe(true);
     });
-    it('renders with streamer mode enabled', async () => {
+    it('renders with streamer mode enabled', () => {
       configureMockState({ streamerMode: true });
-      const wrapper = await mountSuspended(SettingsPage, {
-        global: { stubs: defaultGlobalStubs },
+      const wrapper = mount(SettingsPage, {
+        global: globalConfig,
       });
       expect(wrapper.find('[data-testid="generic-card"]').exists()).toBe(true);
     });

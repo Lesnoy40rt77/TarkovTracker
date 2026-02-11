@@ -6,6 +6,7 @@
  * - Profile data fallback handling
  * - Authentication context and manual validation fallback
  */
+// @vitest-environment happy-dom
 import { mockNuxtImport } from '@nuxt/test-utils/runtime';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { H3Event, H3EventContext } from 'h3';
@@ -30,6 +31,7 @@ vi.mock('h3', async () => {
 });
 global.fetch = mockFetch as typeof fetch;
 mockNuxtImport('useRuntimeConfig', () => () => runtimeConfig);
+mockNuxtImport('useRouter', () => () => ({ afterEach: vi.fn() }));
 describe('Team Members API', () => {
   let mockEvent: Partial<H3Event>;
   const BASE_SITE_CONTEXT: Pick<H3EventContext, 'siteConfig' | 'siteConfigNitroOrigin'> = {

@@ -122,7 +122,7 @@ vi.mock('@/utils/mapCoordinates', () => ({
 const waitFor = async (predicate: () => boolean, maxIterations = 10) => {
   for (let index = 0; index < maxIterations; index++) {
     if (predicate()) return;
-    await vi.runAllTimersAsync();
+    await vi.advanceTimersByTimeAsync(1000);
     await nextTick();
   }
   throw new Error(`Condition not met after ${maxIterations} iterations`);
@@ -184,7 +184,7 @@ describe('useLeafletMap', () => {
       })
     );
     await nextTick();
-    await vi.runAllTimersAsync();
+    await vi.advanceTimersByTimeAsync(1000);
     await nextTick();
     if (!result || !mapRef) {
       throw new Error('useLeafletMap did not initialize - result is null after mounting');
@@ -298,7 +298,7 @@ describe('useLeafletMap', () => {
         ok: true,
         text: async () => '<svg xmlns="http://www.w3.org/2000/svg"></svg>',
       });
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(1000);
       await nextTick();
       expect(logger.error).not.toHaveBeenCalledWith(
         'Failed to initialize Leaflet map:',
@@ -360,7 +360,7 @@ describe('useLeafletMap', () => {
       mapRef.value = mapWithSvg('customs-c.svg');
       await nextTick();
       await waitFor(() => fetchSpy.mock.calls.length >= 3);
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(1000);
       await nextTick();
       expect(svgOverlaySpy).toHaveBeenCalledTimes(2);
       wrapper.unmount();
@@ -735,7 +735,7 @@ describe('useLeafletMap', () => {
       await nextTick();
       await waitFor(() => fetchSpy.mock.calls.length >= 2);
       result.destroy();
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(1000);
       await nextTick();
       expect(svgOverlaySpy).toHaveBeenCalledTimes(1);
       expect(result.mapInstance.value).toBe(null);

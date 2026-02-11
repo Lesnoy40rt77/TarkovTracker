@@ -124,12 +124,14 @@ vi.mock('@/stores/useTarkov', () => ({
     isTaskObjectiveComplete: () => false,
   }),
 }));
-vi.mock('vue-i18n', () => ({
+vi.mock('vue-i18n', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('vue-i18n')>()),
   useI18n: () => ({
     t: (_key: string, fallback?: string) => fallback ?? _key,
   }),
 }));
-vi.mock('vue-router', () => ({
+vi.mock('vue-router', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('vue-router')>()),
   useRoute: () => ({ query: {} }),
   useRouter: () => ({
     replace: vi.fn(() => Promise.resolve()),

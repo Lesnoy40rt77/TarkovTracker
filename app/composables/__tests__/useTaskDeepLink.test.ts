@@ -20,7 +20,7 @@ const replace = vi.fn(async ({ query }: { query: QueryRecord }) => {
   applyRouteQuery(query);
 });
 mockNuxtImport('useRoute', () => () => routeState);
-mockNuxtImport('useRouter', () => () => ({ replace }));
+mockNuxtImport('useRouter', () => () => ({ replace, afterEach: vi.fn() }));
 const metadataTasks = ref<Task[]>([]);
 const metadataState = reactive({
   tasksObjectivesHydrated: false,
@@ -70,16 +70,20 @@ describe('useTaskDeepLink', () => {
     tasksCompletions.value = {};
     tasksFailed.value = {};
     unlockedTasks.value = {};
-    vi.doMock('pinia', () => ({
-      storeToRefs: (store: Record<string, unknown>) => {
-        const refs: Record<string, unknown> = {};
-        Object.entries(store).forEach(([key, value]) => {
-          if (typeof value === 'function') return;
-          refs[key] = isRef(value) ? value : computed(() => store[key as keyof typeof store]);
-        });
-        return refs;
-      },
-    }));
+    vi.doMock('pinia', async () => {
+      const actual = await vi.importActual<typeof import('pinia')>('pinia');
+      return {
+        ...actual,
+        storeToRefs: (store: Record<string, unknown>) => {
+          const refs: Record<string, unknown> = {};
+          Object.entries(store).forEach(([key, value]) => {
+            if (typeof value === 'function') return;
+            refs[key] = isRef(value) ? value : computed(() => store[key as keyof typeof store]);
+          });
+          return refs;
+        },
+      };
+    });
     vi.doMock('@/stores/useMetadata', () => ({
       useMetadataStore: () => ({
         tasks: metadataTasks,

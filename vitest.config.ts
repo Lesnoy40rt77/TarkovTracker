@@ -21,13 +21,7 @@ export default defineVitestConfig({
     isolate: true,
     logHeapUsage: false,
     pool: 'forks',
-    poolOptions: {
-      forks: {
-        isolate: true,
-        maxForks: 1,
-        minForks: 1,
-      },
-    },
+    maxWorkers: 1,
     fileParallelism: false,
     maxConcurrency: 1,
     testTimeout: 30000,

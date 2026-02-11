@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 import { mockNuxtImport } from '@nuxt/test-utils/runtime';
 import { flushPromises, mount } from '@vue/test-utils';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
@@ -17,6 +18,7 @@ const mockSupabaseClient = {
 const mockToast = {
   add: vi.fn(),
 };
+mockNuxtImport('useRouter', () => () => ({ afterEach: vi.fn() }));
 mockNuxtImport('useNuxtApp', () => () => ({
   $supabase: {
     user: mockSupabaseUser,

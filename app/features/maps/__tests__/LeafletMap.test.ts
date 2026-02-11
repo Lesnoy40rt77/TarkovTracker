@@ -64,12 +64,9 @@ describe('LeafletMap utilities', () => {
           return Object.assign(target, ...sources);
         }
       );
-      const transformationSpy = vi.fn((a: number, b: number, c: number, d: number) => ({
-        a,
-        b,
-        c,
-        d,
-      }));
+      const transformationSpy = vi.fn(function (a: number, b: number, c: number, d: number) {
+        return { a, b, c, d };
+      });
       const projectSpy = vi.fn((latLng: { lat: number; lng: number }) => ({
         x: latLng.lng,
         y: latLng.lat,

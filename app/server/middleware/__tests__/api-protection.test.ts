@@ -7,6 +7,7 @@
  * - Expand coverage for IP validation and auth enforcement
  * - Add targeted tests for different runtime config scenarios
  */
+// @vitest-environment happy-dom
 import { mockNuxtImport } from '@nuxt/test-utils/runtime';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { H3Event } from 'h3';
@@ -60,6 +61,7 @@ vi.mock('h3', async () => {
 });
 global.fetch = mockFetch as typeof fetch;
 mockNuxtImport('useRuntimeConfig', () => () => runtimeConfig);
+mockNuxtImport('useRouter', () => () => ({ afterEach: vi.fn() }));
 describe('API Protection Middleware', () => {
   let mockEvent: Partial<H3Event>;
   type NodeContext = NonNullable<H3Event['node']>;

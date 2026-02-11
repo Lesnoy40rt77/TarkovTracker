@@ -100,11 +100,13 @@ vi.mock('@/stores/useTarkov', () => ({
     enforceHideoutPrereqsNow: vi.fn(),
   }),
 }));
-vi.mock('vue-router', () => ({
+vi.mock('vue-router', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('vue-router')>()),
   useRoute: () => ({ query: {} }),
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
 }));
-vi.mock('vue-i18n', () => ({
+vi.mock('vue-i18n', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('vue-i18n')>()),
   useI18n: () => ({
     t: (key: string, fallback?: string | Record<string, unknown>) =>
       typeof fallback === 'string' ? fallback : key,

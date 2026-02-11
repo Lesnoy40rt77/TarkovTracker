@@ -13,16 +13,7 @@ export default defineVitestProject({
     logHeapUsage: false,
     isolate: false,
     maxWorkers: process.env.CI ? 2 : 8,
-    minWorkers: process.env.CI ? 1 : 2,
-    teardownTimeout: 10000,
     pool: 'threads',
-    poolOptions: {
-      threads: {
-        singleThread: false,
-        isolate: false,
-      },
-    },
-    watchExclude: ['**/.nuxt/**', '**/.output/**', '**/dist/**'],
   },
   define: SHARED_DEFINE,
 });
