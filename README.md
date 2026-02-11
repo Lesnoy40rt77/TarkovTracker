@@ -10,7 +10,7 @@ A comprehensive Escape from Tarkov progress tracker built with Nuxt 4, featuring
 - **Hideout Progress**: Track module upgrades and parts
 - **Player Level Progress**: Monitor leveling across different factions
 - **Real-time Sync**: Automatic synchronization via Supabase
-- **Multi-language Support**: Available in English, German, Spanish, French, Russian, and Ukrainian
+- **Multi-language Support**: Available in English, German, Spanish, French, Russian, Ukrainian, and Chinese
 
 ## Tech Stack
 
@@ -32,18 +32,29 @@ npm install
 
 ## Environment Variables
 
-Create a `.env` file with the following variables:
+Copy `.env.example` to `.env` and fill in your values:
 
 ```env
+# Required for login/sync features
 VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anonymous_key
+
+# Optional: API gateway URLs (for team features)
+# NUXT_PUBLIC_TEAM_GATEWAY_URL=
+# NUXT_PUBLIC_TOKEN_GATEWAY_URL=
+
+# Optional: App configuration
+# NUXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-## Cloudflare Workers (API Gateway)
+## Cloudflare Workers
 
-The `workers/api-gateway` Worker uses a Durable Object binding for rate limiting:
+The project uses two Cloudflare Workers, each with a Durable Object binding for rate limiting:
 
-- `API_GATEWAY_LIMITER` (Durable Object)
+- `workers/api-gateway` — API request gateway
+  - `API_GATEWAY_LIMITER` (Durable Object)
+- `workers/team-gateway` — Team feature gateway
+  - `TEAM_GATEWAY_LIMITER` (Durable Object)
 
 ## Development
 
@@ -58,11 +69,17 @@ The application will be available at `http://localhost:3000`.
 ## Code Quality
 
 ```bash
+# Format code (Prettier + ESLint)
+npm run format
+
 # Lint code
-npx eslint .
+npm run lint
 
 # Run tests
-npx vitest
+npm test
+
+# Type check
+npm run typecheck
 
 # Check for dependency updates
 npm run deps
@@ -91,6 +108,7 @@ npm run preview
 - `app/composables/` - Reusable composition functions
 - `app/pages/` - File-based routing
 - `app/server/api/` - Nuxt server routes for API proxying
+- `workers/` - Cloudflare Workers (api-gateway, team-gateway)
 - `docs/` - Project documentation and migration guides
 
 ## Documentation
