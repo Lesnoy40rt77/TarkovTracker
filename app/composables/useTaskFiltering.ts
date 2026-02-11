@@ -572,12 +572,12 @@ export function useTaskFiltering() {
     });
   };
   const reorderMapViewTasks = (taskList: Task[]): Task[] => {
-    const pinnedIds = preferencesStore.getPinnedTaskIds;
+    const pinnedIdSet = new Set(preferencesStore.getPinnedTaskIds);
     const pinned: Task[] = [];
     const mapSpecific: Task[] = [];
     const global: Task[] = [];
     taskList.forEach((task) => {
-      if (pinnedIds.includes(task.id)) {
+      if (pinnedIdSet.has(task.id)) {
         pinned.push(task);
         return;
       }

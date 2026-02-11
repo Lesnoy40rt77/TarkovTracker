@@ -310,7 +310,7 @@
         map_complete_tasks_toggle_show: 'Mostrar ocultas',
         map_complete_tasks_toggle_hide: 'Ocultar completadas en mapa',
       },
-      pinned_tasks_section: 'Misiones fijadas',
+      pinned_tasks_section: 'Tareas fijadas',
       global_tasks_section: 'Tareas globales',
       questcard: {
         pin_task: 'Fijar misión',
